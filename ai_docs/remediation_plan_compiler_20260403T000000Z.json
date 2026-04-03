@@ -2,12 +2,17 @@
   "component_id": "remediation_plan_compiler",
   "creation_timestamp": "2026-04-03T00:00:00Z",
   "dependencies": [
+    "src/inf_work/kb_integrity.py",
     "src/inf_work/rules.py",
     "src/inf_work/system_status.py"
   ],
   "interfaces": {
     "python_api": [
+      "apply_package_public_api_export_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
+      "apply_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
       "apply_status_artifact_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
+      "compile_package_public_api_export_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
+      "compile_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
       "compile_status_artifact_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
       "list_supported_remediation_strategies() -> list[RemediationStrategy]"
     ],
@@ -38,6 +43,7 @@
     "Implements the minimum phase-1 remediation slice by compiling deterministic remediation responses to supported status-artifact drift rules.",
     "Adds a phase-2 dry-run structured remediation preview that simulates canonical status artifact outputs and emits deterministic diff excerpts without mutating the workspace.",
     "Adds a phase-3 applied remediation path that reuses the existing governed status-artifact writers, verifies the regenerated outputs, and restores the pre-apply artifact state if verification fails.",
-    "Reuses existing status validation outputs and canonical renderers instead of introducing a separate mutation path, keeping the slice bounded to governed artifact planning and bounded artifact execution."
+    "Adds a Phase 4 bounded source-level remediation slice that synchronizes missing `inf_work` package re-exports in `src/inf_work/__init__.py` when the governed package-public-API doc references symbols that resolve to exactly one provider module.",
+    "Reuses existing status and knowledge-base validation outputs instead of introducing ad hoc mutation flows, keeping the supported slices bounded to governed artifact planning, bounded artifact execution, and deterministic package-export source synchronization."
   ]
 }

@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 from pathlib import Path
 
 import inf_work.remediation as remediation_module
-from inf_work.remediation import apply_status_artifact_remediation, compile_status_artifact_remediation_plan, list_supported_remediation_strategies
+from inf_work.remediation import (
+    apply_package_public_api_export_remediation,
+    apply_remediation_plan,
+    apply_status_artifact_remediation,
+    compile_package_public_api_export_remediation_plan,
+    compile_remediation_plan,
+    compile_status_artifact_remediation_plan,
+    list_supported_remediation_strategies,
+)
 from inf_work.rules import RuleFinding, RuleResult
 from inf_work.system_status import StatusValidationResult
 
@@ -12,11 +21,33 @@ from inf_work.system_status import StatusValidationResult
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _rule_result(rule_id: str, *, passed: bool) -> RuleResult:
+@dataclass(frozen=True)
+class FakeKnowledgeBaseValidationResult:
+    workspace_root: str
+    compliant: bool
+    issues: list[object]
+    rule_results: list[RuleResult]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "workspace_root": self.workspace_root,
+            "compliant": self.compliant,
+            "issues": list(self.issues),
+            "rule_results": [rule_result.to_dict() for rule_result in self.rule_results],
+        }
+
+
+def _rule_result(
+    rule_id: str,
+    *,
+    passed: bool,
+    domain: str = "status",
+    category: str = "artifact_integrity",
+) -> RuleResult:
     return RuleResult(
         rule_id=rule_id,
-        domain="status",
-        category="artifact_integrity",
+        domain=domain,
+        category=category,
         severity="error",
         description=f"{rule_id} description",
         passed=passed,
@@ -45,12 +76,23 @@ def _status_validation_result(*rule_results: RuleResult, compliant: bool) -> Sta
     )
 
 
+def _kb_validation_result(*rule_results: RuleResult, compliant: bool, workspace_root: Path) -> FakeKnowledgeBaseValidationResult:
+    return FakeKnowledgeBaseValidationResult(
+        workspace_root=str(workspace_root.resolve()),
+        compliant=compliant,
+        issues=[],
+        rule_results=list(rule_results),
+    )
+
+
 def test_list_supported_remediation_strategies_returns_phase_one_strategy() -> None:
     strategies = list_supported_remediation_strategies()
 
-    assert len(strategies) == 1
+    assert len(strategies) == 2
     assert strategies[0].strategy_id == "strategy_status_artifact_regeneration_plan"
     assert strategies[0].supported_rule_ids == list(remediation_module.SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS)
+    assert strategies[1].strategy_id == "strategy_package_public_api_export_sync"
+    assert strategies[1].supported_rule_ids == list(remediation_module.SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS)
 
 
 def test_compile_status_artifact_remediation_plan_builds_supported_plan(monkeypatch) -> None:
@@ -337,3 +379,241 @@ def test_apply_status_artifact_remediation_rolls_back_on_failed_verification(mon
     assert (workspace_root / "ai_docs" / "system_status_snapshot.json").read_text(encoding="utf-8") == original_snapshot
     assert (workspace_root / "SYSTEM_STATUS.md").read_text(encoding="utf-8") == original_status
     assert (workspace_root / "SYSTEM_SUMMARY.md").read_text(encoding="utf-8") == original_summary
+
+
+def test_compile_package_public_api_export_remediation_plan_builds_source_level_plan(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "src" / "inf_work").mkdir(parents=True)
+    (workspace_root / "ai_docs" / "package_public_api_surface_20260331T000000Z.json").write_text(
+        json.dumps(
+            {
+                "interfaces": {
+                    "python_api": [
+                        "from inf_work import apply_status_artifact_remediation, compile_status_artifact_remediation_plan"
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (workspace_root / "src" / "inf_work" / "__init__.py").write_text(
+        'from .remediation import (\n\tcompile_status_artifact_remediation_plan,\n)\n\n__all__ = [\n\t"compile_status_artifact_remediation_plan",\n]\n',
+        encoding="utf-8",
+    )
+    (workspace_root / "src" / "inf_work" / "remediation.py").write_text(
+        'def apply_status_artifact_remediation():\n    return None\n\n'
+        'def compile_status_artifact_remediation_plan():\n    return None\n',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_knowledge_base",
+        lambda workspace_root, rule_ids: _kb_validation_result(
+            _rule_result(
+                "knowledge_base.component_doc_python_api_symbols_valid",
+                passed=False,
+                domain="knowledge_base",
+                category="api_surface",
+            ),
+            compliant=False,
+            workspace_root=Path(workspace_root),
+        ),
+    )
+
+    plan = compile_package_public_api_export_remediation_plan(
+        workspace_root,
+        {"knowledge_base.component_doc_python_api_symbols_valid"},
+        include_simulation=True,
+    )
+
+    assert plan.plan_available is True
+    assert plan.selected_strategy is not None
+    assert plan.selected_strategy.strategy_id == "strategy_package_public_api_export_sync"
+    assert plan.operations[0].operation_type == "rewrite_python_source"
+    assert plan.affected_paths == ["src/inf_work/__init__.py"]
+    assert plan.simulation_available is True
+    assert plan.simulation is not None
+    assert plan.simulation["changed_paths"] == ["src/inf_work/__init__.py"]
+
+
+def test_compile_remediation_plan_prefers_package_export_slice_for_kb_rule(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    monkeypatch.setattr(
+        remediation_module,
+        "compile_status_artifact_remediation_plan",
+        lambda workspace_root, rule_ids, include_simulation=False: remediation_module.RemediationPlan(
+            workspace_root=str(Path(workspace_root).resolve()),
+            plan_id="status",
+            objective="status",
+            plan_phase="plan_only_structured_remediation",
+            plan_only=True,
+            current_status_compliant=True,
+            plan_available=False,
+            selected_rule_ids=sorted(rule_ids) if rule_ids else [],
+            triggering_rule_ids=[],
+            unsupported_failing_rule_ids=[],
+            selected_strategy=None,
+            triggering_evidence=[],
+            current_rule_summary={},
+            affected_paths=[],
+            operations=[],
+            verification_contract=None,
+            rollback_contract=None,
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+            simulation_available=False,
+            simulation=None,
+            notes=[],
+        ),
+    )
+    monkeypatch.setattr(
+        remediation_module,
+        "compile_package_public_api_export_remediation_plan",
+        lambda workspace_root, rule_ids, include_simulation=False: remediation_module.RemediationPlan(
+            workspace_root=str(Path(workspace_root).resolve()),
+            plan_id="package",
+            objective="package",
+            plan_phase="bounded_source_level_remediation",
+            plan_only=True,
+            current_status_compliant=False,
+            plan_available=True,
+            selected_rule_ids=sorted(rule_ids) if rule_ids else [],
+            triggering_rule_ids=["knowledge_base.component_doc_python_api_symbols_valid"],
+            unsupported_failing_rule_ids=[],
+            selected_strategy=remediation_module.PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY,
+            triggering_evidence=[],
+            current_rule_summary={},
+            affected_paths=["src/inf_work/__init__.py"],
+            operations=[],
+            verification_contract=None,
+            rollback_contract=None,
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+            simulation_available=False,
+            simulation=None,
+            notes=[],
+        ),
+    )
+
+    plan = compile_remediation_plan(workspace_root, {"knowledge_base.component_doc_python_api_symbols_valid"})
+
+    assert plan.plan_id == "package"
+
+
+def test_apply_package_public_api_export_remediation_updates_init_and_verifies(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "src" / "inf_work").mkdir(parents=True)
+    doc_path = workspace_root / "ai_docs" / "package_public_api_surface_20260331T000000Z.json"
+    init_path = workspace_root / "src" / "inf_work" / "__init__.py"
+    remediation_path = workspace_root / "src" / "inf_work" / "remediation.py"
+    doc_path.write_text(
+        json.dumps(
+            {
+                "interfaces": {
+                    "python_api": [
+                        "from inf_work import apply_status_artifact_remediation, compile_status_artifact_remediation_plan"
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    init_path.write_text(
+        'from .remediation import (\n\tcompile_status_artifact_remediation_plan,\n)\n\n__all__ = [\n\t"compile_status_artifact_remediation_plan",\n]\n',
+        encoding="utf-8",
+    )
+    remediation_path.write_text(
+        'def apply_status_artifact_remediation():\n    return None\n\n'
+        'def compile_status_artifact_remediation_plan():\n    return None\n',
+        encoding="utf-8",
+    )
+
+    validation_calls = {"count": 0}
+
+    def fake_validate_knowledge_base(workspace_root: Path, rule_ids: set[str] | None):
+        validation_calls["count"] += 1
+        passed = validation_calls["count"] > 1
+        return _kb_validation_result(
+            _rule_result(
+                "knowledge_base.component_doc_python_api_symbols_valid",
+                passed=passed,
+                domain="knowledge_base",
+                category="api_surface",
+            ),
+            compliant=passed,
+            workspace_root=Path(workspace_root),
+        )
+
+    monkeypatch.setattr(remediation_module, "validate_knowledge_base", fake_validate_knowledge_base)
+
+    result = apply_package_public_api_export_remediation(
+        workspace_root,
+        {"knowledge_base.component_doc_python_api_symbols_valid"},
+    )
+
+    assert result.applied is True
+    assert result.compliant is True
+    assert result.rollback_performed is False
+    updated_text = init_path.read_text(encoding="utf-8")
+    assert "apply_status_artifact_remediation" in updated_text
+    assert '"apply_status_artifact_remediation"' in updated_text
+    assert result.knowledge_base_validation is not None
+
+
+def test_apply_remediation_plan_routes_to_package_export_strategy(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    plan = remediation_module.RemediationPlan(
+        workspace_root=str(workspace_root.resolve()),
+        plan_id="package",
+        objective="package",
+        plan_phase="bounded_source_level_remediation",
+        plan_only=True,
+        current_status_compliant=False,
+        plan_available=True,
+        selected_rule_ids=["knowledge_base.component_doc_python_api_symbols_valid"],
+        triggering_rule_ids=["knowledge_base.component_doc_python_api_symbols_valid"],
+        unsupported_failing_rule_ids=[],
+        selected_strategy=remediation_module.PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY,
+        triggering_evidence=[],
+        current_rule_summary={},
+        affected_paths=["src/inf_work/__init__.py"],
+        operations=[],
+        verification_contract=None,
+        rollback_contract=None,
+        provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+        simulation_available=False,
+        simulation=None,
+        notes=[],
+    )
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(remediation_module, "compile_remediation_plan", lambda *args, **kwargs: plan)
+    monkeypatch.setattr(
+        remediation_module,
+        "apply_package_public_api_export_remediation",
+        lambda workspace_root, rule_ids: captured.update({"workspace_root": workspace_root, "rule_ids": rule_ids})
+        or remediation_module.RemediationExecutionResult(
+            workspace_root=str(Path(workspace_root).resolve()),
+            plan_id="package",
+            execution_phase="bounded_source_level_remediation",
+            execution_attempted=True,
+            plan_available=True,
+            applied=True,
+            compliant=True,
+            rollback_performed=False,
+            rollback_summary={"restored_paths": [], "deleted_paths": []},
+            triggering_rule_ids=["knowledge_base.component_doc_python_api_symbols_valid"],
+            unsupported_failing_rule_ids=[],
+            operation_results=[],
+            status_validation=None,
+            summary_validation=None,
+            knowledge_base_validation=None,
+            notes=[],
+        ),
+    )
+
+    result = apply_remediation_plan(workspace_root, {"knowledge_base.component_doc_python_api_symbols_valid"})
+
+    assert result.compliant is True
+    assert captured["workspace_root"] == workspace_root
+    assert captured["rule_ids"] == {"knowledge_base.component_doc_python_api_symbols_valid"}

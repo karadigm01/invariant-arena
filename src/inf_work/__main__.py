@@ -8,7 +8,7 @@ import sys
 from typing import Any
 
 from .kb_integrity import validate_knowledge_base
-from .remediation import apply_status_artifact_remediation, compile_status_artifact_remediation_plan
+from .remediation import apply_remediation_plan, compile_remediation_plan
 from .resolver_registry import infer_route, resolve_explicit_path
 from .rules import (
     filter_rule_results,
@@ -238,7 +238,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     remediation_plan_parser = subparsers.add_parser(
         "remediation-plan",
-        help="Compile a deterministic remediation plan for supported status-artifact drift rules, with optional dry-run simulation.",
+        help="Compile a deterministic remediation plan for supported governed remediation slices, with optional dry-run simulation.",
     )
     remediation_plan_parser.add_argument(
         "workspace_root",
@@ -266,12 +266,12 @@ def build_parser() -> argparse.ArgumentParser:
     remediation_mode_group.add_argument(
         "--simulate",
         action="store_true",
-        help="Include the phase-2 dry-run structured remediation simulation with predicted artifact diffs.",
+        help="Include the dry-run remediation simulation with predicted diffs for the selected supported remediation slice.",
     )
     remediation_mode_group.add_argument(
         "--apply",
         action="store_true",
-        help="Execute the bounded status-artifact remediation with verification and rollback.",
+        help="Execute the selected bounded remediation slice with verification and rollback.",
     )
 
     resolve_path_parser = subparsers.add_parser(
@@ -444,7 +444,7 @@ def main() -> int:
             rule_ids=args.rule_id,
         )
         if args.apply:
-            execution_result = apply_status_artifact_remediation(
+            execution_result = apply_remediation_plan(
                 Path(args.workspace_root),
                 selected_rule_ids,
             )
@@ -457,7 +457,7 @@ def main() -> int:
                 args.pretty,
             )
 
-        plan = compile_status_artifact_remediation_plan(
+        plan = compile_remediation_plan(
             Path(args.workspace_root),
             selected_rule_ids,
             include_simulation=args.simulate,

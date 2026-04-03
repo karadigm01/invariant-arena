@@ -115,6 +115,7 @@
       "dependents": [
         "kb_check_compatibility_wrapper",
         "package_public_api_surface",
+        "remediation_plan_compiler",
         "system_status_generator",
         "unified_cli_entry_point",
         "validation_rule_engine"
@@ -283,6 +284,7 @@
       "component_type": "python_module",
       "file_path": "src/inf_work/remediation.py",
       "dependencies": [
+        "src/inf_work/kb_integrity.py",
         "src/inf_work/rules.py",
         "src/inf_work/system_status.py"
       ],

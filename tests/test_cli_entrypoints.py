@@ -97,9 +97,13 @@ def test_package_public_api_exports_expected_symbols() -> None:
         "VerificationContract",
         "build_core_reference_view",
         "build_resolver_capabilities",
+        "apply_package_public_api_export_remediation",
+        "apply_remediation_plan",
         "build_system_status_snapshot",
         "build_test_coverage_snapshot",
         "apply_status_artifact_remediation",
+        "compile_package_public_api_export_remediation_plan",
+        "compile_remediation_plan",
         "compile_status_artifact_remediation_plan",
         "infer_route",
         "list_supported_remediation_strategies",
@@ -339,7 +343,7 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
 
     monkeypatch.setattr(
         unified_cli,
-        "compile_status_artifact_remediation_plan",
+        "compile_remediation_plan",
         lambda workspace_root, selected_rule_ids, include_simulation=False: captured.update(
             {
                 "workspace_root": workspace_root,
@@ -388,7 +392,7 @@ def test_unified_main_remediation_plan_apply_outputs_execution_result(monkeypatc
 
     monkeypatch.setattr(
         unified_cli,
-        "apply_status_artifact_remediation",
+        "apply_remediation_plan",
         lambda workspace_root, selected_rule_ids: captured.update(
             {
                 "workspace_root": workspace_root,

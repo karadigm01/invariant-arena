@@ -9,18 +9,18 @@
 - **Workspace Health Checker**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 4 dependents
 - **Core Reference View**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 1 dependency, 2 dependents
 - **Validation Rule Engine**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 5 dependents
-- **Knowledge Base Cross-Reference Validator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 9 dependencies, 5 dependents
+- **Knowledge Base Cross-Reference Validator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 9 dependencies, 6 dependents
 - **System Status Generator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 4 dependents
 - **Package Public API Surface**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 0 dependents
 - **Unified CLI Entry Point**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 6 dependencies, 1 dependent
 - **KB Check Compatibility Wrapper**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
-- **Remediation Plan Compiler**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 2 dependents
+- **Remediation Plan Compiler**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 3 dependencies, 2 dependents
 - **Resolver Capability Registry**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 3 dependents
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Inventory
-- **Collected Tests**: 272
-- **Collection Summary**: 272 collected
+- **Collected Tests**: 276
+- **Collection Summary**: 276 collected
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)

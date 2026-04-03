@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import difflib
 from dataclasses import asdict, dataclass
 import hashlib
@@ -7,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .kb_integrity import validate_knowledge_base
 from .rules import RuleResult, summarize_rule_results
 from .system_status import (
     build_system_status_snapshot,
@@ -21,11 +23,16 @@ from .system_status import (
 _DEFAULT_STATUS_JSON_PATH = "ai_docs/system_status_snapshot.json"
 _DEFAULT_STATUS_MARKDOWN_PATH = "SYSTEM_STATUS.md"
 _DEFAULT_STATUS_SUMMARY_PATH = "SYSTEM_SUMMARY.md"
+_PACKAGE_PUBLIC_API_DOC_PATH = "ai_docs/package_public_api_surface_20260331T000000Z.json"
+_PACKAGE_PUBLIC_API_MODULE_PATH = "src/inf_work/__init__.py"
 
 SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS = (
     "status.snapshot_matches_workspace",
     "status.markdown_matches_snapshot",
     "status.summary_matches_workspace",
+)
+SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS = (
+    "knowledge_base.component_doc_python_api_symbols_valid",
 )
 
 
@@ -171,6 +178,7 @@ class RemediationExecutionResult:
     operation_results: list[OperationExecutionResult]
     status_validation: dict[str, Any] | None
     summary_validation: dict[str, Any] | None
+    knowledge_base_validation: dict[str, Any] | None
     notes: list[str]
 
     def to_dict(self) -> dict[str, Any]:
@@ -189,6 +197,7 @@ class RemediationExecutionResult:
             "operation_results": [operation.to_dict() for operation in self.operation_results],
             "status_validation": self.status_validation,
             "summary_validation": self.summary_validation,
+            "knowledge_base_validation": self.knowledge_base_validation,
             "notes": self.notes,
         }
 
@@ -208,8 +217,26 @@ def _build_status_artifact_strategy() -> RemediationStrategy:
 STATUS_ARTIFACT_REMEDIATION_STRATEGY = _build_status_artifact_strategy()
 
 
+def _build_package_export_sync_strategy() -> RemediationStrategy:
+    return RemediationStrategy(
+        strategy_id="strategy_package_public_api_export_sync",
+        description="Synchronize the governed `inf_work` package export surface in `src/inf_work/__init__.py` so documented package imports resolve to explicit re-exports.",
+        supported_rule_ids=list(SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS),
+        priority=2,
+        allowed_operation_types=["rewrite_python_source", "run_validation_profile"],
+        verification_profile="package_public_api_export_sync",
+        rollback_profile="python_source_pre_state_restore",
+    )
+
+
+PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY = _build_package_export_sync_strategy()
+
+
 def list_supported_remediation_strategies() -> list[RemediationStrategy]:
-    return [STATUS_ARTIFACT_REMEDIATION_STRATEGY]
+    return [
+        STATUS_ARTIFACT_REMEDIATION_STRATEGY,
+        PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY,
+    ]
 
 
 def _operation_command_string(command: str, command_arguments: list[str]) -> str:
@@ -311,6 +338,24 @@ def _build_provenance_record(trigger_rule_ids: list[str], supporting_rule_ids: l
     )
 
 
+def _build_package_export_provenance_record(trigger_rule_ids: list[str], supporting_rule_ids: list[str]) -> ChangeProvenanceRecord:
+    return ChangeProvenanceRecord(
+        record_id="provenance_package_public_api_export_sync",
+        trigger_kind="knowledge_base_rule_failure",
+        trigger_rule_ids=trigger_rule_ids,
+        supporting_rule_ids=supporting_rule_ids,
+        source_artifact_paths=[
+            _PACKAGE_PUBLIC_API_DOC_PATH,
+            _PACKAGE_PUBLIC_API_MODULE_PATH,
+        ],
+        derived_from_components=[
+            "package_public_api_surface",
+            "remediation_plan_compiler",
+            "unified_cli_entry_point",
+        ],
+    )
+
+
 def _sha256_text(value: str | None) -> str | None:
     if value is None:
         return None
@@ -331,6 +376,299 @@ def _line_preview(value: str | None, *, limit: int = 12) -> list[str]:
 
 def _serialize_snapshot(snapshot: Any) -> str:
     return json.dumps(snapshot.to_dict(), indent=2)
+
+
+def _extract_module_export_surface(module_path: Path) -> tuple[set[str], set[str] | None]:
+    module_ast = ast.parse(module_path.read_text(encoding="utf-8"), filename=str(module_path))
+    exported_names: set[str] = set()
+    explicit_all: set[str] | None = None
+
+    for node in module_ast.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            exported_names.add(node.name)
+            continue
+
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                exported_names.add(alias.asname or alias.name.split(".")[-1])
+            continue
+
+        if isinstance(node, ast.Assign):
+            target_names = {
+                target.id
+                for target in node.targets
+                if isinstance(target, ast.Name)
+            }
+            exported_names.update(name for name in target_names if name != "__all__")
+            if "__all__" in target_names:
+                try:
+                    literal_value = ast.literal_eval(node.value)
+                except (ValueError, SyntaxError):
+                    literal_value = None
+                if isinstance(literal_value, (list, tuple)) and all(isinstance(value, str) for value in literal_value):
+                    explicit_all = set(literal_value)
+
+    return exported_names, explicit_all
+
+
+def _extract_package_import_symbols(entry: str) -> set[str]:
+    normalized_entry = entry.strip()
+    prefix = "from inf_work import "
+    if not normalized_entry.startswith(prefix):
+        return set()
+    return {
+        part.strip()
+        for part in normalized_entry[len(prefix):].split(",")
+        if part.strip()
+    }
+
+
+def _group_missing_symbols_by_provider(root_path: Path, missing_symbols: list[str]) -> tuple[dict[str, list[str]], list[str]]:
+    provider_index: dict[str, set[str]] = {}
+    package_root = root_path / "src" / "inf_work"
+    for module_path in sorted(package_root.glob("*.py")):
+        if module_path.name == "__init__.py":
+            continue
+        exported_names, _ = _extract_module_export_surface(module_path)
+        module_name = module_path.stem
+        for symbol in exported_names:
+            provider_index.setdefault(symbol, set()).add(module_name)
+
+    module_to_symbols: dict[str, list[str]] = {}
+    unsupported_symbols: list[str] = []
+    for symbol in sorted(missing_symbols):
+        providers = sorted(provider_index.get(symbol, set()))
+        if len(providers) != 1:
+            unsupported_symbols.append(symbol)
+            continue
+        module_to_symbols.setdefault(providers[0], []).append(symbol)
+
+    return module_to_symbols, unsupported_symbols
+
+
+def _append_grouped_import_symbols(current_text: str, module_name: str, symbols: list[str]) -> str:
+    lines = current_text.splitlines()
+    header = f"from .{module_name} import ("
+    for index, line in enumerate(lines):
+        if line == header:
+            end_index = index + 1
+            existing_symbols: list[str] = []
+            while end_index < len(lines) and lines[end_index].strip() != ")":
+                stripped_line = lines[end_index].strip().rstrip(",")
+                if stripped_line:
+                    existing_symbols.append(stripped_line)
+                end_index += 1
+            updated_symbols = existing_symbols + [symbol for symbol in symbols if symbol not in existing_symbols]
+            replacement_block = [header, *[f"\t{symbol}," for symbol in updated_symbols], ")"]
+            return "\n".join([*lines[:index], *replacement_block, *lines[end_index + 1 :]])
+
+    insert_index = next(index for index, line in enumerate(lines) if line.startswith("__all__ = ["))
+    new_block = [header, *[f"\t{symbol}," for symbol in symbols], ")", ""]
+    return "\n".join([*lines[:insert_index], *new_block, *lines[insert_index:]])
+
+
+def _append_all_entries(current_text: str, symbols: list[str]) -> str:
+    lines = current_text.splitlines()
+    start_index = next(index for index, line in enumerate(lines) if line.startswith("__all__ = ["))
+    end_index = start_index + 1
+    existing_symbols: list[str] = []
+    while end_index < len(lines) and lines[end_index].strip() != "]":
+        stripped_line = lines[end_index].strip().rstrip(",")
+        if stripped_line:
+            existing_symbols.append(stripped_line.strip('"'))
+        end_index += 1
+    updated_symbols = existing_symbols + [symbol for symbol in symbols if symbol not in existing_symbols]
+    replacement_block = ["__all__ = [", *[f'\t"{symbol}",' for symbol in updated_symbols], "]"]
+    return "\n".join([*lines[:start_index], *replacement_block, *lines[end_index + 1 :]])
+
+
+def _build_package_export_sync_state(root_path: Path) -> dict[str, Any]:
+    documentation_payload = json.loads((root_path / _PACKAGE_PUBLIC_API_DOC_PATH).read_text(encoding="utf-8"))
+    python_api_entries = documentation_payload.get("interfaces", {}).get("python_api", [])
+    package_import_entry = next(
+        (entry for entry in python_api_entries if isinstance(entry, str) and entry.strip().startswith("from inf_work import ")),
+        None,
+    )
+    documented_symbols = sorted(_extract_package_import_symbols(package_import_entry or ""))
+
+    module_path = root_path / _PACKAGE_PUBLIC_API_MODULE_PATH
+    current_text = module_path.read_text(encoding="utf-8")
+    exported_names, explicit_all = _extract_module_export_surface(module_path)
+    current_expected_symbols = explicit_all if explicit_all is not None else exported_names
+    missing_documented_symbols = sorted(symbol for symbol in documented_symbols if symbol not in current_expected_symbols)
+    missing_import_symbols = sorted(symbol for symbol in documented_symbols if symbol not in exported_names)
+    missing_all_symbols = sorted(
+        symbol
+        for symbol in documented_symbols
+        if explicit_all is not None and symbol not in explicit_all
+    )
+    module_symbol_additions, unsupported_symbols = _group_missing_symbols_by_provider(root_path, missing_import_symbols)
+
+    updated_text = current_text
+    if not unsupported_symbols and (missing_import_symbols or missing_all_symbols):
+        for module_name, symbols in sorted(module_symbol_additions.items()):
+            updated_text = _append_grouped_import_symbols(updated_text, module_name, symbols)
+        if missing_import_symbols or missing_all_symbols:
+            updated_text = _append_all_entries(
+                updated_text,
+                sorted(set(missing_import_symbols) | set(missing_all_symbols)),
+            )
+        updated_text = f"{updated_text.rstrip()}\n"
+
+    return {
+        "documentation_path": _PACKAGE_PUBLIC_API_DOC_PATH,
+        "module_path": _PACKAGE_PUBLIC_API_MODULE_PATH,
+        "package_import_entry": package_import_entry,
+        "documented_symbols": documented_symbols,
+        "exported_names": sorted(exported_names),
+        "explicit_all": sorted(explicit_all) if explicit_all is not None else None,
+        "missing_documented_symbols": missing_documented_symbols,
+        "missing_import_symbols": missing_import_symbols,
+        "missing_all_symbols": missing_all_symbols,
+        "module_symbol_additions": module_symbol_additions,
+        "unsupported_symbols": unsupported_symbols,
+        "updated_text": updated_text,
+    }
+
+
+def _build_package_export_plan_operations(workspace_root: str, trigger_rule_ids: list[str]) -> list[PlanOperation]:
+    verify_arguments = [
+        "-m",
+        "inf_work",
+        "kb",
+        workspace_root,
+        "--pretty",
+        "--rule-id",
+        "knowledge_base.component_doc_python_api_symbols_valid",
+    ]
+    return [
+        PlanOperation(
+            operation_id="sync_package_public_api_exports",
+            operation_type="rewrite_python_source",
+            target_paths=[_PACKAGE_PUBLIC_API_MODULE_PATH],
+            description="Synchronize the governed `inf_work` package export surface so documented package imports resolve to explicit imports plus `__all__` entries.",
+            command="python",
+            command_arguments=[
+                "-m",
+                "inf_work",
+                "remediation-plan",
+                workspace_root,
+                "--pretty",
+                "--apply",
+                "--rule-id",
+                "knowledge_base.component_doc_python_api_symbols_valid",
+            ],
+            evidence_rule_ids=trigger_rule_ids,
+            predicted_outcome="The governed package public API documentation matches the explicit `inf_work` re-export surface.",
+        ),
+        PlanOperation(
+            operation_id="validate_package_public_api_exports",
+            operation_type="run_validation_profile",
+            target_paths=[_PACKAGE_PUBLIC_API_DOC_PATH, _PACKAGE_PUBLIC_API_MODULE_PATH],
+            description="Validate the package-public-API symbol references against the governed module export surface after synchronization.",
+            command="python",
+            command_arguments=verify_arguments,
+            evidence_rule_ids=trigger_rule_ids,
+            predicted_outcome="The package-public-API doc references only symbols exported by `src/inf_work/__init__.py`.",
+        ),
+    ]
+
+
+def _build_package_export_verification_contract(workspace_root: str, required_rule_ids: list[str]) -> VerificationContract:
+    command = _operation_command_string(
+        "python",
+        [
+            "-m",
+            "inf_work",
+            "kb",
+            workspace_root,
+            "--pretty",
+            "--rule-id",
+            "knowledge_base.component_doc_python_api_symbols_valid",
+        ],
+    )
+    return VerificationContract(
+        contract_id="verify_package_public_api_export_sync",
+        required_rule_ids=required_rule_ids,
+        commands=[command],
+        success_criteria=[
+            "`kb --rule-id knowledge_base.component_doc_python_api_symbols_valid` reports no missing `inf_work` package exports.",
+        ],
+    )
+
+
+def _build_python_source_rollback_contract() -> RollbackContract:
+    return RollbackContract(
+        contract_id="rollback_python_source_pre_state_restore",
+        strategy="restore_pre_state_file_contents",
+        steps=[
+            "Capture the full pre-remediation contents of the targeted Python source file before mutation.",
+            "If verification fails, restore the exact pre-state file contents and rerun the targeted validator.",
+        ],
+    )
+
+
+def _build_package_export_simulation(
+    root_path: Path,
+    rule_results: list[RuleResult],
+    sync_state: dict[str, Any],
+) -> dict[str, Any]:
+    predicted_rule_results: list[RuleResult] = []
+    predicted_rule_outcomes: list[dict[str, Any]] = []
+    for rule_result in sorted(rule_results, key=lambda item: item.rule_id):
+        predicted_passed = rule_result.passed
+        rationale = "Dry-run simulation does not alter this rule surface, so the current result is preserved."
+        if rule_result.rule_id == "knowledge_base.component_doc_python_api_symbols_valid" and not sync_state["unsupported_symbols"]:
+            predicted_passed = True
+            rationale = "Simulated package export synchronization adds the missing explicit re-exports required by the governed package API documentation."
+        predicted_rule_results.append(
+            RuleResult(
+                rule_id=rule_result.rule_id,
+                domain=rule_result.domain,
+                category=rule_result.category,
+                severity=rule_result.severity,
+                description=rule_result.description,
+                passed=predicted_passed,
+                findings=[] if predicted_passed else rule_result.findings,
+            )
+        )
+        predicted_rule_outcomes.append(
+            {
+                "rule_id": rule_result.rule_id,
+                "current_passed": rule_result.passed,
+                "predicted_passed": predicted_passed,
+                "predicted_effect": (
+                    "would_pass"
+                    if predicted_passed and not rule_result.passed
+                    else "unchanged"
+                    if predicted_passed == rule_result.passed
+                    else "would_fail"
+                ),
+                "rationale": rationale,
+            }
+        )
+
+    artifact_change = _build_artifact_change(
+        root_path,
+        sync_state["module_path"],
+        sync_state["updated_text"],
+    )
+    changed_paths = [artifact_change["target_path"]] if artifact_change["content_changed"] else []
+    unchanged_paths = [] if artifact_change["content_changed"] else [artifact_change["target_path"]]
+    return {
+        "simulation_id": "dry_run_package_public_api_export_sync",
+        "simulation_phase": "dry_run_source_level_remediation",
+        "workspace_mutation": False,
+        "artifact_changes": [artifact_change],
+        "changed_paths": changed_paths,
+        "unchanged_paths": unchanged_paths,
+        "predicted_rule_outcomes": predicted_rule_outcomes,
+        "predicted_rule_summary": summarize_rule_results(predicted_rule_results),
+        "notes": [
+            "Dry-run simulation previews the deterministic `src/inf_work/__init__.py` re-export patch without mutating the workspace.",
+            "The current source-level slice stays bounded to the package public API export surface and excludes arbitrary Python edits.",
+        ],
+    }
 
 
 def _build_artifact_change(root_path: Path, target_path: str, simulated_text: str) -> dict[str, Any]:
@@ -499,6 +837,27 @@ def _build_operation_execution_result(
     )
 
 
+def _build_no_plan_execution_result(plan: RemediationPlan, *, notes: list[str]) -> RemediationExecutionResult:
+    return RemediationExecutionResult(
+        workspace_root=plan.workspace_root,
+        plan_id=plan.plan_id,
+        execution_phase="applied_structured_remediation",
+        execution_attempted=False,
+        plan_available=False,
+        applied=False,
+        compliant=plan.current_status_compliant,
+        rollback_performed=False,
+        rollback_summary={"restored_paths": [], "deleted_paths": []},
+        triggering_rule_ids=plan.triggering_rule_ids,
+        unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+        operation_results=[],
+        status_validation=None,
+        summary_validation=None,
+        knowledge_base_validation=None,
+        notes=notes,
+    )
+
+
 def apply_status_artifact_remediation(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
@@ -507,21 +866,8 @@ def apply_status_artifact_remediation(
     plan = compile_status_artifact_remediation_plan(root_path, rule_ids, include_simulation=False)
 
     if not plan.plan_available:
-        return RemediationExecutionResult(
-            workspace_root=str(root_path),
-            plan_id=plan.plan_id,
-            execution_phase="applied_structured_remediation",
-            execution_attempted=False,
-            plan_available=False,
-            applied=False,
-            compliant=plan.current_status_compliant,
-            rollback_performed=False,
-            rollback_summary={"restored_paths": [], "deleted_paths": []},
-            triggering_rule_ids=plan.triggering_rule_ids,
-            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
-            operation_results=[],
-            status_validation=None,
-            summary_validation=None,
+        return _build_no_plan_execution_result(
+            plan,
             notes=[
                 "No supported applied remediation was executed because no bounded status-artifact remediation plan was available.",
                 *plan.notes,
@@ -597,6 +943,7 @@ def apply_status_artifact_remediation(
                 operation_results=operation_results,
                 status_validation=status_validation.to_dict(),
                 summary_validation=summary_validation.to_dict(),
+                knowledge_base_validation=None,
                 notes=[
                     "Applied remediation completed successfully for the bounded status-artifact slice.",
                     "Verification passed without requiring rollback.",
@@ -619,6 +966,7 @@ def apply_status_artifact_remediation(
             operation_results=operation_results,
             status_validation=status_validation.to_dict(),
             summary_validation=summary_validation.to_dict(),
+            knowledge_base_validation=None,
             notes=[
                 "Applied remediation failed verification and the bounded rollback contract restored the pre-remediation artifact state.",
             ],
@@ -640,11 +988,274 @@ def apply_status_artifact_remediation(
             operation_results=operation_results,
             status_validation=None,
             summary_validation=None,
+            knowledge_base_validation=None,
             notes=[
                 "Applied remediation encountered an exception and the bounded rollback contract restored the pre-remediation artifact state.",
                 f"Exception: {error}",
             ],
         )
+
+
+def compile_package_public_api_export_remediation_plan(
+    workspace_root: str | Path,
+    rule_ids: set[str] | None = None,
+    *,
+    include_simulation: bool = False,
+) -> RemediationPlan:
+    root_path = Path(workspace_root).resolve()
+    validation_result = validate_knowledge_base(root_path, rule_ids)
+    failed_rule_ids = _sorted_failed_rule_ids(validation_result.rule_results)
+    supported_rule_ids = [rule_id for rule_id in failed_rule_ids if rule_id in SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS]
+    unsupported_rule_ids = [rule_id for rule_id in failed_rule_ids if rule_id not in SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS]
+    selected_rule_ids = sorted(rule_ids) if rule_ids else []
+    sync_state = _build_package_export_sync_state(root_path)
+    plan_available = bool(supported_rule_ids) and bool(sync_state["missing_documented_symbols"]) and not sync_state["unsupported_symbols"]
+    current_rule_summary = summarize_rule_results(validation_result.rule_results)
+    triggering_evidence = [
+        rule_result.to_dict()
+        for rule_result in sorted(validation_result.rule_results, key=lambda item: item.rule_id)
+        if not rule_result.passed and rule_result.rule_id in supported_rule_ids
+    ]
+
+    if plan_available:
+        simulation = _build_package_export_simulation(root_path, validation_result.rule_results, sync_state) if include_simulation else None
+        return RemediationPlan(
+            workspace_root=str(root_path),
+            plan_id="remediation_plan_package_public_api_export_sync",
+            objective="Synchronize the governed `inf_work` package export surface so the package public API documentation references only explicit re-exports.",
+            plan_phase="dry_run_source_level_remediation" if include_simulation else "bounded_source_level_remediation",
+            plan_only=not include_simulation,
+            current_status_compliant=validation_result.compliant,
+            plan_available=True,
+            selected_rule_ids=selected_rule_ids,
+            triggering_rule_ids=supported_rule_ids,
+            unsupported_failing_rule_ids=unsupported_rule_ids,
+            selected_strategy=PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY,
+            triggering_evidence=triggering_evidence,
+            current_rule_summary=current_rule_summary,
+            affected_paths=[_PACKAGE_PUBLIC_API_MODULE_PATH],
+            operations=_build_package_export_plan_operations(str(root_path), supported_rule_ids),
+            verification_contract=_build_package_export_verification_contract(str(root_path), supported_rule_ids),
+            rollback_contract=_build_python_source_rollback_contract(),
+            provenance=_build_package_export_provenance_record(supported_rule_ids, unsupported_rule_ids),
+            simulation_available=simulation is not None,
+            simulation=simulation,
+            notes=[
+                "The current Phase 4 slice is bounded to deterministic re-export synchronization in `src/inf_work/__init__.py`.",
+                "The strategy only compiles when every missing documented symbol resolves to exactly one governed provider module.",
+                "The current slice intentionally excludes arbitrary Python edits, multi-file synthesis, and interface redesign.",
+            ],
+        )
+
+    notes = [
+        "No supported Phase 4 package-export drift failures are active, so no bounded source-level remediation plan is compiled.",
+    ]
+    if sync_state["unsupported_symbols"]:
+        notes.append(
+            "Some missing documented package exports could not be resolved to exactly one governed provider module, so source-level remediation remains blocked for those symbols."
+        )
+    elif supported_rule_ids:
+        notes.append("The package public API documentation already matches the explicit `inf_work` package re-export surface.")
+    else:
+        notes.append(
+            "Failing knowledge-base rules remain outside the supported Phase 4 package-export remediation slice and must be handled by validator-specific workflows."
+        )
+
+    return RemediationPlan(
+        workspace_root=str(root_path),
+        plan_id="remediation_plan_package_public_api_export_sync",
+        objective="Determine whether the bounded package-export source-level remediation slice should compile a deterministic plan.",
+        plan_phase="dry_run_source_level_remediation" if include_simulation else "bounded_source_level_remediation",
+        plan_only=not include_simulation,
+        current_status_compliant=validation_result.compliant,
+        plan_available=False,
+        selected_rule_ids=selected_rule_ids,
+        triggering_rule_ids=[],
+        unsupported_failing_rule_ids=unsupported_rule_ids,
+        selected_strategy=None,
+        triggering_evidence=[],
+        current_rule_summary=current_rule_summary,
+        affected_paths=[_PACKAGE_PUBLIC_API_MODULE_PATH],
+        operations=[],
+        verification_contract=None,
+        rollback_contract=_build_python_source_rollback_contract(),
+        provenance=_build_package_export_provenance_record([], unsupported_rule_ids),
+        simulation_available=False,
+        simulation=None,
+        notes=notes,
+    )
+
+
+def apply_package_public_api_export_remediation(
+    workspace_root: str | Path,
+    rule_ids: set[str] | None = None,
+) -> RemediationExecutionResult:
+    root_path = Path(workspace_root).resolve()
+    plan = compile_package_public_api_export_remediation_plan(root_path, rule_ids, include_simulation=False)
+    if not plan.plan_available:
+        return _build_no_plan_execution_result(
+            plan,
+            notes=[
+                "No supported applied remediation was executed because no bounded package-export source-level remediation plan was available.",
+                *plan.notes,
+            ],
+        )
+
+    sync_state = _build_package_export_sync_state(root_path)
+    pre_state = _capture_artifact_pre_state(root_path, plan.affected_paths)
+    operation_results: list[OperationExecutionResult] = []
+
+    try:
+        target_path = root_path / _PACKAGE_PUBLIC_API_MODULE_PATH
+        target_path.write_text(sync_state["updated_text"], encoding="utf-8")
+        operation_results.append(
+            _build_operation_execution_result(
+                plan.operations[0],
+                status="completed",
+                mutation_performed=True,
+                details={
+                    "module_symbol_additions": sync_state["module_symbol_additions"],
+                    "missing_all_symbols": sync_state["missing_all_symbols"],
+                    "updated_path": _PACKAGE_PUBLIC_API_MODULE_PATH,
+                },
+            )
+        )
+
+        verification_rule_ids = set(plan.verification_contract.required_rule_ids) if plan.verification_contract else None
+        kb_validation = validate_knowledge_base(root_path, verification_rule_ids)
+        operation_results.append(
+            _build_operation_execution_result(
+                plan.operations[1],
+                status="completed" if kb_validation.compliant else "failed",
+                mutation_performed=False,
+                details={
+                    "compliant": kb_validation.compliant,
+                    "issue_count": len(kb_validation.issues),
+                    "rule_summary": summarize_rule_results(kb_validation.rule_results),
+                },
+            )
+        )
+
+        if kb_validation.compliant:
+            return RemediationExecutionResult(
+                workspace_root=str(root_path),
+                plan_id=plan.plan_id,
+                execution_phase="bounded_source_level_remediation",
+                execution_attempted=True,
+                plan_available=True,
+                applied=True,
+                compliant=True,
+                rollback_performed=False,
+                rollback_summary={"restored_paths": [], "deleted_paths": []},
+                triggering_rule_ids=plan.triggering_rule_ids,
+                unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+                operation_results=operation_results,
+                status_validation=None,
+                summary_validation=None,
+                knowledge_base_validation=kb_validation.to_dict(),
+                notes=[
+                    "Applied remediation completed successfully for the bounded package-export source-level slice.",
+                    "Verification passed without requiring rollback.",
+                ],
+            )
+
+        rollback_summary = _restore_artifact_pre_state(root_path, pre_state)
+        return RemediationExecutionResult(
+            workspace_root=str(root_path),
+            plan_id=plan.plan_id,
+            execution_phase="bounded_source_level_remediation",
+            execution_attempted=True,
+            plan_available=True,
+            applied=False,
+            compliant=False,
+            rollback_performed=True,
+            rollback_summary=rollback_summary,
+            triggering_rule_ids=plan.triggering_rule_ids,
+            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+            operation_results=operation_results,
+            status_validation=None,
+            summary_validation=None,
+            knowledge_base_validation=kb_validation.to_dict(),
+            notes=[
+                "Applied remediation failed verification and the bounded rollback contract restored the pre-remediation Python source state.",
+            ],
+        )
+    except Exception as error:
+        rollback_summary = _restore_artifact_pre_state(root_path, pre_state)
+        return RemediationExecutionResult(
+            workspace_root=str(root_path),
+            plan_id=plan.plan_id,
+            execution_phase="bounded_source_level_remediation",
+            execution_attempted=True,
+            plan_available=True,
+            applied=False,
+            compliant=False,
+            rollback_performed=True,
+            rollback_summary=rollback_summary,
+            triggering_rule_ids=plan.triggering_rule_ids,
+            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+            operation_results=operation_results,
+            status_validation=None,
+            summary_validation=None,
+            knowledge_base_validation=None,
+            notes=[
+                "Applied remediation encountered an exception and the bounded rollback contract restored the pre-remediation Python source state.",
+                f"Exception: {error}",
+            ],
+        )
+
+
+def compile_remediation_plan(
+    workspace_root: str | Path,
+    rule_ids: set[str] | None = None,
+    *,
+    include_simulation: bool = False,
+) -> RemediationPlan:
+    root_path = Path(workspace_root).resolve()
+    selected_rule_ids = sorted(rule_ids) if rule_ids else []
+    status_plan = compile_status_artifact_remediation_plan(root_path, rule_ids, include_simulation=include_simulation)
+    package_plan = compile_package_public_api_export_remediation_plan(root_path, rule_ids, include_simulation=include_simulation)
+    selected_domains = {rule_id.split(".", maxsplit=1)[0] for rule_id in selected_rule_ids}
+
+    if selected_domains == {"knowledge_base"}:
+        return package_plan
+    if selected_domains == {"status"}:
+        return status_plan
+
+    available_plans = [plan for plan in [status_plan, package_plan] if plan.plan_available and plan.selected_strategy is not None]
+    if available_plans:
+        return sorted(available_plans, key=lambda plan: plan.selected_strategy.priority)[0]
+    if not status_plan.current_status_compliant:
+        return status_plan
+    if not package_plan.current_status_compliant:
+        return package_plan
+    return status_plan
+
+
+def apply_remediation_plan(
+    workspace_root: str | Path,
+    rule_ids: set[str] | None = None,
+) -> RemediationExecutionResult:
+    plan = compile_remediation_plan(workspace_root, rule_ids, include_simulation=False)
+    if not plan.plan_available or plan.selected_strategy is None:
+        return _build_no_plan_execution_result(
+            plan,
+            notes=[
+                "No supported applied remediation was executed because no bounded remediation plan was available for the selected rule slice.",
+                *plan.notes,
+            ],
+        )
+    if plan.selected_strategy.strategy_id == STATUS_ARTIFACT_REMEDIATION_STRATEGY.strategy_id:
+        return apply_status_artifact_remediation(workspace_root, rule_ids)
+    if plan.selected_strategy.strategy_id == PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY.strategy_id:
+        return apply_package_public_api_export_remediation(workspace_root, rule_ids)
+    return _build_no_plan_execution_result(
+        plan,
+        notes=[
+            "No supported applied remediation was executed because the selected strategy does not yet have an execution binding.",
+            *plan.notes,
+        ],
+    )
 
 
 def _sorted_failed_rule_ids(rule_results: list[RuleResult]) -> list[str]:

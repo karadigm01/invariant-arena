@@ -113,6 +113,7 @@
         "dependents": [
           "kb_check_compatibility_wrapper",
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "system_status_generator",
           "unified_cli_entry_point",
           "validation_rule_engine"
@@ -120,6 +121,7 @@
         "derived_dependents": [
           "kb_check_compatibility_wrapper",
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "system_status_generator",
           "unified_cli_entry_point",
           "validation_rule_engine"
@@ -237,6 +239,7 @@
         "coverage_flag": "meets_threshold",
         "compliance_status": "I1_I2_I3_I4_compliant",
         "dependencies": [
+          "src/inf_work/kb_integrity.py",
           "src/inf_work/rules.py",
           "src/inf_work/system_status.py"
         ],
@@ -297,17 +300,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 272,
+    "total_tests": 276,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 272,
+      "passed": 276,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "272 collected",
+    "summary_text": "276 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
