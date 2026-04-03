@@ -227,6 +227,7 @@ def test_build_parser_parses_remediation_plan_command() -> None:
             "remediation-plan",
             str(WORKSPACE_ROOT),
             "--pretty",
+            "--simulate",
             "--rule-id",
             "status.snapshot_matches_workspace",
         ]
@@ -235,6 +236,7 @@ def test_build_parser_parses_remediation_plan_command() -> None:
     assert parsed_args.command == "remediation-plan"
     assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
     assert parsed_args.pretty is True
+    assert parsed_args.simulate is True
     assert parsed_args.rule_id == ["status.snapshot_matches_workspace"]
 
 
@@ -305,14 +307,24 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
         payload={
             "plan_id": "remediation_plan_status_artifact_regeneration",
             "plan_available": True,
+            "simulation_available": True,
             "triggering_rule_ids": ["status.snapshot_matches_workspace"],
         }
     )
 
+    captured: dict[str, object] = {}
+
     monkeypatch.setattr(
         unified_cli,
         "compile_status_artifact_remediation_plan",
-        lambda workspace_root, selected_rule_ids: plan_result,
+        lambda workspace_root, selected_rule_ids, include_simulation=False: captured.update(
+            {
+                "workspace_root": workspace_root,
+                "selected_rule_ids": selected_rule_ids,
+                "include_simulation": include_simulation,
+            }
+        )
+        or plan_result,
     )
 
     exit_code, payload = _run_main_json(
@@ -323,13 +335,18 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
             "remediation-plan",
             str(WORKSPACE_ROOT),
             "--pretty",
+            "--simulate",
         ],
     )
 
     assert exit_code == 0
+    assert captured["workspace_root"] == WORKSPACE_ROOT
+    assert captured["selected_rule_ids"] is None
+    assert captured["include_simulation"] is True
     assert payload == {
         "plan_available": True,
         "plan_id": "remediation_plan_status_artifact_regeneration",
+        "simulation_available": True,
         "triggering_rule_ids": ["status.snapshot_matches_workspace"],
     }
 

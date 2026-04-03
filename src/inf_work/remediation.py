@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import difflib
 from dataclasses import asdict, dataclass
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
 from .rules import RuleResult, summarize_rule_results
-from .system_status import validate_system_status
+from .system_status import (
+    build_system_status_snapshot,
+    render_system_status_markdown,
+    render_system_summary_markdown,
+    validate_system_status,
+)
 
 
 _DEFAULT_STATUS_JSON_PATH = "ai_docs/system_status_snapshot.json"
@@ -102,6 +110,8 @@ class RemediationPlan:
     verification_contract: VerificationContract | None
     rollback_contract: RollbackContract | None
     provenance: ChangeProvenanceRecord
+    simulation_available: bool
+    simulation: dict[str, Any] | None
     notes: list[str]
 
     def to_dict(self) -> dict[str, Any]:
@@ -124,6 +134,8 @@ class RemediationPlan:
             "verification_contract": self.verification_contract.to_dict() if self.verification_contract else None,
             "rollback_contract": self.rollback_contract.to_dict() if self.rollback_contract else None,
             "provenance": self.provenance.to_dict(),
+            "simulation_available": self.simulation_available,
+            "simulation": self.simulation,
             "notes": self.notes,
         }
 
@@ -246,6 +258,147 @@ def _build_provenance_record(trigger_rule_ids: list[str], supporting_rule_ids: l
     )
 
 
+def _sha256_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _read_optional_text(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8")
+
+
+def _line_preview(value: str | None, *, limit: int = 12) -> list[str]:
+    if value is None:
+        return []
+    return value.splitlines()[:limit]
+
+
+def _serialize_snapshot(snapshot: Any) -> str:
+    return json.dumps(snapshot.to_dict(), indent=2)
+
+
+def _build_artifact_change(root_path: Path, target_path: str, simulated_text: str) -> dict[str, Any]:
+    current_text = _read_optional_text(root_path / target_path)
+    current_exists = current_text is not None
+    current_lines = [] if current_text is None else current_text.splitlines()
+    simulated_lines = simulated_text.splitlines()
+    diff_lines = list(
+        difflib.unified_diff(
+            current_lines,
+            simulated_lines,
+            fromfile=f"a/{target_path}",
+            tofile=f"b/{target_path}",
+            lineterm="",
+        )
+    )
+    preview_limit = 120
+    content_changed = current_text != simulated_text
+    if not current_exists:
+        change_type = "create"
+    elif content_changed:
+        change_type = "update"
+    else:
+        change_type = "noop"
+    return {
+        "target_path": target_path,
+        "change_type": change_type,
+        "current_exists": current_exists,
+        "simulated_exists": True,
+        "content_changed": content_changed,
+        "current_sha256": _sha256_text(current_text),
+        "simulated_sha256": _sha256_text(simulated_text),
+        "current_line_count": len(current_lines),
+        "simulated_line_count": len(simulated_lines),
+        "current_excerpt": _line_preview(current_text),
+        "simulated_excerpt": _line_preview(simulated_text),
+        "diff_line_count": len(diff_lines),
+        "diff_preview": diff_lines[:preview_limit],
+        "diff_truncated": len(diff_lines) > preview_limit,
+    }
+
+
+def _build_predicted_rule_outcomes(rule_results: list[RuleResult]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    predicted_rule_results: list[RuleResult] = []
+    predicted_rule_outcomes: list[dict[str, Any]] = []
+    for rule_result in sorted(rule_results, key=lambda item: item.rule_id):
+        if rule_result.rule_id in SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS or rule_result.rule_id == "status.artifacts_exist":
+            predicted_passed = True
+            rationale = "Simulated regeneration restores canonical artifact presence and content for this rule."
+        else:
+            predicted_passed = rule_result.passed
+            rationale = "Dry-run simulation does not alter this rule surface, so the current result is preserved."
+        predicted_rule_results.append(
+            RuleResult(
+                rule_id=rule_result.rule_id,
+                domain=rule_result.domain,
+                category=rule_result.category,
+                severity=rule_result.severity,
+                description=rule_result.description,
+                passed=predicted_passed,
+                findings=[] if predicted_passed else rule_result.findings,
+            )
+        )
+        if predicted_passed and not rule_result.passed:
+            predicted_effect = "would_pass"
+        elif predicted_passed == rule_result.passed:
+            predicted_effect = "unchanged"
+        else:
+            predicted_effect = "would_fail"
+        predicted_rule_outcomes.append(
+            {
+                "rule_id": rule_result.rule_id,
+                "current_passed": rule_result.passed,
+                "predicted_passed": predicted_passed,
+                "predicted_effect": predicted_effect,
+                "rationale": rationale,
+            }
+        )
+    return predicted_rule_outcomes, summarize_rule_results(predicted_rule_results)
+
+
+def _build_dry_run_simulation(root_path: Path, rule_results: list[RuleResult]) -> dict[str, Any]:
+    simulated_snapshot = build_system_status_snapshot(
+        root_path,
+        canonical_json_path=_DEFAULT_STATUS_JSON_PATH,
+        derived_markdown_path=_DEFAULT_STATUS_MARKDOWN_PATH,
+    )
+    component_index = json.loads((root_path / "ai_docs" / "component_index.json").read_text(encoding="utf-8"))
+    kb_index = json.loads((root_path / "knowledge_base" / "kb_index.json").read_text(encoding="utf-8"))
+    simulated_outputs = {
+        _DEFAULT_STATUS_JSON_PATH: _serialize_snapshot(simulated_snapshot),
+        _DEFAULT_STATUS_MARKDOWN_PATH: render_system_status_markdown(simulated_snapshot),
+        _DEFAULT_STATUS_SUMMARY_PATH: render_system_summary_markdown(
+            simulated_snapshot,
+            component_index=component_index,
+            kb_index=kb_index,
+        ),
+    }
+    artifact_changes = [
+        _build_artifact_change(root_path, target_path, simulated_text)
+        for target_path, simulated_text in simulated_outputs.items()
+    ]
+    predicted_rule_outcomes, predicted_rule_summary = _build_predicted_rule_outcomes(rule_results)
+    changed_paths = [entry["target_path"] for entry in artifact_changes if entry["content_changed"]]
+    unchanged_paths = [entry["target_path"] for entry in artifact_changes if not entry["content_changed"]]
+    return {
+        "simulation_id": "dry_run_status_artifact_regeneration",
+        "simulation_phase": "dry_run_structured_remediation",
+        "workspace_mutation": False,
+        "artifact_changes": artifact_changes,
+        "changed_paths": changed_paths,
+        "unchanged_paths": unchanged_paths,
+        "predicted_rule_outcomes": predicted_rule_outcomes,
+        "predicted_rule_summary": predicted_rule_summary,
+        "notes": [
+            "Dry-run simulation reuses the canonical status builders and renderers without writing files.",
+            "Diff previews are deterministic excerpts from the simulated post-state for the governed status artifacts.",
+        ],
+    }
+
+
 def _sorted_failed_rule_ids(rule_results: list[RuleResult]) -> list[str]:
     return sorted({rule_result.rule_id for rule_result in rule_results if not rule_result.passed})
 
@@ -253,6 +406,8 @@ def _sorted_failed_rule_ids(rule_results: list[RuleResult]) -> list[str]:
 def compile_status_artifact_remediation_plan(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
+    *,
+    include_simulation: bool = False,
 ) -> RemediationPlan:
     root_path = Path(workspace_root).resolve()
     validation_result = validate_system_status(root_path, rule_ids)
@@ -271,12 +426,13 @@ def compile_status_artifact_remediation_plan(
         operations = _build_plan_operations(str(root_path), supported_rule_ids)
         verification_contract = _build_verification_contract(str(root_path), supported_rule_ids)
         rollback_contract = _build_plan_only_rollback_contract()
+        simulation = _build_dry_run_simulation(root_path, validation_result.rule_results) if include_simulation else None
         return RemediationPlan(
             workspace_root=str(root_path),
             plan_id="remediation_plan_status_artifact_regeneration",
             objective="Regenerate stale governed status artifacts and verify that the current workspace state is reflected across the canonical snapshot and derived markdown outputs.",
-            plan_phase="plan_only_structured_remediation",
-            plan_only=True,
+            plan_phase="dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation",
+            plan_only=not include_simulation,
             current_status_compliant=validation_result.compliant,
             plan_available=True,
             selected_rule_ids=selected_rule_ids,
@@ -294,8 +450,11 @@ def compile_status_artifact_remediation_plan(
             verification_contract=verification_contract,
             rollback_contract=rollback_contract,
             provenance=_build_provenance_record(supported_rule_ids, unsupported_rule_ids),
+            simulation_available=simulation is not None,
+            simulation=simulation,
             notes=[
-                "Phase 1 is plan-only: the plan describes bounded governed operations but does not execute them.",
+                "The remediation compiler remains non-mutating and bounded to governed status artifacts.",
+                "Enable dry-run simulation to preview deterministic post-state diffs before any manual operator action.",
                 "The current slice intentionally excludes arbitrary source edits and dependency changes.",
             ],
         )
@@ -313,8 +472,8 @@ def compile_status_artifact_remediation_plan(
         workspace_root=str(root_path),
         plan_id="remediation_plan_status_artifact_regeneration",
         objective="Determine whether the bounded status-artifact remediation slice should compile a deterministic plan.",
-        plan_phase="plan_only_structured_remediation",
-        plan_only=True,
+        plan_phase="dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation",
+        plan_only=not include_simulation,
         current_status_compliant=validation_result.compliant,
         plan_available=False,
         selected_rule_ids=selected_rule_ids,
@@ -332,5 +491,7 @@ def compile_status_artifact_remediation_plan(
         verification_contract=None,
         rollback_contract=_build_plan_only_rollback_contract(),
         provenance=_build_provenance_record([], unsupported_rule_ids),
+        simulation_available=False,
+        simulation=None,
         notes=notes,
     )

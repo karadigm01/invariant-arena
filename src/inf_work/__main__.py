@@ -238,7 +238,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     remediation_plan_parser = subparsers.add_parser(
         "remediation-plan",
-        help="Compile a deterministic phase-1 remediation plan for supported status-artifact drift rules.",
+        help="Compile a deterministic remediation plan for supported status-artifact drift rules, with optional dry-run simulation.",
     )
     remediation_plan_parser.add_argument(
         "workspace_root",
@@ -261,6 +261,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--rule-id",
         action="append",
         help="Restrict the underlying status validation to specific rule ids. Repeat for multiple rules.",
+    )
+    remediation_plan_parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Include the phase-2 dry-run structured remediation simulation with predicted artifact diffs.",
     )
 
     resolve_path_parser = subparsers.add_parser(
@@ -432,7 +437,11 @@ def main() -> int:
             profile_names=args.profile,
             rule_ids=args.rule_id,
         )
-        plan = compile_status_artifact_remediation_plan(Path(args.workspace_root), selected_rule_ids)
+        plan = compile_status_artifact_remediation_plan(
+            Path(args.workspace_root),
+            selected_rule_ids,
+            include_simulation=args.simulate,
+        )
         return _print_result(type("Report", (), {"to_dict": lambda self: plan.to_dict(), "compliant": True})(), args.pretty)
 
     if args.command is None:

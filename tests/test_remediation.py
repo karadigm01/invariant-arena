@@ -101,6 +101,70 @@ def test_compile_status_artifact_remediation_plan_builds_supported_plan(monkeypa
         "unified_cli_entry_point",
         "remediation_plan_compiler",
     ]
+    assert payload["simulation_available"] is False
+    assert payload["simulation"] is None
+
+
+def test_compile_status_artifact_remediation_plan_builds_dry_run_simulation(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "knowledge_base").mkdir()
+    (workspace_root / "ai_docs" / "system_status_snapshot.json").write_text('{"stale": true}', encoding="utf-8")
+    (workspace_root / "SYSTEM_STATUS.md").write_text("# stale\n", encoding="utf-8")
+    (workspace_root / "SYSTEM_SUMMARY.md").write_text("# old summary\n", encoding="utf-8")
+    (workspace_root / "ai_docs" / "component_index.json").write_text('{"components": [], "metadata": {}}', encoding="utf-8")
+    (workspace_root / "knowledge_base" / "kb_index.json").write_text(
+        '{"total_techniques": 9, "total_bug_fixes": 1, "total_innovations": 2, "total_automation_patterns": 59}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_status",
+        lambda workspace_root, rule_ids: _status_validation_result(
+            _rule_result("status.artifacts_exist", passed=False),
+            _rule_result("status.snapshot_matches_workspace", passed=False),
+            _rule_result("status.markdown_matches_snapshot", passed=False),
+            _rule_result("status.summary_matches_workspace", passed=False),
+            _rule_result("status.resolver_explicit_route_integrity", passed=True),
+            compliant=False,
+        ),
+    )
+
+    class FakeSnapshot:
+        def to_dict(self) -> dict[str, object]:
+            return {
+                "generated_at": "2026-04-03T20:00:00Z",
+                "workspace_root": str(workspace_root.resolve()),
+                "canonical_json_path": "ai_docs/system_status_snapshot.json",
+                "derived_markdown_path": "SYSTEM_STATUS.md",
+            }
+
+    monkeypatch.setattr(remediation_module, "build_system_status_snapshot", lambda *args, **kwargs: FakeSnapshot())
+    monkeypatch.setattr(remediation_module, "render_system_status_markdown", lambda snapshot: "# System Status\n\nupdated\n")
+    monkeypatch.setattr(
+        remediation_module,
+        "render_system_summary_markdown",
+        lambda snapshot, component_index, kb_index: "# System Summary\n\nupdated\n",
+    )
+
+    plan = compile_status_artifact_remediation_plan(workspace_root, include_simulation=True)
+    payload = plan.to_dict()
+
+    assert payload["plan_phase"] == "dry_run_structured_remediation"
+    assert payload["plan_only"] is False
+    assert payload["simulation_available"] is True
+    assert payload["simulation"]["workspace_mutation"] is False
+    assert payload["simulation"]["changed_paths"] == [
+        "ai_docs/system_status_snapshot.json",
+        "SYSTEM_STATUS.md",
+        "SYSTEM_SUMMARY.md",
+    ]
+    assert payload["simulation"]["predicted_rule_summary"]["failed_rules"] == 0
+    assert payload["simulation"]["predicted_rule_outcomes"][0]["rule_id"] == "status.artifacts_exist"
+    assert payload["simulation"]["predicted_rule_outcomes"][0]["predicted_passed"] is True
+    assert payload["simulation"]["artifact_changes"][0]["change_type"] == "update"
+    assert payload["simulation"]["artifact_changes"][0]["diff_preview"][0].startswith("--- a/ai_docs/system_status_snapshot.json")
 
 
 def test_compile_status_artifact_remediation_plan_returns_noop_when_status_is_compliant(monkeypatch) -> None:
