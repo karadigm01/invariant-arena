@@ -1,0 +1,41 @@
+{
+  "component_id": "system_status_governance_artifact",
+  "creation_timestamp": "2026-03-29T00:00:00Z",
+  "dependencies": [
+    "ai_docs/system_status_snapshot.json",
+    "src/inf_work/system_status.py"
+  ],
+  "interfaces": {
+    "artifact": [
+      "SYSTEM_STATUS.md"
+    ],
+    "source_of_truth": [
+      "ai_docs/system_status_snapshot.json"
+    ]
+  },
+  "performance_metrics": {
+    "generation_frequency": "on demand via CLI or automation",
+    "storage_pattern": "derived markdown plus canonical structured snapshot"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_system_status.py",
+    "status": "generated_output_verified"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "System Status Governance Artifact",
+  "component_type": "governance_artifact",
+  "file_paths": [
+    "SYSTEM_STATUS.md",
+    "ai_docs/system_status_snapshot.json"
+  ],
+  "related_techniques": [
+    "technique_canonical_status_snapshot_generation",
+    "technique_status_artifact_validation"
+  ],
+  "notes": [
+    "Represents the authoritative human-facing system snapshot for status queries.",
+    "Is derived from canonical structured data to preserve documentation purity constraints.",
+    "Must be regenerated rather than edited manually."
+  ]
+}

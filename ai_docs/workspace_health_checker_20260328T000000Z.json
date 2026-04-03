@@ -1,0 +1,47 @@
+{
+  "component_id": "workspace_health_checker",
+  "creation_timestamp": "2026-03-28T00:00:00Z",
+  "dependencies": [
+    "core_reference.json",
+    "src/inf_work/rules.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "validate_workspace(workspace_root: str | Path) -> ValidationResult"
+    ],
+    "cli": [
+      ".venv/bin/python -m inf_work all [workspace_root] [--pretty]",
+      ".venv/bin/python -m inf_work workspace [workspace_root] [--pretty]",
+      ".venv/bin/python -m inf_work [workspace_root] [--pretty] (legacy compatibility)",
+      "PYTHONPATH=src /usr/bin/python3 -m inf_work ... (no-install fallback)"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second for current workspace size",
+    "memory_usage_pattern": "bounded by parsed JSON and directory list"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_workspace_health.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Workspace Health Checker",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/workspace_health.py",
+    "src/inf_work/__main__.py",
+    "tests/test_workspace_health.py",
+    "pyproject.toml",
+    "README.md"
+  ],
+  "related_techniques": [
+    "technique_workspace_health_core_reference_validation",
+    "technique_core_reference_view_extraction",
+    "technique_registered_validation_rules"
+  ],
+  "notes": [
+    "Uses `core_reference.json` as the single source of truth for governed directories.",
+    "Returns deterministic JSON output for both API and CLI usage."
+  ]
+}

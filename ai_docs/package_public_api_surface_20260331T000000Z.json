@@ -1,0 +1,44 @@
+{
+  "component_id": "package_public_api_surface",
+  "creation_timestamp": "2026-03-31T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/core_reference.py",
+    "src/inf_work/kb_integrity.py",
+    "src/inf_work/resolver_registry.py",
+    "src/inf_work/rules.py",
+    "src/inf_work/system_status.py",
+    "src/inf_work/workspace_health.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "from inf_work import CoreReferenceView, ResolverCapabilitiesSnapshot, ResolverTile, ResolverTraversalResult, ResolverTraversalStep, ValidationResult, build_resolver_capabilities, infer_route, list_registered_tiles, resolve_explicit_path, resolve_tile, validate_workspace, validate_knowledge_base, validate_system_status"
+    ],
+    "cli": []
+  },
+  "performance_metrics": {
+    "expected_latency": "import-only module with negligible runtime cost",
+    "memory_usage_pattern": "bounded import/export surface"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_cli_entrypoints.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Package Public API Surface",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/__init__.py",
+    "tests/test_cli_entrypoints.py"
+  ],
+  "related_techniques": [
+    "technique_core_reference_view_extraction",
+    "technique_knowledge_base_cross_reference_validation",
+    "technique_registered_validation_rules",
+    "technique_canonical_status_snapshot_generation"
+  ],
+  "notes": [
+    "Re-exports the supported Python API surface for the governed workspace package.",
+    "Keeps operator-facing imports deterministic by gathering stable validator and status symbols behind `inf_work` package imports."
+  ]
+}

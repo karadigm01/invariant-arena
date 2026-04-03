@@ -1,0 +1,30 @@
+{
+  "bug_fixes": [
+    {
+      "id": "bugfix_core_reference_malformed_schema_arrays",
+      "error_pattern": "JSON arrays inside `core_reference.json` contained object-style key/value literals such as `\"auto_generated\": true`.",
+      "error_code": 1100,
+      "root_cause": "Schema field lists were written with object syntax instead of plain string entries, which made `core_reference.json` unparsable.",
+      "solution_technique": "Core-reference workspace validation",
+      "effectiveness_rating": 1.0,
+      "created_timestamp": "2026-03-28T00:00:00Z",
+      "auto_detected": false,
+      "prevention_method": "Validate JSON syntax after core-reference edits and keep required/optional field lists as strings only.",
+      "architectural_impact": "Restores parseability for automation that depends on `core_reference.json`.",
+      "occurrence_count": 1,
+      "related_constraints": [
+        "I3",
+        "I4"
+      ],
+      "fix_examples": [
+        "core_reference.json"
+      ],
+      "auto_fixable": true
+    }
+  ],
+  "metadata": {
+    "total_count": 1,
+    "last_updated": "2026-03-28T00:00:00Z",
+    "schema_version": "2.0.0"
+  }
+}

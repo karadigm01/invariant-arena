@@ -1,0 +1,187 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "workspace: bootstrap",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "bootstrap"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: check",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: test",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: smoke",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "smoke"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: kb-check",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "kb-check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: all",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "all-report"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: all-fix-status",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "all-report-fix-status"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: resolver-only",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "resolver-report"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: component-governance",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "component-report"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: status",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "status"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: status-check",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "status-check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: summary-check",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "summary-check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: coverage-snapshot",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "coverage-snapshot"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: refresh-artifacts",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "refresh-artifacts"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "component_id": "knowledge_base_cross_reference_validator",
+  "creation_timestamp": "2026-03-29T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/rules.py",
+    "knowledge_base/techniques.json",
+    "knowledge_base/bug_fixes.json",
+    "knowledge_base/constraint_innovations.json",
+    "knowledge_base/automation_patterns.json",
+    "knowledge_base/session_history.json",
+    "knowledge_base/kb_index.json",
+    "ai_docs/component_index.json",
+    "ai_docs/test_coverage_snapshot.json"
+  ],
+  "interfaces": {
+    "python_api": [
+      "validate_knowledge_base(workspace_root: str | Path) -> KnowledgeBaseValidationResult"
+    ],
+    "cli": [
+      ".venv/bin/python -m inf_work all [workspace_root] [--pretty]",
+      ".venv/bin/python -m inf_work kb [workspace_root] [--pretty]",
+      ".venv/bin/python -m inf_work.kb_check [workspace_root] [--pretty] (compatibility wrapper)",
+      "PYTHONPATH=src /usr/bin/python3 -m inf_work ... (no-install fallback)"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second for current workspace size",
+    "memory_usage_pattern": "bounded by parsed JSON and derived issue list"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_kb_integrity.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Knowledge Base Cross-Reference Validator",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/kb_integrity.py",
+    "src/inf_work/kb_check.py",
+    "tests/test_kb_integrity.py"
+  ],
+  "related_techniques": [
+    "technique_knowledge_base_cross_reference_validation",
+    "technique_core_reference_view_extraction",
+    "technique_registered_validation_rules"
+  ],
+  "notes": [
+    "Validates semantic links between knowledge-base records and component metadata.",
+    "Supports both technique-name and technique-id references where current workspace data uses both forms.",
+    "Also validates companion component docs against the required `ai_reference_format` schema fields declared in `core_reference.json`.",
+    "Also validates the exact companion component doc top-level field set so unexpected metadata fields cannot accumulate outside the governed JSON shape.",
+    "Also validates `auto_generated: true` on companion component docs so governed AI reference artifacts cannot drift into manual-state metadata.",
+    "Also validates companion component doc `test_coverage.targeted_test_file` references so governed test links always point at real workspace files.",
+    "Also validates the exact companion component doc `test_coverage` field set so unexpected nested verification metadata cannot accumulate outside the governed shape.",
+    "Also validates companion component doc `test_coverage.status` values so governed coverage metadata stays within the documented status vocabulary.",
+    "Also validates companion component doc `test_coverage.status` values against `component_type` so governance artifacts and Python modules keep their expected verification mode.",
+    "Also validates companion component doc `interfaces` structure against `component_type` so Python modules keep `python_api` surfaces and governance artifacts keep `artifact` plus `source_of_truth` links.",
+    "Also validates companion component doc `interfaces` value types so documented interface surfaces remain JSON lists instead of drifting to scalar metadata.",
+    "Also validates companion component doc `interfaces` entries so documented interface surfaces remain non-empty lists of non-empty strings.",
+    "Also validates companion component doc `performance_metrics` structure against `component_type` so Python modules keep runtime metrics and governance artifacts keep generation/storage metrics.",
+    "Also validates companion component doc `performance_metrics` values so governed metric payloads remain non-empty strings.",
+    "Also validates companion component doc `file_paths` inventories so governed implementation and test references always point at real workspace files.",
+    "Also validates companion component doc `dependencies` inventories so governed dependency references always point at real workspace paths.",
+    "Also validates companion component doc `interfaces.cli` entries so documented commands stay aligned with the supported `inf_work` CLI subcommand surface.",
+    "Also validates companion component doc `interfaces.python_api` entries so documented Python surfaces stay aligned with symbols exported by the governed module.",
+    "Also validates companion component doc `notes` arrays so governed implementation context remains a non-empty list of non-empty strings.",
+    "Also validates component-index reverse dependency topology so governed `dependents` lists stay aligned with live component relationships.",
+    "Also validates component-index `documentation_path` values so governed component entries always point at a non-empty companion-doc path.",
+    "Also validates component-index `file_path` values so governed component entries always point at a non-empty implementation path before companion-doc parity is checked.",
+    "Also validates component-index `file_path` values for uniqueness so governed component entries keep distinct implementation paths before dependency-topology and coverage parity are checked.",
+    "Also validates component-index `health_status` values so governed component entries stay within the healthy/degraded/failing vocabulary before aggregate status totals are checked.",
+    "Also validates component-index `compliance_status` values so governed component entries stay within the documented compliance contract before companion-doc metadata parity is checked.",
+    "Also validates component-index `complexity_score` values so governed component entries keep non-negative integer complexity metadata.",
+    "Also validates component-index `test_coverage_percentage` values so governed component entries keep integer coverage percentages inside the inclusive 0..100 range before coverage parity is checked.",
+    "Also validates component-index `creation_timestamp` and `last_modified_timestamp` values so governed component entries keep non-empty ISO-8601 UTC timestamps before timestamp parity is checked.",
+    "Also validates component-index `component_name` values so governed component entries keep non-empty human-readable names before companion-doc metadata parity is checked.",
+    "Also validates component-index `component_name` values for uniqueness so governed component entries keep distinct human-readable names across the inventory.",
+    "Also validates component-index `component_type` values so governed component entries stay within the governed component-type vocabulary before companion-doc metadata parity is checked.",
+    "Also validates component-index `component_id` values so governed component entries keep non-empty stable identifiers before companion-doc metadata and dependency-topology parity are checked.",
+    "Also validates component-index `component_id` values for uniqueness so governed component entries keep distinct stable identifiers before companion-doc joins and dependency-topology parity are checked.",
+    "Also validates component-index `dependencies` lists so governed dependency inventories stay as lists of non-empty strings.",
+    "Also validates component-index `dependencies` lists for duplicate entries so governed dependency inventories stay as unique string lists before companion-doc dependency parity is checked.",
+    "Also validates component-index `related_techniques` lists so governed technique traceability inventories stay as lists of non-empty strings.",
+    "Also validates component-index `dependents` lists so governed reverse-link inventories stay as lists of non-empty strings before topology parity is checked.",
+    "Also validates component-index `known_issues` lists so governed issue inventories stay as lists of non-empty strings while allowing empty lists.",
+    "Also validates component-index `performance_metrics` field sets so governed component entries keep the exact latency and memory metadata shape.",
+    "Also validates component-index `performance_metrics` values so governed latency and memory metadata remains non-empty string content.",
+    "Also validates component-doc creation timestamps so companion JSON docs stay aligned with the governed component-index record.",
+    "Also validates component-doc compliance status so companion JSON docs cannot silently diverge from the component-index compliance contract.",
+    "Also validates component-index timestamp freshness so aggregate `last_updated` metadata and per-component modification ordering stay coherent.",
+    "Also validates governed Python component coverage percentages against the canonical runtime-backed coverage snapshot artifact.",
+    "Also validates `knowledge_base/kb_index.json` automation success metrics against the catalogued automation pattern success metadata.",
+    "Also validates `knowledge_base/kb_index.json` last-updated freshness against the latest governed KB source metadata and recorded session timestamps.",
+    "Also validates source KB freshness metadata so per-file `metadata.last_updated` and session temporal rollups stay aligned with the recorded entries they summarize."
+  ]
+}

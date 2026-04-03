@@ -1,0 +1,637 @@
+{
+  "system_identity": {
+    "name": "Unified AI Core Reference",
+    "version": "2.0.0",
+    "immutable": true,
+    "purpose": "Automated architectural coherence enforcement for self-optimizing AI coding system"
+  },
+  
+  "architectural_constraints": {
+    "invariants": {
+      "I1_function_determinism": {
+        "rule": "All functions must produce identical outputs for identical inputs",
+        "enforcement": "mandatory",
+        "violation_code": 1001,
+        "auto_validation": "on_every_function_definition",
+        "auto_test_generation": true
+      },
+      "I2_memory_isolation": {
+        "rule": "No dynamic memory allocation without explicit cleanup contracts",
+        "enforcement": "mandatory",
+        "violation_code": 1002,
+        "auto_validation": "on_every_allocation",
+        "auto_tracking": "memory_monitor_enabled"
+      },
+      "I3_workspace_coherence": {
+        "rule": "Workspace organization must follow defined schema patterns",
+        "enforcement": "mandatory",
+        "violation_code": 1003,
+        "auto_validation": "on_file_creation_and_move",
+        "auto_correction": "suggest_proper_location"
+      },
+      "I4_documentation_purity": {
+        "rule": "AI documentation must be JSON-first, human docs derived only",
+        "enforcement": "mandatory",
+        "violation_code": 1004,
+        "auto_validation": "on_doc_creation",
+        "auto_generation": "derive_human_docs_automatically"
+      }
+    },
+    "contracts": {
+      "performance": {
+        "max_response_latency": "5s",
+        "memory_usage_ceiling": "2GB",
+        "concurrent_operation_limit": 10,
+        "auto_monitoring": true,
+        "alert_threshold": 0.9
+      },
+      "quality": {
+        "code_coverage_minimum": 85,
+        "cyclomatic_complexity_max": 10,
+        "documentation_completeness": 100,
+        "auto_validation": true,
+        "auto_test_generation": true
+      }
+    }
+  },
+
+  "automated_quality_gates": {
+    "pre_commit_validation": {
+      "enabled": true,
+      "checks": [
+        "I1_I2_I3_I4_compliance",
+        "performance_contract_verification",
+        "test_coverage_threshold",
+        "documentation_completeness"
+      ],
+      "failure_action": "block_commit_and_report"
+    },
+    "on_file_save": {
+      "enabled": true,
+      "checks": [
+        "syntax_validation",
+        "import_dependency_check",
+        "workspace_coherence_validation"
+      ],
+      "auto_fix": ["formatting", "import_organization"]
+    },
+    "test_generation": {
+      "auto_generate_on": ["new_function", "modified_function"],
+      "test_types": ["unit", "integration", "compliance"],
+      "coverage_target": 100
+    },
+    "rollback_triggers": {
+      "mandatory_stop_errors": "auto_rollback_to_last_valid_state",
+      "performance_degradation": "alert_and_suggest_rollback",
+      "test_failures": "block_further_changes"
+    }
+  },
+
+  "self_healing_protocols": {
+    "violation_detection": {
+      "continuous_monitoring": true,
+      "auto_detect_patterns": [
+        "non_deterministic_functions",
+        "unbounded_memory_allocation",
+        "workspace_structure_drift",
+        "dual_purpose_documentation"
+      ]
+    },
+    "auto_fix_capabilities": {
+      "I1_violations": "suggest_deterministic_alternatives",
+      "I2_violations": "inject_cleanup_contracts",
+      "I3_violations": "auto_reorganize_files",
+      "I4_violations": "auto_split_documentation"
+    },
+    "refactoring_automation": {
+      "enabled": true,
+      "safe_refactorings": [
+        "extract_function_with_cleanup",
+        "simplify_complex_logic",
+        "eliminate_duplicate_code"
+      ],
+      "requires_approval": ["architectural_changes", "interface_modifications"]
+    }
+  },
+
+  "continuous_monitoring": {
+    "constraint_drift_detection": {
+      "enabled": true,
+      "check_frequency": "on_every_change",
+      "metrics": [
+        "determinism_compliance_rate",
+        "memory_isolation_violations",
+        "workspace_coherence_score",
+        "documentation_purity_percentage"
+      ]
+    },
+    "performance_tracking": {
+      "enabled": true,
+      "auto_alerts": true,
+      "metrics": [
+        "response_latency_trends",
+        "memory_usage_patterns",
+        "test_execution_time",
+        "complexity_evolution"
+      ]
+    },
+    "health_monitoring": {
+      "workspace_integrity_check": "hourly",
+      "knowledge_base_consistency_check": "on_session_end",
+      "dependency_graph_validation": "on_change",
+      "auto_repair": ["broken_links", "orphaned_files", "circular_dependencies"]
+    }
+  },
+
+  "code_generation_templates": {
+    "compliant_boilerplate": {
+      "auto_inject": true,
+      "templates": {
+        "deterministic_function": "includes_fixed_seed_and_validation",
+        "memory_managed_class": "includes_cleanup_contract",
+        "new_component": "includes_json_documentation_stub",
+        "test_suite": "includes_compliance_verification"
+      }
+    },
+    "smart_expansion": {
+      "enabled": true,
+      "rules": [
+        "expand_with_error_handling",
+        "expand_with_cleanup_contracts",
+        "expand_with_documentation",
+        "expand_with_tests"
+      ]
+    },
+    "compliance_by_default": {
+      "all_generated_code": "pre_validated_against_I1_I4",
+      "auto_documentation": "json_first_always",
+      "auto_tests": "generated_with_code"
+    }
+  },
+
+  "predictive_detection": {
+    "pattern_recognition": {
+      "enabled": true,
+      "monitored_patterns": [
+        "emerging_constraint_violations",
+        "performance_degradation_trends",
+        "architectural_debt_accumulation",
+        "complexity_explosion_indicators"
+      ]
+    },
+    "proactive_warnings": {
+      "enabled": true,
+      "alert_before": [
+        "constraint_violation_likely",
+        "performance_threshold_approaching",
+        "test_coverage_declining",
+        "documentation_debt_growing"
+      ]
+    },
+    "technique_suggestion": {
+      "auto_suggest": true,
+      "based_on": ["current_context", "knowledge_base_patterns", "success_metrics"],
+      "timing": "before_problem_occurs"
+    }
+  },
+
+  "autonomous_testing": {
+    "test_generation": {
+      "auto_generate": true,
+      "on_events": ["function_creation", "function_modification", "refactoring"],
+      "test_types": ["unit", "integration", "compliance", "performance"],
+      "coverage_enforcement": "block_incomplete_coverage"
+    },
+    "test_execution": {
+      "auto_run": true,
+      "on_events": ["file_save", "pre_commit", "session_end"],
+      "failure_handling": "block_and_report_with_fix_suggestions"
+    },
+    "regression_detection": {
+      "enabled": true,
+      "auto_alert": true,
+      "auto_bisect": "identify_causing_change"
+    }
+  },
+
+  "error_registry": {
+    "system_errors": {
+      "1001-1099": "Architectural constraint violations",
+      "1100-1199": "Documentation protocol failures",
+      "1200-1299": "Workspace organization violations",
+      "1300-1399": "Performance contract breaches",
+      "1400-1499": "Memory management failures",
+      "1500-1599": "Automation system failures",
+      "1600-1699": "Knowledge base inconsistencies"
+    },
+    "handling_protocols": {
+      "mandatory_stop": [1001, 1002, 1003, 1004],
+      "warning_continue": [1100, 1200],
+      "performance_degradation": [1300, 1400],
+      "automation_failure": [1500],
+      "auto_repair_attempt": [1600]
+    },
+    "auto_recovery": {
+      "enabled": true,
+      "strategies": {
+        "1001-1004": "rollback_to_last_valid_state",
+        "1100-1299": "auto_fix_if_safe_otherwise_alert",
+        "1300-1499": "trigger_optimization_protocols",
+        "1500-1699": "attempt_repair_then_manual_intervention"
+      }
+    }
+  },
+
+  "documentation_schemas": {
+    "ai_reference_format": {
+      "type": "object",
+      "required_fields": [
+        "component_id",
+        "creation_timestamp",
+        "dependencies",
+        "interfaces",
+        "performance_metrics",
+        "test_coverage",
+        "compliance_status",
+        "auto_generated"
+      ],
+      "storage_location": "./ai_docs/",
+      "file_naming": "{component_id}_{timestamp}.json",
+      "auto_creation": "on_component_creation",
+      "auto_update": "on_component_modification"
+    },
+    "component_index_schema": {
+      "type": "object",
+      "required_fields": [
+        "component_id",
+        "component_name",
+        "component_type",
+        "file_path",
+        "dependencies",
+        "dependents",
+        "creation_timestamp",
+        "last_modified_timestamp",
+        "health_status",
+        "test_coverage_percentage",
+        "compliance_status"
+      ],
+      "optional_fields": [
+        "performance_metrics",
+        "complexity_score",
+        "documentation_path",
+        "related_techniques",
+        "known_issues"
+      ],
+      "health_status_values": ["healthy", "degraded", "failing"],
+      "compliance_status_values": ["I1_I2_I3_I4_compliant", "partial_compliance", "violations_detected"],
+      "auto_update_triggers": ["component_creation", "component_modification", "component_deletion", "dependency_change"]
+    },
+    "human_summary_format": {
+      "type": "markdown",
+      "auto_generated": true,
+      "update_frequency": "on_significant_change",
+      "location": "./SYSTEM_SUMMARY.md",
+      "derived_from": "ai_docs_aggregation",
+      "manual_edit": "prohibited"
+    },
+    "human_summary_generation_protocol": {
+      "significant_change_triggers": [
+        "new_component_created",
+        "component_health_status_degraded",
+        "architectural_constraint_violation_detected",
+        "5_or_more_components_modified_in_session",
+        "new_innovation_documented",
+        "major_refactoring_completed"
+      ],
+      "source_aggregation": {
+        "component_overview": "component_index.json",
+        "health_metrics": "component_index.metadata.health_status",
+        "knowledge_base_stats": "kb_index.json",
+        "recent_innovations": "constraint_innovations.json (last 5)",
+        "session_summary": "session_history.json (current session)"
+      },
+      "template_structure": [
+        "# System Summary",
+        "## Component Health Overview",
+        "## Recent Changes",
+        "## Knowledge Base Statistics",
+        "## Recent Innovations",
+        "## Current Session Activity"
+      ],
+      "auto_generation_timing": "immediate_on_trigger",
+      "regeneration_trigger": "any_significant_change_detected"
+    },
+    "reference_indexing": {
+      "method": "component_graph",
+      "update_trigger": "automatic_on_any_change",
+      "index_file": "./ai_docs/component_index.json",
+      "auto_validation": "check_referential_integrity"
+    }
+  },
+
+  "workspace_governance": {
+    "directory_structure": {
+      "ai_docs/": "JSON documentation for AI reference",
+      "knowledge_base/": "AI learning and technique storage",
+      "src/": "Source code implementation",
+      "tests/": "Validation and testing code",
+      "config/": "Configuration and reference files",
+      "build/": "Generated artifacts and builds"
+    },
+    "file_organization_rules": {
+      "naming_convention": "snake_case",
+      "max_file_size": "1000_lines",
+      "dependency_declaration": "explicit_imports_only",
+      "circular_dependency": "prohibited",
+      "auto_enforcement": true,
+      "auto_organization": "suggest_moves_on_violation"
+    },
+    "cleanup_protocols": {
+      "temp_file_lifetime": "session",
+      "log_rotation": "daily",
+      "cache_invalidation": "on_dependency_change",
+      "auto_cleanup": "on_session_end",
+      "orphan_detection": "auto_identify_and_report"
+    }
+  },
+
+  "self_modification_rules": {
+    "immutable_sections": [
+      "system_identity",
+      "architectural_constraints.invariants",
+      "error_registry.handling_protocols"
+    ],
+    "extensible_sections": [
+      "documentation_schemas",
+      "workspace_governance.directory_structure",
+      "knowledge_base_schemas",
+      "knowledge_base_protocols",
+      "automated_quality_gates",
+      "code_generation_templates",
+      "predictive_detection"
+    ],
+    "modification_protocol": {
+      "method": "addenda_only",
+      "requires_validation": true,
+      "rollback_capability": "mandatory",
+      "auto_validation": "schema_compliance_check"
+    }
+  },
+
+  "reference_protocols": {
+    "lookup_methods": {
+      "constraint_check": "architectural_constraints.invariants",
+      "error_handling": "error_registry.handling_protocols",
+      "doc_creation": "documentation_schemas.ai_reference_format",
+      "workspace_org": "workspace_governance",
+      "automation_config": "automated_quality_gates"
+    },
+    "update_triggers": {
+      "component_creation": ["doc_creation", "index_update", "test_generation"],
+      "component_modification": ["doc_update", "test_update", "validation_run"],
+      "error_encounter": ["error_logging", "protocol_check", "auto_recovery_attempt"],
+      "workspace_change": ["structure_validation", "cleanup", "auto_organization"]
+    }
+  },
+
+  "knowledge_base_schemas": {
+    "techniques_schema": {
+      "required_fields": [
+        "id",
+        "name", 
+        "category",
+        "description",
+        "constraints_compliance",
+        "discovery_context",
+        "validation_status",
+        "created_timestamp",
+        "auto_catalogued"
+      ],
+      "optional_fields": [
+        "performance_metrics",
+        "reusability_score", 
+        "success_rate",
+        "last_used_timestamp",
+        "code_examples",
+        "dependencies",
+        "automation_safe"
+      ],
+      "validation_rules": {
+        "constraints_compliance": ["I1", "I2", "I3", "I4"],
+        "category": ["architectural", "performance", "error_handling", "testing", "innovation", "automation"],
+        "validation_status": ["proposed", "validated", "deprecated"]
+      }
+    },
+    "bug_fixes_schema": {
+      "required_fields": [
+        "id",
+        "error_pattern",
+        "error_code",
+        "root_cause",
+        "solution_technique",
+        "effectiveness_rating",
+        "created_timestamp",
+        "auto_detected"
+      ],
+      "optional_fields": [
+        "prevention_method",
+        "architectural_impact",
+        "occurrence_count",
+        "related_constraints",
+        "fix_examples",
+        "auto_fixable"
+      ],
+      "cross_references": {
+        "solution_technique": "techniques.name"
+      }
+    },
+    "constraint_innovations_schema": {
+      "required_fields": [
+        "id",
+        "pressure_point",
+        "constraint_challenged",
+        "creative_solution",
+        "architectural_elegance_score",
+        "created_timestamp"
+      ],
+      "optional_fields": [
+        "reusability_score",
+        "implementation_complexity",
+        "performance_impact",
+        "related_techniques",
+        "automation_potential"
+      ],
+      "cross_references": {
+        "creative_solution": "techniques.name",
+        "constraint_challenged": ["I1", "I2", "I3", "I4"]
+      }
+    },
+    "automation_patterns_schema": {
+      "required_fields": [
+        "id",
+        "pattern_name",
+        "automation_type",
+        "success_rate",
+        "false_positive_rate",
+        "created_timestamp"
+      ],
+      "optional_fields": [
+        "requires_approval",
+        "safety_constraints",
+        "rollback_strategy",
+        "related_techniques"
+      ],
+      "validation_rules": {
+        "automation_type": ["test_generation", "code_generation", "refactoring", "documentation", "validation"]
+      }
+    },
+    "session_history_schema": {
+      "required_fields": [
+        "session_id",
+        "start_timestamp",
+        "end_timestamp",
+        "duration_seconds",
+        "components_created",
+        "components_modified",
+        "techniques_added",
+        "bug_fixes_added",
+        "innovations_added",
+        "automation_patterns_added",
+        "errors_encountered",
+        "constraint_violations",
+        "automation_success_count",
+        "automation_failure_count"
+      ],
+      "optional_fields": [
+        "session_summary",
+        "key_learnings",
+        "architectural_decisions",
+        "performance_improvements",
+        "technical_debt_added",
+        "technical_debt_resolved"
+      ],
+      "auto_generation": "on_session_end",
+      "indexing": "by_timestamp_and_session_id",
+      "session_lifecycle": {
+        "session_start": "first_user_message_in_new_chat_thread",
+        "session_end": "explicit_goodbye_or_5min_inactivity_or_workspace_close",
+        "partial_history_on_start": "create_entry_with_start_timestamp",
+        "complete_on_end": "update_with_all_metrics_and_end_timestamp"
+      }
+    },
+    "kb_index_schema": {
+      "required_fields": [
+        "last_updated",
+        "total_techniques",
+        "total_bug_fixes", 
+        "total_innovations",
+        "total_automation_patterns",
+        "constraint_compliance_stats",
+        "automation_success_metrics"
+      ],
+      "lookup_indices": {
+        "by_category": "techniques.category",
+        "by_constraint": "techniques.constraints_compliance (index under each constraint in array)",
+        "by_error_code": "bug_fixes.error_code",
+        "by_automation_type": "automation_patterns.automation_type"
+      },
+      "multi_constraint_indexing": "technique_compliant_with_multiple_constraints_indexed_under_each"
+    }
+  },
+
+  "knowledge_base_protocols": {
+    "session_initialization": {
+      "load_knowledge_base": "mandatory",
+      "validate_kb_integrity": "schema_compliance_check",
+      "index_refresh": "automatic",
+      "conflict_resolution": "architectural_constraints_override",
+      "auto_learning_enabled": true
+    },
+    "learning_triggers": [
+      "successful_constraint_compliant_solution",
+      "innovative_pressure_point_resolution",
+      "error_pattern_first_encounter",
+      "performance_optimization_discovery",
+      "successful_automation_pattern",
+      "constraint_violation_recovery"
+    ],
+    "update_protocols": {
+      "technique_validation": "require_test_success_before_storage",
+      "cross_reference_integrity": "maintain_referential_consistency",
+      "duplicate_detection": "prevent_redundant_entries",
+      "archival_policy": "deprecate_superseded_techniques",
+      "auto_cataloguing": "on_successful_completion",
+      "success_tracking": "update_metrics_on_reuse"
+    },
+    "query_optimization": {
+      "pattern_matching": "error_signature_based",
+      "constraint_filtering": "by_applicable_invariants",
+      "effectiveness_ranking": "by_success_rate_and_reusability",
+      "context_aware": "prioritize_recent_and_relevant"
+    },
+    "automation_metrics_protocol": {
+      "counter_increment_triggers": {
+        "total_automated_actions": "on_any_auto_execute_operation",
+        "successful_automations": "on_auto_operation_completion_without_errors",
+        "failed_automations": "on_auto_operation_error_or_rollback"
+      },
+      "success_criteria": {
+        "test_generation": "tests_compile_and_pass",
+        "code_generation": "code_passes_validation_and_compliance_checks",
+        "refactoring": "no_regressions_detected_in_test_suite",
+        "documentation": "schema_validation_passes",
+        "validation": "no_constraint_violations_detected"
+      },
+      "failure_detection": {
+        "compilation_errors": "immediate_failure",
+        "test_failures": "immediate_failure",
+        "constraint_violations": "immediate_failure",
+        "rollback_triggered": "immediate_failure"
+      },
+      "metrics_update_timing": "immediate_on_operation_completion",
+      "success_rate_calculation": "successful_automations / total_automated_actions",
+      "reporting_frequency": "session_end_summary"
+    },
+    "cross_reference_validation_protocol": {
+      "validation_triggers": [
+        "on_kb_entry_creation",
+        "on_kb_entry_modification",
+        "on_session_end",
+        "on_manual_integrity_check_request"
+      ],
+      "validation_rules": {
+        "bug_fixes_solution_technique": "must_exist_in_techniques_array",
+        "constraint_innovations_creative_solution": "must_exist_in_techniques_array",
+        "constraint_innovations_constraint_challenged": "must_be_I1_I2_I3_or_I4",
+        "automation_patterns_related_techniques": "must_exist_in_techniques_array"
+      },
+      "auto_fix_capabilities": {
+        "orphaned_references": "flag_for_manual_review",
+        "invalid_constraint_values": "auto_correct_to_nearest_valid_value",
+        "missing_required_cross_references": "prompt_for_completion"
+      },
+      "integrity_check_frequency": "on_every_kb_modification",
+      "repair_strategy": "auto_fix_if_safe_otherwise_alert"
+    }
+
+  },
+
+  "integration_points": {
+    "chat_prompt_interface": {
+      "behavioral_guidance_source": "behavioral_directives.json",
+      "architectural_compliance": "this_file",
+      "conflict_resolution": "architectural_constraints_override",
+      "auto_enforcement": true
+    },
+    "human_interaction": {
+      "visibility_layer": "SYSTEM_SUMMARY.md",
+      "direct_modification": "prohibited",
+      "feedback_mechanism": "addenda_suggestions",
+      "automation_transparency": "report_all_auto_actions"
+    },
+    "vscode_integration": {
+      "auto_load": "copilot_instructions_md",
+      "tool_sets": "defined_in_tool_sets_jsonc"
+    }
+  }
+}

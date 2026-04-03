@@ -1,0 +1,44 @@
+{
+  "component_id": "resolver_capability_registry",
+  "creation_timestamp": "2026-03-31T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/core_reference.py",
+    "core_reference.json"
+  ],
+  "interfaces": {
+    "python_api": [
+      "build_resolver_capabilities(workspace_root: str | Path) -> ResolverCapabilitiesSnapshot",
+      "list_registered_tiles(workspace_root: str | Path) -> list[ResolverTile]",
+      "resolve_explicit_path(workspace_root: str | Path, tile_path: list[str]) -> ResolverTraversalResult",
+      "infer_route(workspace_root: str | Path, start_tile_id: str, target_tile_id: str) -> ResolverTraversalResult",
+      "resolve_tile(workspace_root: str | Path, tile_id: str) -> ResolverTile | None"
+    ],
+    "cli": []
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second static tile lookup plus core-reference telemetry extraction",
+    "memory_usage_pattern": "bounded in-process tile registry and telemetry metadata aggregation"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_resolver_registry.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Resolver Capability Registry",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/resolver_registry.py",
+    "tests/test_resolver_registry.py"
+  ],
+  "related_techniques": [
+    "technique_core_reference_view_extraction",
+    "technique_canonical_status_snapshot_generation",
+    "technique_status_artifact_validation"
+  ],
+  "notes": [
+    "Provides a deterministic single-hop tile registry for governed workspace sources such as `core_reference.json`, `ai_docs/component_index.json`, and `knowledge_base/kb_index.json`.",
+    "Provides bounded explicit and inferred multi-hop traversal across the governed tile graph without introducing unbounded search.",
+    "Surfaces configured pressure-telemetry metadata from `core_reference.json` without sampling non-deterministic runtime state."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "component_id": "validation_rule_engine",
+  "creation_timestamp": "2026-03-29T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/workspace_health.py",
+    "src/inf_work/kb_integrity.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "register_rule(rule: ValidationRule) -> None",
+      "register_rules(rules: list[ValidationRule]) -> None",
+      "get_registered_rules(domain: str | None = None) -> list[ValidationRule]",
+      "run_registered_rules(domain: str, context: dict[str, Any]) -> list[RuleResult]",
+      "get_rule_profiles() -> dict[str, dict[str, Any]]",
+      "resolve_rule_selection(profile_names: list[str] | None = None, rule_ids: list[str] | None = None) -> set[str] | None",
+      "filter_rule_results(rule_results: list[RuleResult], ...) -> list[RuleResult]",
+      "summarize_rule_results(rule_results: list[RuleResult]) -> dict[str, Any]"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second for current rule count",
+    "memory_usage_pattern": "bounded by registered rule metadata and result lists"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_rules.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Validation Rule Engine",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/rules.py",
+    "tests/test_rules.py"
+  ],
+  "related_techniques": [
+    "technique_deterministic_profile_surface_promotion",
+    "technique_registered_validation_rules",
+    "technique_knowledge_base_cross_reference_validation"
+  ],
+  "notes": [
+    "Provides the registered-rules architecture for workspace and knowledge-base validation.",
+    "Standardizes rule findings and rule results so future validators can share one execution model.",
+    "Supports grouped summaries and CLI-level filtering by domain, category, severity, and failing status.",
+    "Supports deterministic named rule profiles, selective execution by rule id, and severity-threshold exit policy for governance workflows.",
+    "Exposes the `resolver-only` profile so operators and CI can execute just the runtime-integrity resolver checks through the aggregate report surface.",
+    "Implements the operator-facing mechanics captured by `technique_deterministic_profile_surface_promotion`, linking deterministic rule profiles to governed operator and CI surfaces."
+  ]
+}

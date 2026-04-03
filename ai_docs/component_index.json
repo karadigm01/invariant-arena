@@ -1,0 +1,347 @@
+{
+  "components": [
+    {
+      "component_id": "workspace_health_checker",
+      "component_name": "Workspace Health Checker",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/workspace_health.py",
+      "dependencies": [
+        "core_reference.json",
+        "src/inf_work/rules.py"
+      ],
+      "dependents": [
+        "package_public_api_surface",
+        "system_status_generator",
+        "unified_cli_entry_point",
+        "validation_rule_engine"
+      ],
+      "creation_timestamp": "2026-03-28T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_file_read_only"
+      },
+      "complexity_score": 3,
+      "documentation_path": "ai_docs/workspace_health_checker_20260328T000000Z.json",
+      "related_techniques": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_registered_validation_rules"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "core_reference_view",
+      "component_name": "Core Reference View",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/core_reference.py",
+      "dependencies": [
+        "core_reference.json"
+      ],
+      "dependents": [
+        "package_public_api_surface",
+        "resolver_capability_registry"
+      ],
+      "creation_timestamp": "2026-03-29T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_json_parse_only"
+      },
+      "complexity_score": 2,
+      "documentation_path": "ai_docs/core_reference_view_20260329T000000Z.json",
+      "related_techniques": [
+        "technique_core_reference_view_extraction",
+        "technique_workspace_health_core_reference_validation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "validation_rule_engine",
+      "component_name": "Validation Rule Engine",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/rules.py",
+      "dependencies": [
+        "src/inf_work/workspace_health.py",
+        "src/inf_work/kb_integrity.py"
+      ],
+      "dependents": [
+        "knowledge_base_cross_reference_validator",
+        "package_public_api_surface",
+        "unified_cli_entry_point",
+        "workspace_health_checker"
+      ],
+      "creation_timestamp": "2026-03-29T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_rule_registry_and_results"
+      },
+      "complexity_score": 3,
+      "documentation_path": "ai_docs/validation_rule_engine_20260329T000000Z.json",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_registered_validation_rules",
+        "technique_knowledge_base_cross_reference_validation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "knowledge_base_cross_reference_validator",
+      "component_name": "Knowledge Base Cross-Reference Validator",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/kb_integrity.py",
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "knowledge_base/techniques.json",
+        "knowledge_base/bug_fixes.json",
+        "knowledge_base/constraint_innovations.json",
+        "knowledge_base/automation_patterns.json",
+        "knowledge_base/session_history.json",
+        "knowledge_base/kb_index.json",
+        "ai_docs/component_index.json",
+        "ai_docs/test_coverage_snapshot.json"
+      ],
+      "dependents": [
+        "kb_check_compatibility_wrapper",
+        "package_public_api_surface",
+        "system_status_generator",
+        "unified_cli_entry_point",
+        "validation_rule_engine"
+      ],
+      "creation_timestamp": "2026-03-29T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_json_parse_only"
+      },
+      "complexity_score": 4,
+      "documentation_path": "ai_docs/knowledge_base_cross_reference_validator_20260329T000000Z.json",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_registered_validation_rules"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "system_status_generator",
+      "component_name": "System Status Generator",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/system_status.py",
+      "dependencies": [
+        "src/inf_work/workspace_health.py",
+        "src/inf_work/kb_integrity.py",
+        "src/inf_work/resolver_registry.py",
+        "ai_docs/test_coverage_snapshot.json",
+        "ai_docs/component_index.json",
+        "knowledge_base/techniques.json",
+        "knowledge_base/bug_fixes.json",
+        "knowledge_base/constraint_innovations.json",
+        "knowledge_base/automation_patterns.json",
+        "knowledge_base/session_history.json",
+        "core_reference.json",
+        "behavioral_directives.json"
+      ],
+      "dependents": [
+        "package_public_api_surface",
+        "system_status_governance_artifact",
+        "unified_cli_entry_point"
+      ],
+      "creation_timestamp": "2026-03-29T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_json_and_pytest_summary_capture"
+      },
+      "complexity_score": 5,
+      "documentation_path": "ai_docs/system_status_generator_20260329T000000Z.json",
+      "related_techniques": [
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "package_public_api_surface",
+      "component_name": "Package Public API Surface",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/__init__.py",
+      "dependencies": [
+        "src/inf_work/core_reference.py",
+        "src/inf_work/kb_integrity.py",
+        "src/inf_work/resolver_registry.py",
+        "src/inf_work/rules.py",
+        "src/inf_work/system_status.py",
+        "src/inf_work/workspace_health.py"
+      ],
+      "dependents": [],
+      "creation_timestamp": "2026-03-31T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<1s",
+        "memory_profile": "bounded_import_surface_only"
+      },
+      "complexity_score": 1,
+      "documentation_path": "ai_docs/package_public_api_surface_20260331T000000Z.json",
+      "related_techniques": [
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "unified_cli_entry_point",
+      "component_name": "Unified CLI Entry Point",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/__main__.py",
+      "dependencies": [
+        "src/inf_work/kb_integrity.py",
+        "src/inf_work/resolver_registry.py",
+        "src/inf_work/rules.py",
+        "src/inf_work/system_status.py",
+        "src/inf_work/workspace_health.py"
+      ],
+      "dependents": [
+        "kb_check_compatibility_wrapper"
+      ],
+      "creation_timestamp": "2026-03-31T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_cli_argument_and_json_output"
+      },
+      "complexity_score": 4,
+      "documentation_path": "ai_docs/unified_cli_entry_point_20260331T000000Z.json",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_status_artifact_validation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "kb_check_compatibility_wrapper",
+      "component_name": "KB Check Compatibility Wrapper",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/kb_check.py",
+      "dependencies": [
+        "src/inf_work/__main__.py",
+        "src/inf_work/kb_integrity.py"
+      ],
+      "dependents": [],
+      "creation_timestamp": "2026-03-31T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<1s",
+        "memory_profile": "bounded_argv_rewrite_only"
+      },
+      "complexity_score": 1,
+      "documentation_path": "ai_docs/kb_check_compatibility_wrapper_20260331T000000Z.json",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_named_rule_profiles"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "resolver_capability_registry",
+      "component_name": "Resolver Capability Registry",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/resolver_registry.py",
+      "dependencies": [
+        "src/inf_work/core_reference.py",
+        "core_reference.json"
+      ],
+      "dependents": [
+        "package_public_api_surface",
+        "system_status_generator",
+        "unified_cli_entry_point"
+      ],
+      "creation_timestamp": "2026-03-31T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<1s",
+        "memory_profile": "bounded_static_tile_registry_and_core-reference telemetry metadata"
+      },
+      "complexity_score": 2,
+      "documentation_path": "ai_docs/resolver_capability_registry_20260331T000000Z.json",
+      "related_techniques": [
+        "technique_core_reference_view_extraction",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "system_status_governance_artifact",
+      "component_name": "System Status Governance Artifact",
+      "component_type": "governance_artifact",
+      "file_path": "SYSTEM_STATUS.md",
+      "dependencies": [
+        "ai_docs/system_status_snapshot.json",
+        "src/inf_work/system_status.py"
+      ],
+      "dependents": [],
+      "creation_timestamp": "2026-03-29T00:00:00Z",
+      "last_modified_timestamp": "2026-03-29T00:00:00Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "derived_markdown_from_structured_snapshot"
+      },
+      "complexity_score": 2,
+      "documentation_path": "ai_docs/system_status_governance_artifact_20260329T000000Z.json",
+      "related_techniques": [
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ],
+      "known_issues": []
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-04-03T15:29:51Z",
+    "total_components": 10,
+    "schema_version": "2.0.0"
+  },
+  "health_status": {
+    "total_healthy": 10,
+    "total_degraded": 0,
+    "total_failing": 0
+  },
+  "_schema_reference": "See core_reference.json > documentation_schemas > component_index_schema for component object structure"
+}

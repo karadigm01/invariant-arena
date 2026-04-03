@@ -1,0 +1,54 @@
+name: validator-check
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+
+      - name: Run focused tests
+        run: |
+          pytest tests/test_core_reference.py tests/test_workspace_health.py tests/test_metadata_integrity.py tests/test_kb_integrity.py tests/test_rules.py tests/test_system_status.py tests/test_cli_entrypoints.py tests/test_resolver_registry.py
+
+      - name: Run validator smoke check
+        run: |
+          python -m inf_work workspace . --pretty
+
+      - name: Run knowledge-base validator smoke check
+        run: |
+          python -m inf_work kb . --pretty
+
+      - name: Generate canonical system status
+        run: |
+          python -m inf_work status . --pretty
+
+      - name: Validate canonical system status
+        run: |
+          python -m inf_work status-check . --pretty
+
+      - name: Run aggregate governance report
+        run: |
+          python -m inf_work all . --pretty
+
+      - name: Run resolver-only governance profile
+        run: |
+          python -m inf_work all . --pretty --profile resolver-only

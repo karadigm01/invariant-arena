@@ -1,0 +1,69 @@
+{
+  "component_id": "system_status_generator",
+  "creation_timestamp": "2026-03-29T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/workspace_health.py",
+    "src/inf_work/kb_integrity.py",
+    "src/inf_work/resolver_registry.py",
+    "ai_docs/test_coverage_snapshot.json",
+    "ai_docs/component_index.json",
+    "knowledge_base/techniques.json",
+    "knowledge_base/bug_fixes.json",
+    "knowledge_base/constraint_innovations.json",
+    "knowledge_base/automation_patterns.json",
+    "knowledge_base/session_history.json",
+    "core_reference.json",
+    "behavioral_directives.json"
+  ],
+  "interfaces": {
+    "python_api": [
+      "build_system_status_snapshot(workspace_root: str | Path, ...) -> SystemStatusSnapshot",
+      "build_test_coverage_snapshot(workspace_root: str | Path, ...) -> dict[str, Any]",
+      "render_system_summary_markdown(snapshot: SystemStatusSnapshot, ...) -> str",
+      "render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str",
+      "run_status_rules(workspace_root: str | Path, ...) -> list[RuleResult]",
+      "validate_system_status(workspace_root: str | Path, ...) -> StatusValidationResult",
+      "write_test_coverage_snapshot(workspace_root: str | Path, ...) -> dict[str, Any]",
+      "write_system_status_outputs(workspace_root: str | Path, ...) -> SystemStatusSnapshot"
+    ],
+    "cli": [
+      "python -m inf_work status <workspace_root> --pretty",
+      "python -m inf_work status-check <workspace_root> --pretty",
+      "python -m inf_work status-check <workspace_root> --pretty --fix",
+      "python -m inf_work coverage-snapshot <workspace_root> --pretty",
+      "python -m inf_work all <workspace_root> --pretty --fix-status"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second to low-single-digit seconds depending on pytest runtime",
+    "memory_usage_pattern": "bounded by in-memory JSON payloads and pytest summary capture"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_system_status.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "System Status Generator",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/system_status.py",
+    "tests/test_system_status.py"
+  ],
+  "related_techniques": [
+    "technique_registered_validation_rules",
+    "technique_named_rule_profiles",
+    "technique_canonical_status_snapshot_generation",
+    "technique_status_artifact_validation"
+  ],
+  "notes": [
+    "Generates a structured system status snapshot and derives `SYSTEM_STATUS.md` from that JSON-first source.",
+    "Collects component health, test summary, runtime-backed coverage inventory from the canonical coverage snapshot, knowledge-base metrics, integrity signals, runtime-backed resolver capabilities with explicit and inferred route examples, operator shortcuts with matching VS Code task labels, a data-driven system summary footer, and threshold-aware recommended actions from current workspace state.",
+    "Keeps the human-readable status artifact reproducible through a dedicated CLI entry point and derives `SYSTEM_SUMMARY.md` from the same governed status and shortcut model.",
+    "Validates the canonical snapshot and derived markdown through registered status-domain rules, including runtime-integrity checks for the explicit and inferred resolver example routes, so the governance report can govern itself.",
+    "Supports both targeted remediation with `status-check --fix` and aggregate remediation with `all --fix-status` while keeping workspace and knowledge-base validation read-only.",
+    "Also exposes `coverage-snapshot` so coverage percentages can be refreshed from a real `pytest-cov` run without forcing the aggregate governance report to execute that expensive step on every pass.",
+    "Below-threshold component coverage now surfaces as a first-class recommended action in the canonical status snapshot instead of only appearing in component-health flags.",
+    "The canonical snapshot `generated_at` field is derived deterministically from the freshest governed inputs instead of preserving a static legacy timestamp."
+  ]
+}

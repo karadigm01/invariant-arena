@@ -1,0 +1,753 @@
+{
+  "generated_at": "2026-04-03T15:29:51Z",
+  "workspace_root": "/home/j/Desktop/inf.work",
+  "canonical_json_path": "ai_docs/system_status_snapshot.json",
+  "derived_markdown_path": "SYSTEM_STATUS.md",
+  "coverage_threshold": 85,
+  "component_health": {
+    "threshold": 85,
+    "total_components": 10,
+    "healthy_components": 10,
+    "degraded_components": 0,
+    "failing_components": 0,
+    "below_threshold_components": [],
+    "components": [
+      {
+        "component_id": "workspace_health_checker",
+        "component_name": "Workspace Health Checker",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/workspace_health.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "core_reference.json",
+          "src/inf_work/rules.py"
+        ],
+        "dependents": [
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point",
+          "validation_rule_engine"
+        ],
+        "derived_dependents": [
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point",
+          "validation_rule_engine"
+        ],
+        "documentation_path": "ai_docs/workspace_health_checker_20260328T000000Z.json"
+      },
+      {
+        "component_id": "core_reference_view",
+        "component_name": "Core Reference View",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/core_reference.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "core_reference.json"
+        ],
+        "dependents": [
+          "package_public_api_surface",
+          "resolver_capability_registry"
+        ],
+        "derived_dependents": [
+          "package_public_api_surface",
+          "resolver_capability_registry"
+        ],
+        "documentation_path": "ai_docs/core_reference_view_20260329T000000Z.json"
+      },
+      {
+        "component_id": "validation_rule_engine",
+        "component_name": "Validation Rule Engine",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/rules.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/workspace_health.py",
+          "src/inf_work/kb_integrity.py"
+        ],
+        "dependents": [
+          "knowledge_base_cross_reference_validator",
+          "package_public_api_surface",
+          "unified_cli_entry_point",
+          "workspace_health_checker"
+        ],
+        "derived_dependents": [
+          "knowledge_base_cross_reference_validator",
+          "package_public_api_surface",
+          "unified_cli_entry_point",
+          "workspace_health_checker"
+        ],
+        "documentation_path": "ai_docs/validation_rule_engine_20260329T000000Z.json"
+      },
+      {
+        "component_id": "knowledge_base_cross_reference_validator",
+        "component_name": "Knowledge Base Cross-Reference Validator",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/kb_integrity.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/rules.py",
+          "knowledge_base/techniques.json",
+          "knowledge_base/bug_fixes.json",
+          "knowledge_base/constraint_innovations.json",
+          "knowledge_base/automation_patterns.json",
+          "knowledge_base/session_history.json",
+          "knowledge_base/kb_index.json",
+          "ai_docs/component_index.json",
+          "ai_docs/test_coverage_snapshot.json"
+        ],
+        "dependents": [
+          "kb_check_compatibility_wrapper",
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point",
+          "validation_rule_engine"
+        ],
+        "derived_dependents": [
+          "kb_check_compatibility_wrapper",
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point",
+          "validation_rule_engine"
+        ],
+        "documentation_path": "ai_docs/knowledge_base_cross_reference_validator_20260329T000000Z.json"
+      },
+      {
+        "component_id": "system_status_generator",
+        "component_name": "System Status Generator",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/system_status.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/workspace_health.py",
+          "src/inf_work/kb_integrity.py",
+          "src/inf_work/resolver_registry.py",
+          "ai_docs/test_coverage_snapshot.json",
+          "ai_docs/component_index.json",
+          "knowledge_base/techniques.json",
+          "knowledge_base/bug_fixes.json",
+          "knowledge_base/constraint_innovations.json",
+          "knowledge_base/automation_patterns.json",
+          "knowledge_base/session_history.json",
+          "core_reference.json",
+          "behavioral_directives.json"
+        ],
+        "dependents": [
+          "package_public_api_surface",
+          "system_status_governance_artifact",
+          "unified_cli_entry_point"
+        ],
+        "derived_dependents": [
+          "package_public_api_surface",
+          "system_status_governance_artifact",
+          "unified_cli_entry_point"
+        ],
+        "documentation_path": "ai_docs/system_status_generator_20260329T000000Z.json"
+      },
+      {
+        "component_id": "package_public_api_surface",
+        "component_name": "Package Public API Surface",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/__init__.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/core_reference.py",
+          "src/inf_work/kb_integrity.py",
+          "src/inf_work/resolver_registry.py",
+          "src/inf_work/rules.py",
+          "src/inf_work/system_status.py",
+          "src/inf_work/workspace_health.py"
+        ],
+        "dependents": [],
+        "derived_dependents": [],
+        "documentation_path": "ai_docs/package_public_api_surface_20260331T000000Z.json"
+      },
+      {
+        "component_id": "unified_cli_entry_point",
+        "component_name": "Unified CLI Entry Point",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/__main__.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/kb_integrity.py",
+          "src/inf_work/resolver_registry.py",
+          "src/inf_work/rules.py",
+          "src/inf_work/system_status.py",
+          "src/inf_work/workspace_health.py"
+        ],
+        "dependents": [
+          "kb_check_compatibility_wrapper"
+        ],
+        "derived_dependents": [
+          "kb_check_compatibility_wrapper"
+        ],
+        "documentation_path": "ai_docs/unified_cli_entry_point_20260331T000000Z.json"
+      },
+      {
+        "component_id": "kb_check_compatibility_wrapper",
+        "component_name": "KB Check Compatibility Wrapper",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/kb_check.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/__main__.py",
+          "src/inf_work/kb_integrity.py"
+        ],
+        "dependents": [],
+        "derived_dependents": [],
+        "documentation_path": "ai_docs/kb_check_compatibility_wrapper_20260331T000000Z.json"
+      },
+      {
+        "component_id": "resolver_capability_registry",
+        "component_name": "Resolver Capability Registry",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/resolver_registry.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/core_reference.py",
+          "core_reference.json"
+        ],
+        "dependents": [
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point"
+        ],
+        "derived_dependents": [
+          "package_public_api_surface",
+          "system_status_generator",
+          "unified_cli_entry_point"
+        ],
+        "documentation_path": "ai_docs/resolver_capability_registry_20260331T000000Z.json"
+      },
+      {
+        "component_id": "system_status_governance_artifact",
+        "component_name": "System Status Governance Artifact",
+        "component_type": "governance_artifact",
+        "file_path": "SYSTEM_STATUS.md",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "ai_docs/system_status_snapshot.json",
+          "src/inf_work/system_status.py"
+        ],
+        "dependents": [],
+        "derived_dependents": [],
+        "documentation_path": "ai_docs/system_status_governance_artifact_20260329T000000Z.json"
+      }
+    ]
+  },
+  "test_suite_summary": {
+    "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
+    "exit_code": 0,
+    "total_tests": 261,
+    "pass_rate": 1.0,
+    "status_counts": {
+      "passed": 261,
+      "failed": 0,
+      "skipped": 0,
+      "xfailed": 0,
+      "xpassed": 0,
+      "errors": 0
+    },
+    "summary_text": "261 collected",
+    "pending_or_skipped_tests": 0,
+    "coverage_by_module": [
+      {
+        "module_path": "src/inf_work/__init__.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/__main__.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/core_reference.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/kb_check.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/kb_integrity.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/resolver_registry.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/rules.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/system_status.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/workspace_health.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      }
+    ],
+    "coverage_source": "ai_docs/test_coverage_snapshot.json",
+    "summary_mode": "collection_only"
+  },
+  "knowledge_base_metrics": {
+    "technique_count": 9,
+    "latest_technique": {
+      "id": "technique_deterministic_profile_surface_promotion",
+      "name": "Deterministic profile surface promotion",
+      "category": "architectural",
+      "description": "Promote an existing named rule profile into operator shortcuts, CI workflow steps, and JSON-first governance reporting so the same deterministic rule bundle is runnable everywhere without drifting surfaces.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Resolver-only promotion after the dedicated runtime-integrity profile had already been added to the rule engine and needed first-class operator plus CI exposure.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.96,
+      "code_examples": [
+        "src/inf_work/system_status.py",
+        ".github/workflows/validator-check.yml",
+        "README.md"
+      ],
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "Makefile",
+        ".vscode/tasks.json"
+      ],
+      "automation_safe": true
+    },
+    "innovation_count": 2,
+    "latest_innovation": {
+      "id": "innovation_bounded_resolver_multi_hop_enablement",
+      "pressure_point": "The governed status model reserved space for resolver capability reporting, but leaving multi-hop modes as placeholders conflicted with the requirement to preserve capability-bearing surfaces without trimming them away.",
+      "underlying_need": "The workspace needed real multi-hop resolver behavior that could satisfy status reporting and public API expectations while remaining deterministic, bounded, and JSON-governed.",
+      "alternatives_considered": [
+        "Delete or hide the multi-hop resolver sections from generated status artifacts until implementation capacity improved.",
+        "Mark multi-hop support as planned indefinitely and keep reporting placeholder capability flags with no runtime backing.",
+        "Implement bounded explicit-path and inferred-route traversal over a small governed tile graph and expose the result through the existing status surfaces."
+      ],
+      "chosen_approach": "Add deterministic explicit and inferred multi-hop traversal to the resolver registry, then drive the status snapshot from runtime-backed traversal examples instead of placeholder metadata.",
+      "creative_solution": "Deterministic resolver multi-hop traversal",
+      "constraint_challenged": [
+        "I1",
+        "I3",
+        "I4"
+      ],
+      "outcome": "The workspace preserves the full resolver capability surface, reports true multi-hop support in governed artifacts, and closes the remaining planned-feature gap without violating deterministic or JSON-first constraints.",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "validation_status": "validated",
+      "related_files": [
+        "src/inf_work/resolver_registry.py",
+        "src/inf_work/system_status.py",
+        "SYSTEM_STATUS.md",
+        "SYSTEM_SUMMARY.md"
+      ]
+    },
+    "bug_fix_count": 1,
+    "automation_pattern_count": 59,
+    "last_kb_update_timestamp": "2026-04-03T00:00:00Z"
+  },
+  "recent_session_activity": {
+    "session_count": 57,
+    "latest_session": {
+      "session_id": "session_20260403_status_markdown_shared_block_consolidation",
+      "created_timestamp": "2026-04-03T00:00:00Z",
+      "summary": "Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.",
+      "actions": [
+        "Updated `src/inf_work/system_status.py` to extract `_render_recent_governance_lines(...)` and `_render_where_to_look_first_lines(...)`, then routed both markdown renderers through the shared helpers while preserving their punctuation and wording differences.",
+        "Expanded `tests/test_system_status.py` with focused coverage for the shared recent-governance and navigation helpers plus the existing rendered markdown assertions.",
+        "Ran `python -m inf_work refresh-artifacts . --pretty` and `make check` to regenerate the canonical artifacts and confirm the consolidation preserved governed output parity."
+      ],
+      "outcomes": [
+        "`SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` now share a single source of truth for the recent-governance and navigation blocks instead of duplicating those line lists inline.",
+        "The shared helpers keep the intended wording and punctuation differences between the status and summary documents while reducing future drift risk.",
+        "Focused status coverage plus the live refresh flow and aggregate workspace check remained compliant after regeneration."
+      ],
+      "related_components": [
+        "system_status_generator",
+        "system_status_governance_artifact"
+      ],
+      "related_automation_patterns": [
+        "automation_system_status_regeneration",
+        "automation_status_markdown_shared_block_consolidation"
+      ]
+    },
+    "latest_summary": "Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.",
+    "latest_outcomes": [
+      "`SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` now share a single source of truth for the recent-governance and navigation blocks instead of duplicating those line lists inline.",
+      "The shared helpers keep the intended wording and punctuation differences between the status and summary documents while reducing future drift risk."
+    ],
+    "latest_automation_pattern": {
+      "id": "automation_status_markdown_shared_block_consolidation",
+      "pattern_name": "Status markdown shared-block consolidation",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-03T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extracts only shared markdown block renderers inside `src/inf_work/system_status.py`, preserves document-specific wording where required, and revalidates through focused status coverage plus aggregate workspace checks"
+      ],
+      "rollback_strategy": "Inline the shared markdown helper outputs back into `render_system_status_markdown(...)` and `render_system_summary_markdown(...)`, then regenerate the governed artifacts if the consolidation must be reverted.",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_named_rule_profiles",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    "latest_technique": {
+      "id": "technique_deterministic_profile_surface_promotion",
+      "name": "Deterministic profile surface promotion",
+      "category": "architectural",
+      "description": "Promote an existing named rule profile into operator shortcuts, CI workflow steps, and JSON-first governance reporting so the same deterministic rule bundle is runnable everywhere without drifting surfaces.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Resolver-only promotion after the dedicated runtime-integrity profile had already been added to the rule engine and needed first-class operator plus CI exposure.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.96,
+      "code_examples": [
+        "src/inf_work/system_status.py",
+        ".github/workflows/validator-check.yml",
+        "README.md"
+      ],
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "Makefile",
+        ".vscode/tasks.json"
+      ],
+      "automation_safe": true
+    },
+    "latest_bug_fix": {
+      "id": "bugfix_core_reference_malformed_schema_arrays",
+      "error_pattern": "JSON arrays inside `core_reference.json` contained object-style key/value literals such as `\"auto_generated\": true`.",
+      "error_code": 1100,
+      "root_cause": "Schema field lists were written with object syntax instead of plain string entries, which made `core_reference.json` unparsable.",
+      "solution_technique": "Core-reference workspace validation",
+      "effectiveness_rating": 1.0,
+      "created_timestamp": "2026-03-28T00:00:00Z",
+      "auto_detected": false,
+      "prevention_method": "Validate JSON syntax after core-reference edits and keep required/optional field lists as strings only.",
+      "architectural_impact": "Restores parseability for automation that depends on `core_reference.json`.",
+      "occurrence_count": 1,
+      "related_constraints": [
+        "I3",
+        "I4"
+      ],
+      "fix_examples": [
+        "core_reference.json"
+      ],
+      "auto_fixable": true
+    }
+  },
+  "schema_contract_integrity": {
+    "schema_bundles": [
+      {
+        "name": "core_reference",
+        "version": "2.0.0"
+      },
+      {
+        "name": "behavioral_directives",
+        "version": "2.0.0"
+      },
+      {
+        "name": "component_index",
+        "version": "2.0.0"
+      },
+      {
+        "name": "techniques",
+        "version": "2.0.0"
+      },
+      {
+        "name": "bug_fixes",
+        "version": "2.0.0"
+      },
+      {
+        "name": "constraint_innovations",
+        "version": "2.0.0"
+      },
+      {
+        "name": "automation_patterns",
+        "version": "2.0.0"
+      },
+      {
+        "name": "kb_index",
+        "version": "2.0.0"
+      }
+    ],
+    "workspace_coherence_validation": {
+      "compliant": true,
+      "missing_directories": []
+    },
+    "cross_reference_validation": {
+      "compliant": true,
+      "issue_count": 0,
+      "issues": []
+    },
+    "orphaned_or_dangling_references": {
+      "component_files": [],
+      "component_docs": []
+    }
+  },
+  "resolver_capabilities": {
+    "workspace_root": "/home/j/Desktop/inf.work",
+    "inference_modes_supported": {
+      "single_hop": true,
+      "multi_hop_explicit": true,
+      "multi_hop_inferred": true
+    },
+    "registered_tiles": [
+      {
+        "tile_id": "workspace_governance",
+        "title": "Workspace Governance",
+        "target_path": "core_reference.json",
+        "inference_mode": "single_hop",
+        "description": "Resolve the governed workspace contract from the immutable core reference.",
+        "available": true
+      },
+      {
+        "tile_id": "component_index",
+        "title": "Component Index",
+        "target_path": "ai_docs/component_index.json",
+        "inference_mode": "single_hop",
+        "description": "Resolve the canonical component registry for governed modules and artifacts.",
+        "available": true
+      },
+      {
+        "tile_id": "knowledge_base_index",
+        "title": "Knowledge Base Index",
+        "target_path": "knowledge_base/kb_index.json",
+        "inference_mode": "single_hop",
+        "description": "Resolve the aggregated knowledge-base rollup for techniques, bug fixes, innovations, and automation patterns.",
+        "available": true
+      }
+    ],
+    "traversal_examples": {
+      "explicit": {
+        "workspace_root": "/home/j/Desktop/inf.work",
+        "traversal_mode": "explicit",
+        "requested_path": [
+          "workspace_governance",
+          "component_index",
+          "knowledge_base_index"
+        ],
+        "resolved_steps": [
+          {
+            "tile_id": "workspace_governance",
+            "title": "Workspace Governance",
+            "target_path": "core_reference.json",
+            "inference_mode": "single_hop",
+            "available": true
+          },
+          {
+            "tile_id": "component_index",
+            "title": "Component Index",
+            "target_path": "ai_docs/component_index.json",
+            "inference_mode": "single_hop",
+            "available": true
+          },
+          {
+            "tile_id": "knowledge_base_index",
+            "title": "Knowledge Base Index",
+            "target_path": "knowledge_base/kb_index.json",
+            "inference_mode": "single_hop",
+            "available": true
+          }
+        ],
+        "total_hops": 2,
+        "complete": true,
+        "failure_reason": null
+      },
+      "inferred": {
+        "workspace_root": "/home/j/Desktop/inf.work",
+        "traversal_mode": "inferred",
+        "requested_path": [
+          "workspace_governance",
+          "knowledge_base_index"
+        ],
+        "resolved_steps": [
+          {
+            "tile_id": "workspace_governance",
+            "title": "Workspace Governance",
+            "target_path": "core_reference.json",
+            "inference_mode": "single_hop",
+            "available": true
+          },
+          {
+            "tile_id": "knowledge_base_index",
+            "title": "Knowledge Base Index",
+            "target_path": "knowledge_base/kb_index.json",
+            "inference_mode": "single_hop",
+            "available": true
+          }
+        ],
+        "total_hops": 1,
+        "complete": true,
+        "failure_reason": null
+      }
+    },
+    "pressure_telemetry_status": {
+      "enabled": true,
+      "status": "configured",
+      "sampling_mode": "workspace_snapshot",
+      "tracked_metrics": [
+        "determinism_compliance_rate",
+        "memory_isolation_violations",
+        "workspace_coherence_score",
+        "documentation_purity_percentage",
+        "response_latency_trends",
+        "memory_usage_patterns",
+        "test_execution_time",
+        "complexity_evolution"
+      ],
+      "alert_threshold": 0.9
+    },
+    "notes": [
+      "Single-hop and bounded multi-hop resolver support are backed by a deterministic in-process tile registry for governed workspace sources.",
+      "Pressure telemetry surfaces configured continuous-monitoring metrics from `core_reference.json` without sampling mutable runtime state."
+    ]
+  },
+  "known_gaps_technical_debt": {
+    "components_with_zero_percent_coverage": [],
+    "missing_automation_patterns": [],
+    "todo_fixme_items": [],
+    "planned_but_unimplemented_features": []
+  },
+  "architectural_invariant_compliance": {
+    "I1": {
+      "status": "compliant",
+      "evidence": "All registered components declare `I1_I2_I3_I4_compliant` in `component_index.json`."
+    },
+    "I2": {
+      "status": "compliant",
+      "evidence": "All registered components declare bounded memory profiles and no dynamic allocation subsystems are present."
+    },
+    "I3": {
+      "status": "compliant",
+      "evidence": "Workspace validation checks governed directories from `core_reference.json`."
+    },
+    "I4": {
+      "status": "compliant",
+      "evidence": "JSON-first component docs and knowledge-base references validate successfully; `SYSTEM_STATUS.md` is derived from structured status data."
+    }
+  },
+  "operator_shortcuts": [
+    {
+      "name": "Aggregate report",
+      "command": "make all-report",
+      "task_label": "workspace: all",
+      "purpose": "Run the full aggregate governance report without remediation."
+    },
+    {
+      "name": "Aggregate report with status remediation",
+      "command": "make all-report-fix-status",
+      "task_label": "workspace: all-fix-status",
+      "purpose": "Refresh stale status artifacts before running the aggregate governance report."
+    },
+    {
+      "name": "Resolver integrity report",
+      "command": "make resolver-report",
+      "task_label": "workspace: resolver-only",
+      "purpose": "Run only the runtime-integrity resolver rules through the aggregate governance surface."
+    },
+    {
+      "name": "Component governance report",
+      "command": "make component-report",
+      "task_label": "workspace: component-governance",
+      "purpose": "Run only the component-governance knowledge-base rules for technique traceability and component-doc parity."
+    },
+    {
+      "name": "Status regeneration",
+      "command": "make status",
+      "task_label": "workspace: status",
+      "purpose": "Regenerate `ai_docs/system_status_snapshot.json` and `SYSTEM_STATUS.md`."
+    },
+    {
+      "name": "Status validation",
+      "command": "make status-check",
+      "task_label": "workspace: status-check",
+      "purpose": "Validate that the canonical status artifacts match the current workspace state."
+    },
+    {
+      "name": "Summary validation",
+      "command": "make summary-check",
+      "task_label": "workspace: summary-check",
+      "purpose": "Validate that `SYSTEM_SUMMARY.md` matches the current governed workspace state."
+    },
+    {
+      "name": "Coverage snapshot refresh",
+      "command": "make coverage-snapshot",
+      "task_label": "workspace: coverage-snapshot",
+      "purpose": "Refresh `ai_docs/test_coverage_snapshot.json` from a real `pytest-cov` run before reviewing governed component coverage."
+    },
+    {
+      "name": "Artifact refresh",
+      "command": "make refresh-artifacts",
+      "task_label": "workspace: refresh-artifacts",
+      "purpose": "Refresh the governed coverage snapshot and regenerate the canonical status artifacts in one deterministic pass."
+    }
+  ],
+  "next_recommended_actions": []
+}

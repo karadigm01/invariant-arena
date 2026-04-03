@@ -1,0 +1,3 @@
+[console_scripts]
+kb-check = inf_work.kb_check:main
+workspace-health = inf_work.__main__:main

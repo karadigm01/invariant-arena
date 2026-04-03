@@ -1,0 +1,46 @@
+Metadata-Version: 2.4
+Name: inf-work
+Version: 0.1.0
+Summary: Deterministic workspace health tools for inf.work
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
+# inf.work
+
+A small Python starter component for this workspace.
+
+## Included
+
+- `inf_work.core_reference`: loads `core_reference.json` and normalizes governed directory metadata
+- `inf_work.kb_integrity`: validates knowledge-base and component-index cross references
+- `inf_work.workspace_health`: validates governed directories from `core_reference.json`
+- `python3 -m inf_work all`: prints a combined JSON report for workspace and knowledge-base validation after install, or with `PYTHONPATH=src`
+- `python3 -m inf_work workspace`: prints a JSON health report for the workspace after install, or with `PYTHONPATH=src`
+- `python3 -m inf_work kb`: prints a JSON knowledge-base cross-reference report after install, or with `PYTHONPATH=src`
+- `tests/test_core_reference.py`, `tests/test_workspace_health.py`, `tests/test_metadata_integrity.py`, and `tests/test_kb_integrity.py`: focused tests for core loading, validation, JSON/index integrity, and KB cross references
+- `.github/workflows/validator-check.yml`: lightweight CI for focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks
+- `Makefile` and `.vscode/tasks.json`: local validation via `make`, `make check`, `make test`, `make smoke`, `make kb-check`, or the matching `workspace:*` tasks
+
+## Quick start
+
+```bash
+/usr/bin/python3 -m pip install -e .[dev]
+/usr/bin/python3 -m pytest tests/test_core_reference.py tests/test_workspace_health.py tests/test_metadata_integrity.py tests/test_kb_integrity.py
+PYTHONPATH="$(pwd)/src" /usr/bin/python3 -m inf_work all . --pretty
+PYTHONPATH="$(pwd)/src" /usr/bin/python3 -m inf_work workspace . --pretty
+PYTHONPATH="$(pwd)/src" /usr/bin/python3 -m inf_work kb . --pretty
+```
+
+## One-command check
+
+```bash
+make
+make check
+make test
+make smoke
+make kb-check
+```
+
+Use `PYTHONPATH="$(pwd)/src" /usr/bin/python3 -m inf_work all` for a single combined JSON report in this workspace, or install with `/usr/bin/python3 -m pip install -e .[dev]` first and then use `/usr/bin/python3 -m inf_work ...`. `make` or `make check` run the full local flow, `make test` runs pytest only, `make smoke` runs `workspace`, and `make kb-check` runs `kb`. In VS Code, run `workspace: check` for the full workflow, `workspace: test` for pytest only, `workspace: smoke` for the workspace CLI-only check, or `workspace: kb-check` for KB cross-reference validation.

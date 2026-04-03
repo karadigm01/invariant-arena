@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-04-03T15:29:51Z",
+  "workspace_root": "/home/j/Desktop/inf.work",
+  "coverage_command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
+  "coverage_source": "ai_docs/test_coverage_snapshot.json",
+  "module_coverage": [
+    {
+      "module_path": "src/inf_work/__init__.py",
+      "coverage_percentage": 100,
+      "num_statements": 7,
+      "covered_lines": 7,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/__main__.py",
+      "coverage_percentage": 100,
+      "num_statements": 177,
+      "covered_lines": 177,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/core_reference.py",
+      "coverage_percentage": 100,
+      "num_statements": 24,
+      "covered_lines": 24,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/kb_check.py",
+      "coverage_percentage": 100,
+      "num_statements": 11,
+      "covered_lines": 11,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/kb_integrity.py",
+      "coverage_percentage": 100,
+      "num_statements": 1025,
+      "covered_lines": 1025,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/resolver_registry.py",
+      "coverage_percentage": 100,
+      "num_statements": 120,
+      "covered_lines": 120,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/rules.py",
+      "coverage_percentage": 100,
+      "num_statements": 109,
+      "covered_lines": 109,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/system_status.py",
+      "coverage_percentage": 100,
+      "num_statements": 544,
+      "covered_lines": 544,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/workspace_health.py",
+      "coverage_percentage": 100,
+      "num_statements": 37,
+      "covered_lines": 37,
+      "missing_lines": 0
+    }
+  ],
+  "totals": {
+    "coverage_percentage": 100,
+    "num_statements": 2054,
+    "covered_lines": 2054,
+    "missing_lines": 0
+  },
+  "metadata": {
+    "total_modules": 9,
+    "schema_version": "2.0.0"
+  }
+}

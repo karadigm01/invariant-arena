@@ -1,0 +1,59 @@
+{
+  "innovations": [
+    {
+      "id": "innovation_deterministic_test_inventory_reporting",
+      "pressure_point": "Generated status artifacts became noisy and occasionally misleading when they embedded live pytest execution output during concurrent validation runs.",
+      "underlying_need": "Operators needed test visibility inside governed status artifacts without introducing non-deterministic, self-referential report drift.",
+      "alternatives_considered": [
+        "Keep live pytest execution output in the status snapshot and tolerate report churn between runs.",
+        "Remove test reporting from governed artifacts and push operators to separate CLI commands.",
+        "Capture a deterministic test inventory with `pytest --collect-only -q` and derive both markdown artifacts from the structured snapshot."
+      ],
+      "chosen_approach": "Replace live test execution summaries with deterministic collection-only inventory capture inside the canonical status snapshot so the derived markdown remains stable and reproducible.",
+      "creative_solution": "Canonical status snapshot generation",
+      "constraint_challenged": [
+        "I1",
+        "I4"
+      ],
+      "outcome": "The workspace preserves operator-visible test inventory while avoiding volatile runtime output in governed artifacts, keeping status and summary validation deterministic.",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "validation_status": "validated",
+      "related_files": [
+        "src/inf_work/system_status.py",
+        "SYSTEM_STATUS.md",
+        "SYSTEM_SUMMARY.md"
+      ]
+    },
+    {
+      "id": "innovation_bounded_resolver_multi_hop_enablement",
+      "pressure_point": "The governed status model reserved space for resolver capability reporting, but leaving multi-hop modes as placeholders conflicted with the requirement to preserve capability-bearing surfaces without trimming them away.",
+      "underlying_need": "The workspace needed real multi-hop resolver behavior that could satisfy status reporting and public API expectations while remaining deterministic, bounded, and JSON-governed.",
+      "alternatives_considered": [
+        "Delete or hide the multi-hop resolver sections from generated status artifacts until implementation capacity improved.",
+        "Mark multi-hop support as planned indefinitely and keep reporting placeholder capability flags with no runtime backing.",
+        "Implement bounded explicit-path and inferred-route traversal over a small governed tile graph and expose the result through the existing status surfaces."
+      ],
+      "chosen_approach": "Add deterministic explicit and inferred multi-hop traversal to the resolver registry, then drive the status snapshot from runtime-backed traversal examples instead of placeholder metadata.",
+      "creative_solution": "Deterministic resolver multi-hop traversal",
+      "constraint_challenged": [
+        "I1",
+        "I3",
+        "I4"
+      ],
+      "outcome": "The workspace preserves the full resolver capability surface, reports true multi-hop support in governed artifacts, and closes the remaining planned-feature gap without violating deterministic or JSON-first constraints.",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "validation_status": "validated",
+      "related_files": [
+        "src/inf_work/resolver_registry.py",
+        "src/inf_work/system_status.py",
+        "SYSTEM_STATUS.md",
+        "SYSTEM_SUMMARY.md"
+      ]
+    }
+  ],
+  "metadata": {
+    "total_count": 2,
+    "last_updated": "2026-03-31T00:00:00Z",
+    "schema_version": "2.0.0"
+  }
+}

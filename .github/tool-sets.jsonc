@@ -1,0 +1,29 @@
+{
+	"constraints": {
+		"tools": [
+			"codebase",
+			"problems", 
+			"changes",
+			"usages"
+		],
+		"description": "Architectural constraint validation and compliance checking tools",
+		"icon": "shield"
+	},
+	"knowledge": {
+		"tools": [
+			"codebase",
+			"usages",
+			"changes"
+		],
+		"description": "Knowledge base learning and technique capture tools", 
+		"icon": "database"
+	},
+	"documentation": {
+		"tools": [
+			"codebase",
+			"changes"
+		],
+		"description": "JSON-first documentation generation and maintenance tools",
+		"icon": "book"
+	}
+}

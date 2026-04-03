@@ -1,0 +1,38 @@
+{
+  "component_id": "core_reference_view",
+  "creation_timestamp": "2026-03-29T00:00:00Z",
+  "dependencies": [
+    "core_reference.json"
+  ],
+  "interfaces": {
+    "python_api": [
+      "load_core_reference(workspace_root: str | Path) -> dict[str, Any]",
+      "extract_required_directories(core_reference: dict[str, Any]) -> list[str]",
+      "build_core_reference_view(workspace_root: str | Path) -> CoreReferenceView"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second for current workspace size",
+    "memory_usage_pattern": "bounded by parsed JSON and derived directory list"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_core_reference.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Core Reference View",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/core_reference.py",
+    "tests/test_core_reference.py"
+  ],
+  "related_techniques": [
+    "technique_core_reference_view_extraction",
+    "technique_workspace_health_core_reference_validation"
+  ],
+  "notes": [
+    "Provides a reusable source of truth for governed directory extraction.",
+    "Keeps validator-facing logic small and CI-friendly."
+  ]
+}

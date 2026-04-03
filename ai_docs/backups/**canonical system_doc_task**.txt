@@ -1,0 +1,43 @@
+
+**Generate a canonical system status file (`SYSTEM_STATUS.md`) that will serve as the authoritative snapshot. Include:**
+
+**1. Component Health**
+- All components from component_index.json with health status, test coverage %, compliance status
+- Flag anything below 85% coverage
+- Dependencies/dependents for each
+
+**2. Test Suite Summary**
+- Total test count, pass rate
+- Coverage by module
+- Pending/skipped tests
+
+**3. Knowledge Base Metrics**
+- Technique count + latest entry
+- Innovation count + latest entry
+- Bug fixes, automation patterns
+- Last KB update timestamp
+
+**4. Schema/Contract Integrity**
+- JSON schema bundles with versions
+- Cross-reference validation status
+- Orphaned or dangling references
+
+**5. Resolver Capabilities**
+- Inference modes supported (single-hop, multi-hop explicit, multi-hop inferred)
+- Registered tiles with capability signatures
+- Pressure telemetry status
+
+**6. Known Gaps & Technical Debt**
+- Components with 0% coverage
+- Missing automation patterns
+- TODOs/FIXMEs
+- Planned but unimplemented features
+
+**7. Architectural Invariant Compliance**
+- I1 (determinism), I2 (memory isolation), I3 (workspace coherence), I4 (documentation purity)
+
+**8. Next Recommended Actions**
+- Prioritized by gaps, with complexity estimates
+
+**This file is canonical — register it in component_index.json as a governance artifact. All future status queries should regenerate from this template to maintain consistency.**
+

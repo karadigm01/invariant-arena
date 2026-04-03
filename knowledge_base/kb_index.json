@@ -1,0 +1,160 @@
+{
+  "last_updated": "2026-04-03T00:00:00Z",
+  "total_techniques": 9,
+  "total_bug_fixes": 1,
+  "total_innovations": 2,
+  "total_automation_patterns": 59,
+  "constraint_compliance_stats": {
+    "I1_compliant": 9,
+    "I2_compliant": 9,
+    "I3_compliant": 9,
+    "I4_compliant": 9,
+    "all_compliant": 9
+  },
+  "automation_success_metrics": {
+    "total_automated_actions": 59,
+    "successful_automations": 59,
+    "failed_automations": 0,
+    "success_rate": 1.0
+  },
+  "lookup_indices": {
+    "by_category": {
+      "architectural": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_deterministic_profile_surface_promotion"
+      ],
+      "innovation": [
+        "innovation_deterministic_test_inventory_reporting",
+        "innovation_bounded_resolver_multi_hop_enablement"
+      ]
+    },
+    "by_constraint": {
+      "I1": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_deterministic_profile_surface_promotion",
+        "innovation_deterministic_test_inventory_reporting",
+        "innovation_bounded_resolver_multi_hop_enablement"
+      ],
+      "I2": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_deterministic_profile_surface_promotion"
+      ],
+      "I3": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_deterministic_profile_surface_promotion",
+        "innovation_bounded_resolver_multi_hop_enablement"
+      ],
+      "I4": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_deterministic_profile_surface_promotion",
+        "innovation_deterministic_test_inventory_reporting",
+        "innovation_bounded_resolver_multi_hop_enablement"
+      ]
+    },
+    "by_error_code": {
+      "1100": [
+        "bugfix_core_reference_malformed_schema_arrays"
+      ]
+    },
+    "by_automation_type": {
+      "validation": [
+        "automation_validator_ci_smoke_check",
+        "automation_resolver_only_governance_promotion",
+        "automation_component_semantic_parity_enforcement",
+        "automation_kb_index_metadata_parity_enforcement",
+        "automation_kb_source_metadata_parity_enforcement",
+        "automation_component_index_summary_metadata_parity_enforcement",
+        "automation_component_index_dependencies_entries_uniqueness_enforcement",
+        "automation_component_index_component_name_uniqueness_enforcement",
+        "automation_component_index_file_path_uniqueness_enforcement",
+        "automation_component_index_component_id_uniqueness_enforcement",
+        "automation_component_index_component_id_enforcement",
+        "automation_component_index_component_type_enforcement",
+        "automation_component_index_component_name_enforcement",
+        "automation_component_index_dependents_topology_enforcement",
+        "automation_component_index_timestamp_metadata_enforcement",
+        "automation_component_index_timestamp_fields_enforcement",
+        "automation_component_index_coverage_snapshot_enforcement",
+        "automation_component_index_test_coverage_percentage_enforcement",
+        "automation_kb_index_automation_metrics_enforcement",
+        "automation_kb_index_last_updated_enforcement",
+        "automation_kb_source_freshness_metadata_enforcement",
+        "automation_component_doc_test_coverage_field_set_enforcement",
+        "automation_component_doc_field_set_enforcement",
+        "automation_component_index_dependents_entries_enforcement",
+        "automation_component_index_complexity_score_enforcement",
+        "automation_component_index_compliance_status_enforcement",
+        "automation_component_index_health_status_enforcement",
+        "automation_component_index_file_path_enforcement",
+        "automation_component_index_related_techniques_entries_enforcement",
+        "automation_component_index_dependencies_entries_enforcement",
+        "automation_component_index_documentation_path_enforcement",
+        "automation_component_index_known_issues_enforcement",
+        "automation_component_index_performance_metrics_field_set_enforcement",
+        "automation_component_index_performance_metrics_values_enforcement",
+        "automation_component_doc_creation_timestamp_enforcement",
+        "automation_component_doc_compliance_status_enforcement",
+        "automation_component_doc_required_fields_enforcement",
+        "automation_component_doc_auto_generated_enforcement",
+        "automation_component_doc_targeted_test_file_enforcement",
+        "automation_component_doc_file_paths_enforcement",
+        "automation_component_doc_dependencies_enforcement",
+        "automation_component_doc_cli_command_enforcement",
+        "automation_component_doc_python_api_enforcement",
+        "automation_component_doc_notes_enforcement",
+        "automation_component_doc_test_coverage_status_enforcement",
+        "automation_component_doc_test_coverage_status_type_enforcement",
+        "automation_component_doc_interfaces_type_enforcement",
+        "automation_component_doc_performance_metrics_type_enforcement",
+        "automation_component_doc_performance_metrics_values_enforcement",
+        "automation_component_doc_interfaces_value_type_enforcement",
+        "automation_component_doc_interfaces_entries_enforcement"
+      ],
+      "documentation": [
+        "automation_system_status_regeneration",
+        "automation_governed_component_tracking",
+        "automation_refresh_artifacts_operator_surface_promotion",
+        "automation_system_status_navigation_surface_promotion",
+        "automation_status_markdown_shared_block_consolidation",
+        "automation_resolver_multi_hop_rollout",
+        "automation_status_recommendation_enrichment",
+        "automation_status_generated_at_derivation"
+      ]
+    }
+  }
+}

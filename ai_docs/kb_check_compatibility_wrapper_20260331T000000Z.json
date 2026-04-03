@@ -1,0 +1,40 @@
+{
+  "component_id": "kb_check_compatibility_wrapper",
+  "creation_timestamp": "2026-03-31T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/__main__.py",
+    "src/inf_work/kb_integrity.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "main() -> int"
+    ],
+    "cli": [
+      "python -m inf_work.kb_check <workspace_root> --pretty"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "negligible wrapper overhead plus delegated CLI runtime",
+    "memory_usage_pattern": "bounded argv rewrite only"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_cli_entrypoints.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "KB Check Compatibility Wrapper",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/kb_check.py",
+    "tests/test_cli_entrypoints.py"
+  ],
+  "related_techniques": [
+    "technique_knowledge_base_cross_reference_validation",
+    "technique_named_rule_profiles"
+  ],
+  "notes": [
+    "Preserves the legacy knowledge-base CLI entry point while delegating execution to the unified command surface.",
+    "Rewrites argv deterministically so compatibility calls behave exactly like `python -m inf_work kb ...`."
+  ]
+}

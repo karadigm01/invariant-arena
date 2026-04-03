@@ -1,0 +1,55 @@
+{
+  "component_id": "unified_cli_entry_point",
+  "creation_timestamp": "2026-03-31T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/kb_integrity.py",
+    "src/inf_work/resolver_registry.py",
+    "src/inf_work/rules.py",
+    "src/inf_work/system_status.py",
+    "src/inf_work/workspace_health.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "build_parser() -> argparse.ArgumentParser",
+      "main() -> int"
+    ],
+    "cli": [
+      "python -m inf_work workspace <workspace_root> --pretty",
+      "python -m inf_work kb <workspace_root> --pretty",
+      "python -m inf_work all <workspace_root> --pretty",
+      "python -m inf_work refresh-artifacts <workspace_root> --pretty",
+      "python -m inf_work resolve-path <tile_id> [<tile_id> ...] --workspace-root <workspace_root> --pretty",
+      "python -m inf_work infer-route <start_tile_id> <target_tile_id> --workspace-root <workspace_root> --pretty",
+      "python -m inf_work status-check <workspace_root> --pretty",
+      "python -m inf_work summary-check <workspace_root> --pretty"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second argument parsing plus delegated validator runtime",
+    "memory_usage_pattern": "bounded CLI argument and JSON payload handling"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_cli_entrypoints.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Unified CLI Entry Point",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/__main__.py",
+    "tests/test_cli_entrypoints.py"
+  ],
+  "related_techniques": [
+    "technique_deterministic_profile_surface_promotion",
+    "technique_registered_validation_rules",
+    "technique_named_rule_profiles",
+    "technique_status_artifact_validation"
+  ],
+  "notes": [
+    "Provides the unified command surface for workspace, knowledge-base, resolver traversal, status, and summary validation flows.",
+    "Supports a one-shot artifact refresh flow that regenerates runtime-backed coverage metadata before deriving governed status artifacts.",
+    "Retains a legacy workspace-mode fallback for older invocations that omit an explicit subcommand.",
+    "Carries the operator-facing exposure described by `technique_deterministic_profile_surface_promotion`, including deterministic profile access through aggregate CLI workflows."
+  ]
+}

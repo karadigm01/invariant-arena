@@ -1,0 +1,250 @@
+{
+  "techniques": [
+    {
+      "id": "technique_workspace_health_core_reference_validation",
+      "name": "Core-reference workspace validation",
+      "category": "architectural",
+      "description": "Validate governed workspace directories by reading `core_reference.json` as the single source of truth and emitting deterministic results.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "First component scaffold for the initialized inf.work workspace.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-28T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.9,
+      "code_examples": [
+        "src/inf_work/workspace_health.py"
+      ],
+      "dependencies": [
+        "core_reference.json"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_core_reference_view_extraction",
+      "name": "Core reference view extraction",
+      "category": "architectural",
+      "description": "Isolate `core_reference.json` loading and governed-directory extraction in a reusable component so validators and future checks share one deterministic source of truth.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Second component scaffold for validator reuse and CI-friendly testing.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.95,
+      "code_examples": [
+        "src/inf_work/core_reference.py"
+      ],
+      "dependencies": [
+        "core_reference.json"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_knowledge_base_cross_reference_validation",
+      "name": "Knowledge-base cross-reference validation",
+      "category": "architectural",
+      "description": "Validate that knowledge-base references to techniques and related component metadata stay internally consistent across JSON files.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Third component scaffold for semantic integrity checks across `knowledge_base/` and `ai_docs/`.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.95,
+      "code_examples": [
+        "src/inf_work/kb_integrity.py"
+      ],
+      "dependencies": [
+        "knowledge_base/techniques.json",
+        "ai_docs/component_index.json"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_registered_validation_rules",
+      "name": "Registered validation rules",
+      "category": "architectural",
+      "description": "Model validators as registered rules with stable IDs, categories, severity levels, and standardized rule results so the governance product can scale consistently.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Rule-engine refactor that turned workspace and knowledge-base validators into the first registered rules.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.98,
+      "code_examples": [
+        "src/inf_work/rules.py"
+      ],
+      "dependencies": [
+        "src/inf_work/workspace_health.py",
+        "src/inf_work/kb_integrity.py"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_named_rule_profiles",
+      "name": "Named rule profiles",
+      "category": "architectural",
+      "description": "Package stable governance rule bundles behind deterministic profile names so operators can run consistent subsets like CI, workspace-only, or KB-only without hand-curating rule ids.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Operator-control upgrade that layered named rule bundles on top of the registered rule engine.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.97,
+      "code_examples": [
+        "src/inf_work/rules.py",
+        "src/inf_work/__main__.py"
+      ],
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "tests/test_rules.py"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_canonical_status_snapshot_generation",
+      "name": "Canonical status snapshot generation",
+      "category": "architectural",
+      "description": "Generate a structured system status snapshot and derive the human-facing markdown status report from that JSON-first source so status queries remain reproducible and compliant.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Governance artifact addition for canonical status reporting and reproducible markdown derivation.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.96,
+      "code_examples": [
+        "src/inf_work/system_status.py",
+        "SYSTEM_STATUS.md"
+      ],
+      "dependencies": [
+        "ai_docs/component_index.json",
+        "knowledge_base/techniques.json"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_status_artifact_validation",
+      "name": "Status artifact validation",
+      "category": "architectural",
+      "description": "Validate canonical status artifacts with registered status-domain rules so the structured snapshot and derived markdown remain synchronized with the current workspace state.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Self-governing extension that folded the status snapshot back into the validator framework via a dedicated status domain.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.97,
+      "code_examples": [
+        "src/inf_work/system_status.py",
+        "src/inf_work/__main__.py"
+      ],
+      "dependencies": [
+        "ai_docs/system_status_snapshot.json",
+        "SYSTEM_STATUS.md"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_deterministic_resolver_multi_hop_traversal",
+      "name": "Deterministic resolver multi-hop traversal",
+      "category": "architectural",
+      "description": "Implement bounded explicit-path and inferred-route traversal over the governed resolver tile graph so status artifacts can report real multi-hop capability without placeholder debt.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Resolver capability closure after the user rejected trimming placeholders and required the system to implement real multi-hop behavior instead.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.97,
+      "code_examples": [
+        "src/inf_work/resolver_registry.py",
+        "src/inf_work/system_status.py",
+        "tests/test_resolver_registry.py"
+      ],
+      "dependencies": [
+        "core_reference.json",
+        "ai_docs/component_index.json",
+        "knowledge_base/kb_index.json"
+      ],
+      "automation_safe": true
+    },
+    {
+      "id": "technique_deterministic_profile_surface_promotion",
+      "name": "Deterministic profile surface promotion",
+      "category": "architectural",
+      "description": "Promote an existing named rule profile into operator shortcuts, CI workflow steps, and JSON-first governance reporting so the same deterministic rule bundle is runnable everywhere without drifting surfaces.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Resolver-only promotion after the dedicated runtime-integrity profile had already been added to the rule engine and needed first-class operator plus CI exposure.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.96,
+      "code_examples": [
+        "src/inf_work/system_status.py",
+        ".github/workflows/validator-check.yml",
+        "README.md"
+      ],
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "Makefile",
+        ".vscode/tasks.json"
+      ],
+      "automation_safe": true
+    }
+  ],
+  "metadata": {
+    "total_count": 9,
+    "last_updated": "2026-03-31T00:00:00Z",
+    "schema_version": "2.0.0"
+  }
+}

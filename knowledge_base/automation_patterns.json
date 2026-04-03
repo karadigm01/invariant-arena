@@ -1,0 +1,1179 @@
+{
+  "automation_patterns": [
+    {
+      "id": "automation_component_index_dependencies_entries_uniqueness_enforcement",
+      "pattern_name": "Component index dependency-entry uniqueness enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `dependencies` remains a list of unique non-empty strings, and defers overlapping companion-doc dependency parity when duplicate dependency entries are present so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index dependency-entry uniqueness validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc dependency parity scope, and regenerate the governed artifacts if this dependency-inventory uniqueness invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_component_name_uniqueness_enforcement",
+      "pattern_name": "Component index component-name uniqueness enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `component_name` remains unique across governed components, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index component-name uniqueness validation in `src/inf_work/kb_integrity.py` and regenerate the governed artifacts if this human-readable identity invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_file_path_uniqueness_enforcement",
+      "pattern_name": "Component index file-path uniqueness enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `file_path` remains unique across governed components, and defers overlapping dependency-topology plus coverage parity when duplicate implementation paths are present so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index file-path uniqueness validation in `src/inf_work/kb_integrity.py`, restore the prior component-index topology and coverage parity scope, and regenerate the governed artifacts if this implementation-path uniqueness invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_component_id_uniqueness_enforcement",
+      "pattern_name": "Component index component-id uniqueness enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `component_id` remains unique across governed components, and defers overlapping companion-doc metadata plus dependency-topology parity when duplicate identifiers are present so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index component-id uniqueness validation in `src/inf_work/kb_integrity.py`, restore the prior component-index metadata and topology parity scope, and regenerate the governed artifacts if this identifier-uniqueness invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_component_id_enforcement",
+      "pattern_name": "Component index component-id hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `component_id` remains a non-empty string, and defers overlapping companion-doc metadata plus dependency-topology parity when the primitive component identifier itself is malformed so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index component-id validation in `src/inf_work/kb_integrity.py`, restore the prior component-index metadata and topology parity scope, and regenerate the governed artifacts if this component-identifier invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_component_type_enforcement",
+      "pattern_name": "Component index component-type vocabulary enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `component_type` remains within the governed component-type vocabulary, and defers overlapping companion-doc metadata parity when the primitive component type itself is malformed so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index component-type validation in `src/inf_work/kb_integrity.py`, restore the prior component-index metadata parity scope, and regenerate the governed artifacts if this component-type invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_component_name_enforcement",
+      "pattern_name": "Component index component-name hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `component_name` remains a non-empty string, and defers overlapping companion-doc metadata parity when the primitive component name itself is malformed so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index component-name validation in `src/inf_work/kb_integrity.py`, restore the prior component-index metadata parity scope, and regenerate the governed artifacts if this component-name invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_timestamp_fields_enforcement",
+      "pattern_name": "Component index timestamp field-shape enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `creation_timestamp` and `last_modified_timestamp` remain non-empty ISO-8601 UTC strings, and defers overlapping timestamp parity when the primitive timestamp fields themselves are malformed so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index timestamp field validation in `src/inf_work/kb_integrity.py`, restore the prior component-index timestamp parity scope, and regenerate the governed artifacts if this timestamp-shape invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_test_coverage_percentage_enforcement",
+      "pattern_name": "Component index coverage-percentage range enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `test_coverage_percentage` remains an integer in the inclusive `0..100` range, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index coverage-percentage validation in `src/inf_work/kb_integrity.py`, restore the prior component-index coverage parity scope, and regenerate the governed artifacts if this coverage-metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_complexity_score_enforcement",
+      "pattern_name": "Component index complexity-score integer enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `complexity_score` remains a non-negative integer, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index complexity-score validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this complexity-metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_compliance_status_enforcement",
+      "pattern_name": "Component index compliance-status vocabulary enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `compliance_status` remains within the governed vocabulary, and defers overlapping companion-doc metadata parity when the field itself is invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index compliance-status validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this compliance-contract invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_health_status_enforcement",
+      "pattern_name": "Component index health-status vocabulary enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `health_status` remains within the governed vocabulary, and defers overlapping aggregate health-summary parity when the field itself is invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index health-status validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this component-health invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_file_path_enforcement",
+      "pattern_name": "Component index file-path hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `file_path` remains a non-empty string, and defers overlapping companion-doc metadata parity when the path itself is invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index file-path validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this implementation-path invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_dependents_entries_enforcement",
+      "pattern_name": "Component index dependents entry hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `dependents` remains a list of non-empty strings, and defers the topology-parity rule when entries are invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index dependents entry validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this reverse-link invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_related_techniques_entries_enforcement",
+      "pattern_name": "Component index related-techniques entry hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `related_techniques` remains a list of non-empty strings, and defers overlapping existence/parity checks when entries are invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index related-techniques entry validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this technique-traceability invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_dependencies_entries_enforcement",
+      "pattern_name": "Component index dependencies entry hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `dependencies` remains a list of non-empty strings, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index dependencies entry validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this dependency-inventory invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_documentation_path_enforcement",
+      "pattern_name": "Component index documentation-path hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `documentation_path` remains a non-empty string, and defers parity checks when the path itself is invalid so drift stays single-cause before focused revalidation plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index documentation-path validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this companion-path invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_known_issues_enforcement",
+      "pattern_name": "Component index known-issues entry hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `known_issues` remains a list of non-empty strings while allowing empty lists, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index known-issues entry validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this issue-inventory invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_performance_metrics_values_enforcement",
+      "pattern_name": "Component index performance-metrics value hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `performance_metrics` values remain non-empty strings, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index performance-metrics value validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this metrics-hygiene invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_performance_metrics_field_set_enforcement",
+      "pattern_name": "Component index performance-metrics field-set enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-01T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a component-index schema check so `performance_metrics` keeps the governed latency and memory field set, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-index performance-metrics field-set validation in `src/inf_work/kb_integrity.py`, restore the prior component-index schema scope, and regenerate the governed artifacts if this nested shape invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_test_coverage_field_set_enforcement",
+      "pattern_name": "Component doc test-coverage field-set enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `test_coverage` keeps the expected nested field set, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the nested `test_coverage` field-set validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this verification-shape invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_field_set_enforcement",
+      "total_count": 37,
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so governed JSON docs keep the expected top-level field set, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the companion-doc top-level field-set validation in `src/inf_work/kb_integrity.py`, restore the prior schema scope, and regenerate the governed artifacts if this shape invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_validator_ci_smoke_check",
+      "pattern_name": "Validator CI smoke check",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Runs only focused tests, metadata integrity checks, and a read-only CLI validation command"
+      ],
+      "rollback_strategy": "Edit or disable `.github/workflows/validator-check.yml` if the workflow begins failing unexpectedly.",
+      "related_techniques": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules"
+      ]
+    },
+    {
+      "id": "automation_system_status_regeneration",
+      "pattern_name": "Canonical system status regeneration",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-29T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Reads governed workspace metadata and writes only the canonical status snapshot plus derived markdown report"
+      ],
+      "rollback_strategy": "Regenerate `ai_docs/system_status_snapshot.json` and `SYSTEM_STATUS.md` after correcting source metadata if output becomes stale.",
+      "related_techniques": [
+        "technique_canonical_status_snapshot_generation",
+        "technique_registered_validation_rules"
+      ]
+    },
+    {
+      "id": "automation_governed_component_tracking",
+      "pattern_name": "Governed component tracking for entrypoints",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds JSON-first component metadata and focused tests before counting support modules as governed components in status artifacts"
+      ],
+      "rollback_strategy": "Remove the added component entries from `ai_docs/component_index.json` and delete their companion JSON docs if the modules should revert to implicit support status.",
+      "related_techniques": [
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_resolver_multi_hop_rollout",
+      "pattern_name": "Resolver multi-hop capability rollout",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extends only the bounded resolver tile graph, synchronizes public/status surfaces, and validates the result through focused tests plus governed artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the traversal additions in `src/inf_work/resolver_registry.py`, remove the public/status metadata updates, and regenerate the status artifacts if multi-hop resolver support must be withdrawn.",
+      "related_techniques": [
+        "technique_deterministic_resolver_multi_hop_traversal",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_resolver_only_governance_promotion",
+      "pattern_name": "Resolver-only governance surface promotion",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Promotes an existing deterministic rule profile only through governed operator surfaces, CI workflow steps, and JSON-first documentation before revalidating the aggregate report"
+      ],
+      "rollback_strategy": "Remove the `resolver-only` workflow step, operator shortcut references, and KB entries if the dedicated runtime-integrity profile should revert to CLI-only exposure.",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_named_rule_profiles",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_semantic_parity_enforcement",
+      "pattern_name": "Component semantic parity enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extends only governed component metadata checks, synchronizes companion JSON docs with the component index, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the semantic parity comparisons in `src/inf_work/kb_integrity.py`, restore the prior component-doc metadata shape in `ai_docs/*.json`, and regenerate the governed status artifacts if the stricter parity contract must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_kb_index_metadata_parity_enforcement",
+      "pattern_name": "KB index metadata parity enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Derives kb_index expectations from governed KB source files, normalizes lookup-index ordering semantically, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `knowledge_base.kb_index_metadata_parity` rule, restore the prior `knowledge_base/kb_index.json` maintenance workflow, and regenerate the governed status artifacts if direct kb_index governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_kb_source_metadata_parity_enforcement",
+      "pattern_name": "KB source metadata parity enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Validates only JSON metadata counts against canonical KB record arrays, exposes the dedicated `kb-metadata` profile, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the KB source-metadata parity rules and the `kb-metadata` profile, restore the prior manual-count maintenance flow in the affected KB files, and regenerate the governed artifacts if direct source-count governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_summary_metadata_parity_enforcement",
+      "pattern_name": "Component index summary metadata parity enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Validates only `ai_docs/component_index.json` aggregate metadata against the live governed component inventory, exposes the rule through existing profiles, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `knowledge_base.component_index_summary_metadata_parity` rule and profile wiring, restore the prior manual-maintenance flow for `ai_docs/component_index.json` summary counts, and regenerate the governed artifacts if direct component-index summary governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_dependents_topology_enforcement",
+      "pattern_name": "Component index dependents topology enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Validates only `ai_docs/component_index.json` reverse dependency lists against the live governed component topology, updates governed component metadata, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `knowledge_base.component_index_dependents_parity` rule and profile wiring, restore the prior manual-maintenance flow for component reverse links in `ai_docs/component_index.json`, and regenerate the governed artifacts if direct dependent-topology governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_timestamp_metadata_enforcement",
+      "pattern_name": "Component index timestamp metadata enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Validates only `ai_docs/component_index.json` timestamp ordering and aggregate freshness against governed component metadata, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `knowledge_base.component_index_timestamp_metadata_parity` rule and profile wiring, restore the prior manual-maintenance flow for component timestamp metadata in `ai_docs/component_index.json`, and regenerate the governed artifacts if direct timestamp governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_index_coverage_snapshot_enforcement",
+      "pattern_name": "Component index coverage snapshot enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Refreshes a dedicated canonical coverage snapshot through `pytest-cov`, validates governed Python component coverage percentages against that snapshot, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `knowledge_base.component_index_test_coverage_parity` rule and `coverage-snapshot` operator surface, restore the prior manually maintained coverage metadata in `ai_docs/component_index.json`, and regenerate the governed artifacts if runtime-backed coverage governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_status_recommendation_enrichment",
+      "pattern_name": "Status recommendation enrichment",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Surfaces only live governed debt in canonical status recommendations and operator shortcuts, then revalidates through focused tests plus status artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the threshold-aware recommendation and `coverage-snapshot` shortcut additions in `src/inf_work/system_status.py`, restore the prior status artifact expectations, and regenerate the governed status outputs if the enriched status guidance must be withdrawn.",
+      "related_techniques": [
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_kb_index_automation_metrics_enforcement",
+      "pattern_name": "KB index automation metrics enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Derives aggregate automation success metrics from catalogued automation patterns, validates `knowledge_base/kb_index.json` against those values, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `automation_success_metrics` parity additions in `src/inf_work/kb_integrity.py`, restore the prior manual `kb_index.json` automation metrics, and regenerate the governed artifacts if derived automation metrics must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_kb_index_last_updated_enforcement",
+      "pattern_name": "KB index last-updated enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Derives `knowledge_base/kb_index.json:last_updated` from governed KB source metadata and session timestamps, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `last_updated` parity additions in `src/inf_work/kb_integrity.py`, restore the prior manual `kb_index.json` freshness field, and regenerate the governed artifacts if derived KB freshness must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_kb_source_freshness_metadata_enforcement",
+      "pattern_name": "KB source freshness metadata enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Derives KB source freshness metadata from recorded entry timestamps, validates file-level `last_updated` and session temporal metadata directly, and revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the KB source freshness parity rules in `src/inf_work/kb_integrity.py`, restore the prior unchecked freshness metadata in the KB source files, and regenerate the governed artifacts if direct source freshness governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_status_generated_at_derivation",
+      "pattern_name": "Status generated_at derivation",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Derives the canonical status snapshot freshness from governed source artifacts only, updates the JSON-first status metadata, and revalidates through focused tests plus artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the source-derived `generated_at` logic in `src/inf_work/system_status.py`, restore the prior legacy timestamp handling if needed, and regenerate the canonical status artifacts.",
+      "related_techniques": [
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_creation_timestamp_enforcement",
+      "pattern_name": "Component doc creation-timestamp enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extends only existing component-doc parity checks so companion JSON docs must preserve the same governed creation timestamp as `ai_docs/component_index.json`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the creation-timestamp comparison in `src/inf_work/kb_integrity.py`, restore the prior component-doc parity scope, and regenerate the governed artifacts if companion-doc timestamp governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_compliance_status_enforcement",
+      "pattern_name": "Component doc compliance-status enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extends only existing component-doc parity checks so companion JSON docs must preserve the same governed compliance status as `ai_docs/component_index.json`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the compliance-status comparison in `src/inf_work/kb_integrity.py`, restore the prior component-doc parity scope, and regenerate the governed artifacts if companion-doc compliance governance must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_required_fields_enforcement",
+      "pattern_name": "Component doc required-fields enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a direct schema check so companion component docs must include every `ai_reference_format.required_fields` entry from `core_reference.json`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the required-field schema check in `src/inf_work/kb_integrity.py`, restore the prior component-doc governance scope, and regenerate the governed artifacts if companion-doc schema enforcement must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_core_reference_view_extraction",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_auto_generated_enforcement",
+      "pattern_name": "Component doc auto-generated enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a direct schema-invariant check so companion component docs must keep `auto_generated` set to true, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the `auto_generated` invariant check in `src/inf_work/kb_integrity.py`, restore the prior component-doc schema scope, and regenerate the governed artifacts if this metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_targeted_test_file_enforcement",
+      "pattern_name": "Component doc targeted test-file enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc cross-reference check so `test_coverage.targeted_test_file` must resolve to an existing workspace file, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the targeted-test-file existence check in `src/inf_work/kb_integrity.py`, restore the prior component-doc validation scope, and regenerate the governed artifacts if this file-reference invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_file_paths_enforcement",
+      "pattern_name": "Component doc file-path inventory enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc cross-reference check so each `file_paths` entry must resolve to an existing workspace file, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the file-path inventory existence check in `src/inf_work/kb_integrity.py`, restore the prior component-doc validation scope, and regenerate the governed artifacts if this path-inventory invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_dependencies_enforcement",
+      "pattern_name": "Component doc dependency inventory enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc cross-reference check so each `dependencies` entry must resolve to an existing workspace path, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the dependency-inventory existence check in `src/inf_work/kb_integrity.py`, restore the prior component-doc validation scope, and regenerate the governed artifacts if this dependency invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_cli_command_enforcement",
+      "pattern_name": "Component doc CLI command-surface enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc CLI cross-reference check so `interfaces.cli` entries stay aligned with the supported `inf_work` command surface, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the CLI command-surface validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc validation scope, and regenerate the governed artifacts if this CLI metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_python_api_enforcement",
+      "pattern_name": "Component doc Python API-surface enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc Python API cross-reference check so `interfaces.python_api` entries stay aligned with symbols exported by the governed module, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the Python API-surface validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc validation scope, and regenerate the governed artifacts if this API metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_notes_enforcement",
+      "pattern_name": "Component doc notes hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `notes` remains a non-empty list of non-empty strings, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the notes hygiene validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this context-preservation invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_test_coverage_status_enforcement",
+      "pattern_name": "Component doc coverage-status vocabulary enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `test_coverage.status` remains within the governed coverage-status vocabulary, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the coverage-status vocabulary validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this metadata invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_test_coverage_status_type_enforcement",
+      "pattern_name": "Component doc coverage-status component-type enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `test_coverage.status` matches the governed `component_type`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-type coverage-status validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this verification-mode invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_interfaces_type_enforcement",
+      "pattern_name": "Component doc interface-shape component-type enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `interfaces` shape matches the governed `component_type`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-type interface-shape validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this interface invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_performance_metrics_type_enforcement",
+      "pattern_name": "Component doc performance-metrics component-type enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `performance_metrics` keys match the governed `component_type`, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the component-type performance-metrics validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this metrics invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_performance_metrics_values_enforcement",
+      "pattern_name": "Component doc performance-metrics value hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so `performance_metrics` values remain non-empty strings, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the performance-metrics value validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this metrics-hygiene invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_interfaces_value_type_enforcement",
+      "pattern_name": "Component doc interfaces value-type enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so every `interfaces.*` value remains a JSON list, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the interfaces value-type validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this interface-shape invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_component_doc_interfaces_entries_enforcement",
+      "pattern_name": "Component doc interfaces entry hygiene enforcement",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-03-31T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Adds only a companion-doc schema check so every documented interface surface remains a non-empty list of non-empty strings, then revalidates through focused tests plus canonical artifact regeneration"
+      ],
+      "rollback_strategy": "Revert the interfaces entry-hygiene validation in `src/inf_work/kb_integrity.py`, restore the prior companion-doc schema scope, and regenerate the governed artifacts if this interface-payload invariant must be withdrawn.",
+      "related_techniques": [
+        "technique_knowledge_base_cross_reference_validation",
+        "technique_registered_validation_rules",
+        "technique_named_rule_profiles",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_refresh_artifacts_operator_surface_promotion",
+      "pattern_name": "Refresh-artifacts operator surface promotion",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-03T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Promotes only the deterministic `refresh-artifacts` workflow through governed operator shortcuts and canonical status surfaces, then revalidates through focused status coverage plus aggregate workspace checks"
+      ],
+      "rollback_strategy": "Remove the `refresh-artifacts` shortcut references from `src/inf_work/system_status.py`, restore the prior status artifact expectations, and regenerate the governed artifacts if the one-shot operator surface must revert to CLI-only exposure.",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_named_rule_profiles",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_system_status_navigation_surface_promotion",
+      "pattern_name": "System-status navigation surface promotion",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-03T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Promotes only deterministic navigation pointers through the generated `SYSTEM_STATUS.md` surface, keeps the guidance derived from governed sources, and revalidates through focused status coverage plus aggregate workspace checks"
+      ],
+      "rollback_strategy": "Remove the generated `Where to look first` block from `src/inf_work/system_status.py`, restore the prior status markdown expectations, and regenerate the governed artifacts if the additional navigation surface must be withdrawn.",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_named_rule_profiles",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    },
+    {
+      "id": "automation_status_markdown_shared_block_consolidation",
+      "pattern_name": "Status markdown shared-block consolidation",
+      "automation_type": "documentation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-03T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Extracts only shared markdown block renderers inside `src/inf_work/system_status.py`, preserves document-specific wording where required, and revalidates through focused status coverage plus aggregate workspace checks"
+      ],
+      "rollback_strategy": "Inline the shared markdown helper outputs back into `render_system_status_markdown(...)` and `render_system_summary_markdown(...)`, then regenerate the governed artifacts if the consolidation must be reverted.",
+      "related_techniques": [
+        "technique_deterministic_profile_surface_promotion",
+        "technique_named_rule_profiles",
+        "technique_registered_validation_rules",
+        "technique_canonical_status_snapshot_generation",
+        "technique_status_artifact_validation"
+      ]
+    }
+  ],
+  "metadata": {
+    "total_count": 59,
+    "last_updated": "2026-04-03T00:00:00Z",
+    "schema_version": "2.0.0"
+  }
+}

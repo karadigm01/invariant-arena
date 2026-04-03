@@ -1,0 +1,212 @@
+{
+  "artifact_id": "remediation_engine_design",
+  "artifact_type": "architecture_proposal",
+  "title": "Deterministic Policy-Constrained Remediation Engine",
+  "status": "proposed_not_implemented",
+  "created_timestamp": "2026-03-31T00:00:00Z",
+  "last_reviewed_timestamp": "2026-03-31T00:00:00Z",
+  "purpose": "Capture the highest-leverage next architectural capability so the workspace can return to it later without prematurely implementing mutation or rollback behavior.",
+  "problem_statement": {
+    "current_state": "The workspace can validate, report, catalog, and prove runtime integrity, but it cannot yet compile or execute bounded compliant changes from failures or explicit intents.",
+    "architectural_gap": "The system lacks a deterministic remediation layer that can transform governed state under policy instead of only observing and reporting on it.",
+    "target_shift": "Evolve inf.work from a governance and introspection product into a governance-guided planning and bounded self-healing product."
+  },
+  "capability_boundary": {
+    "what_it_changes": [
+      "Introduces a first-class planning layer between validation and workspace mutation.",
+      "Turns stable rule failures and governed intents into deterministic remediation plans.",
+      "Adds bounded change execution semantics with verification and rollback contracts."
+    ],
+    "first_release_owns": [
+      "Plan-only remediation from existing rule failures.",
+      "Dry-run simulation for governed JSON and derived artifact domains.",
+      "Structured provenance for planned and simulated remediation flows."
+    ],
+    "first_release_excludes": [
+      "Freeform source-code synthesis or arbitrary workspace edits.",
+      "Dependency installation or environment mutation.",
+      "Cross-workspace orchestration.",
+      "Open-ended natural-language execution without a supported strategy binding."
+    ]
+  },
+  "core_domain_objects": [
+    {
+      "name": "RemediationStrategy",
+      "role": "Declares applicability, preconditions, allowed operation types, verification contract, rollback contract, and stable selection priority."
+    },
+    {
+      "name": "RemediationPlan",
+      "role": "Immutable compiled plan containing objective, evidence, ordered operations, predicted impacts, verification steps, and rollback steps."
+    },
+    {
+      "name": "PlanOperation",
+      "role": "Typed bounded action such as updating a JSON value, appending an index entry, regenerating governed artifacts, or running a validation profile."
+    },
+    {
+      "name": "VerificationContract",
+      "role": "Defines the exact rules, tests, or profiles that must succeed after remediation."
+    },
+    {
+      "name": "RollbackContract",
+      "role": "Defines how each operation can be deterministically reversed or restored from pre-state."
+    },
+    {
+      "name": "ChangeProvenanceRecord",
+      "role": "Records intent, triggering evidence, selected strategy, executed operations, verification results, and final outcome."
+    }
+  ],
+  "engine_phases": [
+    {
+      "phase": "detect",
+      "description": "Accept a trigger from failed rules or an explicit governed objective."
+    },
+    {
+      "phase": "resolve",
+      "description": "Gather affected surfaces using the resolver graph, component metadata, and governed indices."
+    },
+    {
+      "phase": "select",
+      "description": "Choose the deterministic winning strategy from a registry of supported remediation strategies."
+    },
+    {
+      "phase": "compile",
+      "description": "Build an ordered immutable remediation plan with declared operations and verification requirements."
+    },
+    {
+      "phase": "simulate",
+      "description": "Produce dry-run diffs and a predicted post-state without mutating the workspace."
+    },
+    {
+      "phase": "apply",
+      "description": "Execute only allowed bounded operations when the capability is later enabled."
+    },
+    {
+      "phase": "verify",
+      "description": "Run the exact verification contract attached to the plan."
+    },
+    {
+      "phase": "finalize",
+      "description": "Emit provenance and either commit the successful plan or roll back deterministically."
+    }
+  ],
+  "existing_foundations": {
+    "already_present": [
+      "Stable `rule_id`, severity, category, and profile mechanics in `src/inf_work/rules.py`.",
+      "Deterministic resolver traversal and bounded route validation in `src/inf_work/resolver_registry.py`.",
+      "Canonical JSON-first system snapshot generation and validation in `src/inf_work/system_status.py`.",
+      "Governed component metadata and KB cross-reference validation.",
+      "Focused and aggregate validation flows that can be reused as verification contracts."
+    ],
+    "readiness_assessment": {
+      "overall_foundation_percent": 70,
+      "ready_now": [
+        "plan-only remediation architecture",
+        "dry-run structured remediation for governed JSON and derived artifacts",
+        "impact analysis using existing resolver and component metadata"
+      ],
+      "not_safe_yet": [
+        "applied source-code mutation",
+        "rollback-backed execution without typed operation contracts",
+        "unbounded or heuristic workspace edits"
+      ]
+    }
+  },
+  "safety_gates": [
+    {
+      "gate": "determinism_gate",
+      "description": "Identical governed state and identical objective must compile to the same remediation plan."
+    },
+    {
+      "gate": "scope_gate",
+      "description": "Operations must target an explicitly allowed governed file class."
+    },
+    {
+      "gate": "precondition_gate",
+      "description": "A strategy may compile only when all declared predicates pass."
+    },
+    {
+      "gate": "rollback_gate",
+      "description": "No executable operation is allowed without a corresponding rollback contract."
+    },
+    {
+      "gate": "verification_gate",
+      "description": "A remediation is unsuccessful unless its attached verification contract passes after execution."
+    },
+    {
+      "gate": "provenance_gate",
+      "description": "Every planned or executed remediation must emit structured audit data first."
+    }
+  ],
+  "minimum_first_slice": {
+    "slice_name": "plan_only_structured_remediation",
+    "goal": "Compile deterministic remediation plans for governed artifact and KB/index drift without mutating source files.",
+    "candidate_triggers": [
+      "status.snapshot_matches_workspace",
+      "status.markdown_matches_snapshot",
+      "status.summary_matches_workspace"
+    ],
+    "allowed_operation_types": [
+      "regenerate_artifact",
+      "write_json_value",
+      "append_json_item",
+      "assert_file_exists",
+      "run_validation_profile"
+    ],
+    "excluded_operation_types": [
+      "arbitrary_source_edit",
+      "dependency_installation",
+      "interface_modification"
+    ]
+  },
+  "rollout_phases": [
+    {
+      "phase": 1,
+      "name": "Plan-only remediation",
+      "outcome": "Generate deterministic remediation plans from rule failures with no workspace mutation."
+    },
+    {
+      "phase": 2,
+      "name": "Dry-run structured remediation",
+      "outcome": "Simulate JSON and derived-artifact changes with predicted diffs and verification contracts."
+    },
+    {
+      "phase": 3,
+      "name": "Applied structured remediation",
+      "outcome": "Execute bounded governed-file operations with rollback and verification."
+    },
+    {
+      "phase": 4,
+      "name": "Bounded source-level strategies",
+      "outcome": "Allow strategy-authored source edits only after typed operation and rollback semantics exist."
+    },
+    {
+      "phase": 5,
+      "name": "Intent-driven governed change",
+      "outcome": "Support explicit capability requests, not only failure repair."
+    }
+  ],
+  "prerequisites_before_implementation": [
+    "Define a typed `PlanOperation` vocabulary for structured changes.",
+    "Define rollback semantics per allowed operation type.",
+    "Create a deterministic remediation-strategy registry keyed by stable triggers.",
+    "Add a structured provenance artifact for plans and outcomes.",
+    "Define an explicit mutation policy for which governed file classes remediation may touch."
+  ],
+  "related_workspace_surfaces": [
+    "src/inf_work/rules.py",
+    "src/inf_work/resolver_registry.py",
+    "src/inf_work/system_status.py",
+    "knowledge_base/techniques.json",
+    "knowledge_base/automation_patterns.json",
+    "knowledge_base/constraint_innovations.json",
+    "ai_docs/component_index.json",
+    "ai_docs/system_status_snapshot.json",
+    "SYSTEM_STATUS.md",
+    "SYSTEM_SUMMARY.md"
+  ],
+  "return_path": {
+    "recommended_starting_point": "Begin later with the minimum first slice: a plan-only remediation compiler for status artifact drift.",
+    "recommended_non_goal": "Do not begin with arbitrary code-edit execution or generalized autonomous source mutation.",
+    "review_prompt": "What is the smallest deterministic remediation slice that adds planning value without introducing unsafe mutation?"
+  }
+}
