@@ -245,6 +245,22 @@ def test_build_parser_parses_remediation_plan_command() -> None:
     assert parsed_args.simulate is True
     assert parsed_args.apply is False
     assert parsed_args.rule_id == ["status.snapshot_matches_workspace"]
+    assert parsed_args.intent is None
+
+
+def test_build_parser_parses_remediation_plan_intent_command() -> None:
+    parsed_args = _parse_args(
+        [
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+            "--intent",
+            "intent.status.refresh_artifacts",
+        ]
+    )
+
+    assert parsed_args.command == "remediation-plan"
+    assert parsed_args.intent == "intent.status.refresh_artifacts"
 
 
 def test_build_parser_parses_remediation_plan_apply_command() -> None:
@@ -344,11 +360,12 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
     monkeypatch.setattr(
         unified_cli,
         "compile_remediation_plan",
-        lambda workspace_root, selected_rule_ids, include_simulation=False: captured.update(
+        lambda workspace_root, selected_rule_ids, include_simulation=False, intent_id=None: captured.update(
             {
                 "workspace_root": workspace_root,
                 "selected_rule_ids": selected_rule_ids,
                 "include_simulation": include_simulation,
+                "intent_id": intent_id,
             }
         )
         or plan_result,
@@ -370,6 +387,7 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
     assert captured["workspace_root"] == WORKSPACE_ROOT
     assert captured["selected_rule_ids"] is None
     assert captured["include_simulation"] is True
+    assert captured["intent_id"] is None
     assert payload == {
         "plan_available": True,
         "plan_id": "remediation_plan_status_artifact_regeneration",
@@ -393,10 +411,11 @@ def test_unified_main_remediation_plan_apply_outputs_execution_result(monkeypatc
     monkeypatch.setattr(
         unified_cli,
         "apply_remediation_plan",
-        lambda workspace_root, selected_rule_ids: captured.update(
+        lambda workspace_root, selected_rule_ids, intent_id=None: captured.update(
             {
                 "workspace_root": workspace_root,
                 "selected_rule_ids": selected_rule_ids,
+                "intent_id": intent_id,
             }
         )
         or execution_result,
@@ -417,12 +436,56 @@ def test_unified_main_remediation_plan_apply_outputs_execution_result(monkeypatc
     assert exit_code == 0
     assert captured["workspace_root"] == WORKSPACE_ROOT
     assert captured["selected_rule_ids"] is None
+    assert captured["intent_id"] is None
     assert payload == {
         "plan_id": "remediation_plan_status_artifact_regeneration",
         "execution_attempted": True,
         "applied": True,
         "compliant": True,
     }
+
+
+def test_unified_main_remediation_plan_intent_outputs_compiled_plan(monkeypatch, capsys) -> None:
+    plan_result = FakeValidationResult(
+        payload={
+            "plan_id": "remediation_plan_status_artifact_regeneration",
+            "plan_available": True,
+            "provenance": {"governed_intent_ids": ["intent.status.refresh_artifacts"]},
+        }
+    )
+
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        unified_cli,
+        "compile_remediation_plan",
+        lambda workspace_root, selected_rule_ids, include_simulation=False, intent_id=None: captured.update(
+            {
+                "workspace_root": workspace_root,
+                "selected_rule_ids": selected_rule_ids,
+                "include_simulation": include_simulation,
+                "intent_id": intent_id,
+            }
+        )
+        or plan_result,
+    )
+
+    exit_code, payload = _run_main_json(
+        monkeypatch,
+        capsys,
+        [
+            "inf_work",
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+            "--intent",
+            "intent.status.refresh_artifacts",
+        ],
+    )
+
+    assert exit_code == 0
+    assert captured["intent_id"] == "intent.status.refresh_artifacts"
+    assert payload["provenance"] == {"governed_intent_ids": ["intent.status.refresh_artifacts"]}
 
 
 def test_unified_main_resolve_path_returns_failure_for_unknown_tile(monkeypatch, capsys) -> None:

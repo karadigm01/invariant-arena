@@ -16,6 +16,7 @@ A small Python starter component for this workspace.
 - `python3 -m inf_work status-check`: validates the canonical structured status data and the derived `SYSTEM_STATUS.md` snapshot, with optional `--fix` remediation
 - `python3 -m inf_work summary-check`: validates the derived `SYSTEM_SUMMARY.md` artifact, with optional `--fix` remediation
 - `python3 -m inf_work remediation-plan`: compiles a deterministic remediation payload for the supported remediation slices without mutating the workspace
+- `python3 -m inf_work remediation-plan --intent intent.status.refresh_artifacts`: compiles the explicit governed status-refresh remediation plan even when the status artifacts are already compliant
 - `python3 -m inf_work remediation-plan --simulate`: extends that payload with a dry-run remediation preview showing predicted diffs for the selected supported slice without mutating the workspace
 - `python3 -m inf_work remediation-plan --apply`: executes the selected bounded remediation slice, including status-artifact regeneration or package-export source synchronization, verifies the result, and restores the pre-apply artifact state if verification fails
 - `python3 -m inf_work coverage-snapshot`: generates the canonical `ai_docs/test_coverage_snapshot.json` artifact from a real `pytest-cov` run so component coverage metadata can be governed from runtime data
@@ -86,7 +87,7 @@ A small Python starter component for this workspace.
 - `summary-check` exposes a dedicated validator for the generated `SYSTEM_SUMMARY.md` artifact.
 - `status-check --fix` regenerates stale status artifacts before validating them.
 - `summary-check --fix` refreshes the governed status outputs before validating the generated summary artifact.
-- `remediation-plan` now selects between the supported remediation slices, `remediation-plan --simulate` previews deterministic diffs for status-artifact and package-export remediations, and `remediation-plan --apply` executes the bounded slice with verification and rollback.
+- `remediation-plan` now selects between the supported remediation slices, `remediation-plan --intent intent.status.refresh_artifacts` triggers the explicit governed status-refresh capability, `remediation-plan --simulate` previews deterministic diffs for status-artifact and package-export remediations, and `remediation-plan --apply` executes the bounded slice with verification and rollback.
 - `all --fix-status` applies that same status-artifact remediation before the combined aggregate report runs.
 - Canonical status rendering now surfaces threshold-aware follow-up actions when governed components fall below the configured coverage minimum and includes the `coverage-snapshot` operator shortcut alongside the other governed task pairs.
 - Canonical status generation now derives `ai_docs/system_status_snapshot.json:generated_at` from the freshest governed source artifacts instead of preserving a stale fixed timestamp.

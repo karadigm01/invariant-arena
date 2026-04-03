@@ -9,11 +9,11 @@
   "interfaces": {
     "python_api": [
       "apply_package_public_api_export_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
-      "apply_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
-      "apply_status_artifact_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
+      "apply_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, intent_id: str | None = None) -> RemediationExecutionResult",
+      "apply_status_artifact_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None, *, intent_id: str | None = None) -> RemediationExecutionResult",
       "compile_package_public_api_export_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
-      "compile_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
-      "compile_status_artifact_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
+      "compile_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False, intent_id: str | None = None) -> RemediationPlan",
+      "compile_status_artifact_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False, intent_id: str | None = None) -> RemediationPlan",
       "list_supported_remediation_strategies() -> list[RemediationStrategy]"
     ],
     "cli": []
@@ -44,6 +44,7 @@
     "Adds a phase-2 dry-run structured remediation preview that simulates canonical status artifact outputs and emits deterministic diff excerpts without mutating the workspace.",
     "Adds a phase-3 applied remediation path that reuses the existing governed status-artifact writers, verifies the regenerated outputs, and restores the pre-apply artifact state if verification fails.",
     "Adds a Phase 4 bounded source-level remediation slice that synchronizes missing `inf_work` package re-exports in `src/inf_work/__init__.py` when the governed package-public-API doc references symbols that resolve to exactly one provider module.",
+    "Adds a Phase 5 intent-driven governed change entry point for deterministic status-artifact refresh so operators can request a bounded capability directly without requiring an active status failure.",
     "Reuses existing status and knowledge-base validation outputs instead of introducing ad hoc mutation flows, keeping the supported slices bounded to governed artifact planning, bounded artifact execution, and deterministic package-export source synchronization."
   ]
 }

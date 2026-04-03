@@ -91,8 +91,10 @@ def test_list_supported_remediation_strategies_returns_phase_one_strategy() -> N
     assert len(strategies) == 2
     assert strategies[0].strategy_id == "strategy_status_artifact_regeneration_plan"
     assert strategies[0].supported_rule_ids == list(remediation_module.SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS)
+    assert strategies[0].supported_intent_ids == list(remediation_module.SUPPORTED_GOVERNED_INTENT_IDS)
     assert strategies[1].strategy_id == "strategy_package_public_api_export_sync"
     assert strategies[1].supported_rule_ids == list(remediation_module.SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS)
+    assert strategies[1].supported_intent_ids == []
 
 
 def test_compile_status_artifact_remediation_plan_builds_supported_plan(monkeypatch) -> None:
@@ -230,6 +232,30 @@ def test_compile_status_artifact_remediation_plan_returns_noop_when_status_is_co
     assert plan.operations == []
     assert plan.triggering_rule_ids == []
     assert "already match the current governed workspace state" in plan.notes[-1]
+
+
+def test_compile_status_artifact_remediation_plan_supports_explicit_status_refresh_intent(monkeypatch) -> None:
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_status",
+        lambda workspace_root, rule_ids: _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=True),
+            _rule_result("status.markdown_matches_snapshot", passed=True),
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        ),
+    )
+
+    plan = compile_status_artifact_remediation_plan(
+        WORKSPACE_ROOT,
+        intent_id="intent.status.refresh_artifacts",
+    )
+
+    assert plan.plan_available is True
+    assert plan.plan_phase == "intent_driven_governed_change"
+    assert plan.provenance.governed_intent_ids == ["intent.status.refresh_artifacts"]
+    assert plan.triggering_rule_ids == list(remediation_module.SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS)
+    assert plan.selected_strategy is not None
 
 
 def test_compile_status_artifact_remediation_plan_reports_unsupported_failures(monkeypatch) -> None:
@@ -443,7 +469,7 @@ def test_compile_remediation_plan_prefers_package_export_slice_for_kb_rule(monke
     monkeypatch.setattr(
         remediation_module,
         "compile_status_artifact_remediation_plan",
-        lambda workspace_root, rule_ids, include_simulation=False: remediation_module.RemediationPlan(
+        lambda workspace_root, rule_ids, include_simulation=False, intent_id=None: remediation_module.RemediationPlan(
             workspace_root=str(Path(workspace_root).resolve()),
             plan_id="status",
             objective="status",
@@ -461,7 +487,7 @@ def test_compile_remediation_plan_prefers_package_export_slice_for_kb_rule(monke
             operations=[],
             verification_contract=None,
             rollback_contract=None,
-            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
             simulation_available=False,
             simulation=None,
             notes=[],
@@ -488,7 +514,7 @@ def test_compile_remediation_plan_prefers_package_export_slice_for_kb_rule(monke
             operations=[],
             verification_contract=None,
             rollback_contract=None,
-            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
             simulation_available=False,
             simulation=None,
             notes=[],
@@ -581,7 +607,7 @@ def test_apply_remediation_plan_routes_to_package_export_strategy(monkeypatch, t
         operations=[],
         verification_contract=None,
         rollback_contract=None,
-        provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], []),
+        provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
         simulation_available=False,
         simulation=None,
         notes=[],
@@ -617,3 +643,113 @@ def test_apply_remediation_plan_routes_to_package_export_strategy(monkeypatch, t
     assert result.compliant is True
     assert captured["workspace_root"] == workspace_root
     assert captured["rule_ids"] == {"knowledge_base.component_doc_python_api_symbols_valid"}
+
+
+def test_compile_remediation_plan_routes_explicit_status_intent(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    monkeypatch.setattr(
+        remediation_module,
+        "compile_status_artifact_remediation_plan",
+        lambda workspace_root, rule_ids, include_simulation=False, intent_id=None: remediation_module.RemediationPlan(
+            workspace_root=str(Path(workspace_root).resolve()),
+            plan_id="status-intent",
+            objective="intent",
+            plan_phase="intent_driven_governed_change",
+            plan_only=True,
+            current_status_compliant=True,
+            plan_available=True,
+            selected_rule_ids=[],
+            triggering_rule_ids=list(remediation_module.SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS),
+            unsupported_failing_rule_ids=[],
+            selected_strategy=remediation_module.STATUS_ARTIFACT_REMEDIATION_STRATEGY,
+            triggering_evidence=[],
+            current_rule_summary={},
+            affected_paths=[],
+            operations=[],
+            verification_contract=None,
+            rollback_contract=None,
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [intent_id] if intent_id else [], [], [], []),
+            simulation_available=False,
+            simulation=None,
+            notes=[],
+        ),
+    )
+    monkeypatch.setattr(
+        remediation_module,
+        "compile_package_public_api_export_remediation_plan",
+        lambda workspace_root, rule_ids, include_simulation=False: remediation_module.RemediationPlan(
+            workspace_root=str(Path(workspace_root).resolve()),
+            plan_id="package",
+            objective="package",
+            plan_phase="bounded_source_level_remediation",
+            plan_only=True,
+            current_status_compliant=True,
+            plan_available=False,
+            selected_rule_ids=[],
+            triggering_rule_ids=[],
+            unsupported_failing_rule_ids=[],
+            selected_strategy=None,
+            triggering_evidence=[],
+            current_rule_summary={},
+            affected_paths=[],
+            operations=[],
+            verification_contract=None,
+            rollback_contract=None,
+            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
+            simulation_available=False,
+            simulation=None,
+            notes=[],
+        ),
+    )
+
+    plan = compile_remediation_plan(workspace_root, intent_id="intent.status.refresh_artifacts")
+
+    assert plan.plan_id == "status-intent"
+
+
+def test_apply_status_artifact_remediation_supports_explicit_status_refresh_intent(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "ai_docs" / "system_status_snapshot.json").write_text('{"stale": false}', encoding="utf-8")
+    (workspace_root / "SYSTEM_STATUS.md").write_text("# current\n", encoding="utf-8")
+    (workspace_root / "SYSTEM_SUMMARY.md").write_text("# current summary\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_status",
+        lambda workspace_root, rule_ids: _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=True),
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        ),
+    )
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_summary",
+        lambda workspace_root: _status_validation_result(
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        ),
+    )
+
+    class FakeSnapshot:
+        generated_at = "2026-04-03T22:00:00Z"
+        canonical_json_path = "ai_docs/system_status_snapshot.json"
+        derived_markdown_path = "SYSTEM_STATUS.md"
+
+    monkeypatch.setattr(
+        remediation_module,
+        "write_system_status_outputs",
+        lambda workspace_root, canonical_json_path, derived_markdown_path, summary_path: (
+            (workspace_root / canonical_json_path).write_text('{"refreshed": true}', encoding="utf-8"),
+            (workspace_root / derived_markdown_path).write_text("# refreshed\n", encoding="utf-8"),
+            (workspace_root / summary_path).write_text("# refreshed summary\n", encoding="utf-8"),
+            FakeSnapshot(),
+        )[-1],
+    )
+
+    result = apply_status_artifact_remediation(workspace_root, intent_id="intent.status.refresh_artifacts")
+
+    assert result.applied is True
+    assert result.compliant is True
+    assert result.rollback_performed is False

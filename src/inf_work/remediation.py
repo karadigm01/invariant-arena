@@ -25,6 +25,7 @@ _DEFAULT_STATUS_MARKDOWN_PATH = "SYSTEM_STATUS.md"
 _DEFAULT_STATUS_SUMMARY_PATH = "SYSTEM_SUMMARY.md"
 _PACKAGE_PUBLIC_API_DOC_PATH = "ai_docs/package_public_api_surface_20260331T000000Z.json"
 _PACKAGE_PUBLIC_API_MODULE_PATH = "src/inf_work/__init__.py"
+_STATUS_REFRESH_INTENT_ID = "intent.status.refresh_artifacts"
 
 SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS = (
     "status.snapshot_matches_workspace",
@@ -34,6 +35,9 @@ SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS = (
 SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS = (
     "knowledge_base.component_doc_python_api_symbols_valid",
 )
+SUPPORTED_GOVERNED_INTENT_IDS = (
+    _STATUS_REFRESH_INTENT_ID,
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +45,7 @@ class RemediationStrategy:
     strategy_id: str
     description: str
     supported_rule_ids: list[str]
+    supported_intent_ids: list[str]
     priority: int
     allowed_operation_types: list[str]
     verification_profile: str
@@ -91,6 +96,7 @@ class ChangeProvenanceRecord:
     record_id: str
     trigger_kind: str
     trigger_rule_ids: list[str]
+    governed_intent_ids: list[str]
     supporting_rule_ids: list[str]
     source_artifact_paths: list[str]
     derived_from_components: list[str]
@@ -207,6 +213,7 @@ def _build_status_artifact_strategy() -> RemediationStrategy:
         strategy_id="strategy_status_artifact_regeneration_plan",
         description="Compile a deterministic plan that regenerates canonical status artifacts and then re-validates the status surfaces.",
         supported_rule_ids=list(SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS),
+        supported_intent_ids=[_STATUS_REFRESH_INTENT_ID],
         priority=1,
         allowed_operation_types=["regenerate_artifact", "run_validation_profile"],
         verification_profile="status_artifact_drift",
@@ -222,6 +229,7 @@ def _build_package_export_sync_strategy() -> RemediationStrategy:
         strategy_id="strategy_package_public_api_export_sync",
         description="Synchronize the governed `inf_work` package export surface in `src/inf_work/__init__.py` so documented package imports resolve to explicit re-exports.",
         supported_rule_ids=list(SUPPORTED_SOURCE_LEVEL_TRIGGER_RULE_IDS),
+        supported_intent_ids=[],
         priority=2,
         allowed_operation_types=["rewrite_python_source", "run_validation_profile"],
         verification_profile="package_public_api_export_sync",
@@ -319,11 +327,17 @@ def _build_plan_only_rollback_contract() -> RollbackContract:
     )
 
 
-def _build_provenance_record(trigger_rule_ids: list[str], supporting_rule_ids: list[str]) -> ChangeProvenanceRecord:
+def _build_provenance_record(
+    trigger_rule_ids: list[str],
+    supporting_rule_ids: list[str],
+    *,
+    governed_intent_ids: list[str] | None = None,
+) -> ChangeProvenanceRecord:
     return ChangeProvenanceRecord(
         record_id="provenance_status_artifact_regeneration_plan",
-        trigger_kind="status_rule_failure",
+        trigger_kind="explicit_governed_intent" if governed_intent_ids else "status_rule_failure",
         trigger_rule_ids=trigger_rule_ids,
+        governed_intent_ids=list(governed_intent_ids or []),
         supporting_rule_ids=supporting_rule_ids,
         source_artifact_paths=[
             _DEFAULT_STATUS_JSON_PATH,
@@ -343,6 +357,7 @@ def _build_package_export_provenance_record(trigger_rule_ids: list[str], support
         record_id="provenance_package_public_api_export_sync",
         trigger_kind="knowledge_base_rule_failure",
         trigger_rule_ids=trigger_rule_ids,
+        governed_intent_ids=[],
         supporting_rule_ids=supporting_rule_ids,
         source_artifact_paths=[
             _PACKAGE_PUBLIC_API_DOC_PATH,
@@ -861,9 +876,16 @@ def _build_no_plan_execution_result(plan: RemediationPlan, *, notes: list[str]) 
 def apply_status_artifact_remediation(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
+    *,
+    intent_id: str | None = None,
 ) -> RemediationExecutionResult:
     root_path = Path(workspace_root).resolve()
-    plan = compile_status_artifact_remediation_plan(root_path, rule_ids, include_simulation=False)
+    plan = compile_status_artifact_remediation_plan(
+        root_path,
+        rule_ids,
+        include_simulation=False,
+        intent_id=intent_id,
+    )
 
     if not plan.plan_available:
         return _build_no_plan_execution_result(
@@ -1210,12 +1232,21 @@ def compile_remediation_plan(
     rule_ids: set[str] | None = None,
     *,
     include_simulation: bool = False,
+    intent_id: str | None = None,
 ) -> RemediationPlan:
     root_path = Path(workspace_root).resolve()
     selected_rule_ids = sorted(rule_ids) if rule_ids else []
-    status_plan = compile_status_artifact_remediation_plan(root_path, rule_ids, include_simulation=include_simulation)
+    status_plan = compile_status_artifact_remediation_plan(
+        root_path,
+        rule_ids,
+        include_simulation=include_simulation,
+        intent_id=intent_id,
+    )
     package_plan = compile_package_public_api_export_remediation_plan(root_path, rule_ids, include_simulation=include_simulation)
     selected_domains = {rule_id.split(".", maxsplit=1)[0] for rule_id in selected_rule_ids}
+
+    if intent_id == _STATUS_REFRESH_INTENT_ID:
+        return status_plan
 
     if selected_domains == {"knowledge_base"}:
         return package_plan
@@ -1235,8 +1266,10 @@ def compile_remediation_plan(
 def apply_remediation_plan(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
+    *,
+    intent_id: str | None = None,
 ) -> RemediationExecutionResult:
-    plan = compile_remediation_plan(workspace_root, rule_ids, include_simulation=False)
+    plan = compile_remediation_plan(workspace_root, rule_ids, include_simulation=False, intent_id=intent_id)
     if not plan.plan_available or plan.selected_strategy is None:
         return _build_no_plan_execution_result(
             plan,
@@ -1246,7 +1279,7 @@ def apply_remediation_plan(
             ],
         )
     if plan.selected_strategy.strategy_id == STATUS_ARTIFACT_REMEDIATION_STRATEGY.strategy_id:
-        return apply_status_artifact_remediation(workspace_root, rule_ids)
+            return apply_status_artifact_remediation(workspace_root, rule_ids, intent_id=intent_id)
     if plan.selected_strategy.strategy_id == PACKAGE_EXPORT_SYNC_REMEDIATION_STRATEGY.strategy_id:
         return apply_package_public_api_export_remediation(workspace_root, rule_ids)
     return _build_no_plan_execution_result(
@@ -1267,6 +1300,7 @@ def compile_status_artifact_remediation_plan(
     rule_ids: set[str] | None = None,
     *,
     include_simulation: bool = False,
+    intent_id: str | None = None,
 ) -> RemediationPlan:
     root_path = Path(workspace_root).resolve()
     validation_result = validate_system_status(root_path, rule_ids)
@@ -1280,22 +1314,29 @@ def compile_status_artifact_remediation_plan(
         if not rule_result.passed and rule_result.rule_id in supported_rule_ids
     ]
     current_rule_summary = summarize_rule_results(validation_result.rule_results)
+    governed_intent_ids = [intent_id] if intent_id == _STATUS_REFRESH_INTENT_ID else []
+    explicit_intent_selected = bool(governed_intent_ids)
 
-    if supported_rule_ids:
-        operations = _build_plan_operations(str(root_path), supported_rule_ids)
-        verification_contract = _build_verification_contract(str(root_path), supported_rule_ids)
+    if supported_rule_ids or explicit_intent_selected:
+        effective_rule_ids = supported_rule_ids or list(SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS)
+        operations = _build_plan_operations(str(root_path), effective_rule_ids)
+        verification_contract = _build_verification_contract(str(root_path), effective_rule_ids)
         rollback_contract = _build_plan_only_rollback_contract()
         simulation = _build_dry_run_simulation(root_path, validation_result.rule_results) if include_simulation else None
         return RemediationPlan(
             workspace_root=str(root_path),
             plan_id="remediation_plan_status_artifact_regeneration",
-            objective="Regenerate stale governed status artifacts and verify that the current workspace state is reflected across the canonical snapshot and derived markdown outputs.",
-            plan_phase="dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation",
+            objective=(
+                "Refresh the governed status artifacts on explicit operator intent and verify that the canonical snapshot plus derived markdown outputs still match the current workspace state."
+                if explicit_intent_selected
+                else "Regenerate stale governed status artifacts and verify that the current workspace state is reflected across the canonical snapshot and derived markdown outputs."
+            ),
+            plan_phase="intent_driven_governed_change" if explicit_intent_selected else ("dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation"),
             plan_only=not include_simulation,
             current_status_compliant=validation_result.compliant,
             plan_available=True,
             selected_rule_ids=selected_rule_ids,
-            triggering_rule_ids=supported_rule_ids,
+            triggering_rule_ids=effective_rule_ids if explicit_intent_selected else supported_rule_ids,
             unsupported_failing_rule_ids=unsupported_rule_ids,
             selected_strategy=STATUS_ARTIFACT_REMEDIATION_STRATEGY,
             triggering_evidence=triggering_evidence,
@@ -1308,12 +1349,17 @@ def compile_status_artifact_remediation_plan(
             operations=operations,
             verification_contract=verification_contract,
             rollback_contract=rollback_contract,
-            provenance=_build_provenance_record(supported_rule_ids, unsupported_rule_ids),
+            provenance=_build_provenance_record(
+                effective_rule_ids if explicit_intent_selected else supported_rule_ids,
+                unsupported_rule_ids,
+                governed_intent_ids=governed_intent_ids,
+            ),
             simulation_available=simulation is not None,
             simulation=simulation,
             notes=[
                 "The remediation compiler remains non-mutating and bounded to governed status artifacts.",
                 "Enable dry-run simulation to preview deterministic post-state diffs before any manual operator action.",
+                "Explicit governed intent currently supports deterministic status-artifact refresh without requiring an active failure.",
                 "The current slice intentionally excludes arbitrary source edits and dependency changes.",
             ],
         )

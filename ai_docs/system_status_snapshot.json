@@ -300,17 +300,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 276,
+    "total_tests": 281,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 276,
+      "passed": 281,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "276 collected",
+    "summary_text": "281 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {

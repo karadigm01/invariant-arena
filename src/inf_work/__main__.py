@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 from .kb_integrity import validate_knowledge_base
+from . import remediation
 from .remediation import apply_remediation_plan, compile_remediation_plan
 from .resolver_registry import infer_route, resolve_explicit_path
 from .rules import (
@@ -262,6 +263,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         help="Restrict the underlying status validation to specific rule ids. Repeat for multiple rules.",
     )
+    remediation_plan_parser.add_argument(
+        "--intent",
+        choices=sorted(remediation.SUPPORTED_GOVERNED_INTENT_IDS),
+        help="Compile or execute a supported explicit governed remediation intent.",
+    )
     remediation_mode_group = remediation_plan_parser.add_mutually_exclusive_group()
     remediation_mode_group.add_argument(
         "--simulate",
@@ -447,6 +453,7 @@ def main() -> int:
             execution_result = apply_remediation_plan(
                 Path(args.workspace_root),
                 selected_rule_ids,
+                intent_id=args.intent,
             )
             return _print_result(
                 type(
@@ -461,6 +468,7 @@ def main() -> int:
             Path(args.workspace_root),
             selected_rule_ids,
             include_simulation=args.simulate,
+            intent_id=args.intent,
         )
         return _print_result(type("Report", (), {"to_dict": lambda self: plan.to_dict(), "compliant": True})(), args.pretty)
 
