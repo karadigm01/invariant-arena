@@ -21,6 +21,7 @@
       "python -m inf_work refresh-artifacts <workspace_root> --pretty",
       "python -m inf_work remediation-plan <workspace_root> --pretty",
       "python -m inf_work remediation-plan <workspace_root> --pretty --simulate",
+      "python -m inf_work remediation-plan <workspace_root> --pretty --apply",
       "python -m inf_work resolve-path <tile_id> [<tile_id> ...] --workspace-root <workspace_root> --pretty",
       "python -m inf_work infer-route <start_tile_id> <target_tile_id> --workspace-root <workspace_root> --pretty",
       "python -m inf_work status-check <workspace_root> --pretty",
@@ -53,6 +54,6 @@
     "Provides the unified command surface for workspace, knowledge-base, resolver traversal, status, summary validation, and bounded remediation flows.",
     "Supports a one-shot artifact refresh flow that regenerates runtime-backed coverage metadata before deriving governed status artifacts.",
     "Retains a legacy workspace-mode fallback for older invocations that omit an explicit subcommand.",
-    "Carries the operator-facing exposure described by `technique_deterministic_profile_surface_promotion`, including deterministic profile access through aggregate CLI workflows and the bounded `remediation-plan` compiler plus dry-run simulation support for supported status drift."
+    "Carries the operator-facing exposure described by `technique_deterministic_profile_surface_promotion`, including deterministic profile access through aggregate CLI workflows and the bounded `remediation-plan` compiler, dry-run simulation support, and applied verification-plus-rollback execution path for supported status drift."
   ]
 }

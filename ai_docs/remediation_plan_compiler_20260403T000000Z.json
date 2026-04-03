@@ -7,6 +7,7 @@
   ],
   "interfaces": {
     "python_api": [
+      "apply_status_artifact_remediation(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationExecutionResult",
       "compile_status_artifact_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None, *, include_simulation: bool = False) -> RemediationPlan",
       "list_supported_remediation_strategies() -> list[RemediationStrategy]"
     ],
@@ -36,6 +37,7 @@
   "notes": [
     "Implements the minimum phase-1 remediation slice by compiling deterministic remediation responses to supported status-artifact drift rules.",
     "Adds a phase-2 dry-run structured remediation preview that simulates canonical status artifact outputs and emits deterministic diff excerpts without mutating the workspace.",
-    "Reuses existing status validation outputs and canonical renderers instead of introducing a separate mutation path, keeping the slice bounded to governed artifact planning."
+    "Adds a phase-3 applied remediation path that reuses the existing governed status-artifact writers, verifies the regenerated outputs, and restores the pre-apply artifact state if verification fails.",
+    "Reuses existing status validation outputs and canonical renderers instead of introducing a separate mutation path, keeping the slice bounded to governed artifact planning and bounded artifact execution."
   ]
 }

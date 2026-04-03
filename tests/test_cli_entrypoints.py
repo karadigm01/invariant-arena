@@ -82,6 +82,7 @@ def test_package_public_api_exports_expected_symbols() -> None:
         "ChangeProvenanceRecord",
         "KnowledgeBaseValidationResult",
         "PlanOperation",
+        "RemediationExecutionResult",
         "ResolverCapabilitiesSnapshot",
         "ResolverTile",
         "ResolverTraversalResult",
@@ -98,6 +99,7 @@ def test_package_public_api_exports_expected_symbols() -> None:
         "build_resolver_capabilities",
         "build_system_status_snapshot",
         "build_test_coverage_snapshot",
+        "apply_status_artifact_remediation",
         "compile_status_artifact_remediation_plan",
         "infer_route",
         "list_supported_remediation_strategies",
@@ -237,6 +239,27 @@ def test_build_parser_parses_remediation_plan_command() -> None:
     assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
     assert parsed_args.pretty is True
     assert parsed_args.simulate is True
+    assert parsed_args.apply is False
+    assert parsed_args.rule_id == ["status.snapshot_matches_workspace"]
+
+
+def test_build_parser_parses_remediation_plan_apply_command() -> None:
+    parsed_args = _parse_args(
+        [
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+            "--apply",
+            "--rule-id",
+            "status.snapshot_matches_workspace",
+        ]
+    )
+
+    assert parsed_args.command == "remediation-plan"
+    assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
+    assert parsed_args.pretty is True
+    assert parsed_args.apply is True
+    assert parsed_args.simulate is False
     assert parsed_args.rule_id == ["status.snapshot_matches_workspace"]
 
 
@@ -348,6 +371,53 @@ def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys
         "plan_id": "remediation_plan_status_artifact_regeneration",
         "simulation_available": True,
         "triggering_rule_ids": ["status.snapshot_matches_workspace"],
+    }
+
+
+def test_unified_main_remediation_plan_apply_outputs_execution_result(monkeypatch, capsys) -> None:
+    execution_result = FakeValidationResult(
+        payload={
+            "plan_id": "remediation_plan_status_artifact_regeneration",
+            "execution_attempted": True,
+            "applied": True,
+            "compliant": True,
+        }
+    )
+
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        unified_cli,
+        "apply_status_artifact_remediation",
+        lambda workspace_root, selected_rule_ids: captured.update(
+            {
+                "workspace_root": workspace_root,
+                "selected_rule_ids": selected_rule_ids,
+            }
+        )
+        or execution_result,
+    )
+
+    exit_code, payload = _run_main_json(
+        monkeypatch,
+        capsys,
+        [
+            "inf_work",
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+            "--apply",
+        ],
+    )
+
+    assert exit_code == 0
+    assert captured["workspace_root"] == WORKSPACE_ROOT
+    assert captured["selected_rule_ids"] is None
+    assert payload == {
+        "plan_id": "remediation_plan_status_artifact_regeneration",
+        "execution_attempted": True,
+        "applied": True,
+        "compliant": True,
     }
 
 

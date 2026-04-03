@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import inf_work.remediation as remediation_module
-from inf_work.remediation import compile_status_artifact_remediation_plan, list_supported_remediation_strategies
+from inf_work.remediation import apply_status_artifact_remediation, compile_status_artifact_remediation_plan, list_supported_remediation_strategies
 from inf_work.rules import RuleFinding, RuleResult
 from inf_work.system_status import StatusValidationResult
 
@@ -206,3 +207,133 @@ def test_compile_status_artifact_remediation_plan_reports_unsupported_failures(m
     assert plan.unsupported_failing_rule_ids == ["status.artifacts_exist"]
     assert plan.rollback_contract is not None
     assert "outside the supported phase-1 remediation slice" in plan.notes[-1]
+
+
+def test_apply_status_artifact_remediation_updates_governed_artifacts(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "ai_docs" / "system_status_snapshot.json").write_text('{"stale": true}', encoding="utf-8")
+    (workspace_root / "SYSTEM_STATUS.md").write_text("# stale\n", encoding="utf-8")
+    (workspace_root / "SYSTEM_SUMMARY.md").write_text("# stale summary\n", encoding="utf-8")
+
+    validation_calls = {"count": 0}
+
+    def fake_validate_system_status(workspace_root: Path, rule_ids: set[str] | None) -> StatusValidationResult:
+        validation_calls["count"] += 1
+        if validation_calls["count"] == 1:
+            return _status_validation_result(
+                _rule_result("status.snapshot_matches_workspace", passed=False),
+                _rule_result("status.summary_matches_workspace", passed=False),
+                compliant=False,
+            )
+        return _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=True),
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        )
+
+    def fake_validate_system_summary(workspace_root: Path) -> StatusValidationResult:
+        return _status_validation_result(
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        )
+
+    class FakeSnapshot:
+        generated_at = "2026-04-03T21:00:00Z"
+        canonical_json_path = "ai_docs/system_status_snapshot.json"
+        derived_markdown_path = "SYSTEM_STATUS.md"
+
+    def fake_write_system_status_outputs(
+        workspace_root: Path,
+        canonical_json_path: str,
+        derived_markdown_path: str,
+        summary_path: str,
+    ) -> FakeSnapshot:
+        (workspace_root / canonical_json_path).write_text(
+            json.dumps({"generated_at": "2026-04-03T21:00:00Z", "status": "ok"}, indent=2),
+            encoding="utf-8",
+        )
+        (workspace_root / derived_markdown_path).write_text("# System Status\n\nok\n", encoding="utf-8")
+        (workspace_root / summary_path).write_text("# System Summary\n\nok\n", encoding="utf-8")
+        return FakeSnapshot()
+
+    monkeypatch.setattr(remediation_module, "validate_system_status", fake_validate_system_status)
+    monkeypatch.setattr(remediation_module, "validate_system_summary", fake_validate_system_summary)
+    monkeypatch.setattr(remediation_module, "write_system_status_outputs", fake_write_system_status_outputs)
+
+    result = apply_status_artifact_remediation(workspace_root)
+
+    assert result.execution_attempted is True
+    assert result.applied is True
+    assert result.compliant is True
+    assert result.rollback_performed is False
+    assert len(result.operation_results) == 3
+    assert json.loads((workspace_root / "ai_docs" / "system_status_snapshot.json").read_text(encoding="utf-8"))["status"] == "ok"
+    assert (workspace_root / "SYSTEM_STATUS.md").read_text(encoding="utf-8") == "# System Status\n\nok\n"
+    assert (workspace_root / "SYSTEM_SUMMARY.md").read_text(encoding="utf-8") == "# System Summary\n\nok\n"
+
+
+def test_apply_status_artifact_remediation_rolls_back_on_failed_verification(monkeypatch, tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    original_snapshot = '{"stale": true}'
+    original_status = "# stale\n"
+    original_summary = "# stale summary\n"
+    (workspace_root / "ai_docs" / "system_status_snapshot.json").write_text(original_snapshot, encoding="utf-8")
+    (workspace_root / "SYSTEM_STATUS.md").write_text(original_status, encoding="utf-8")
+    (workspace_root / "SYSTEM_SUMMARY.md").write_text(original_summary, encoding="utf-8")
+
+    validation_calls = {"count": 0}
+
+    def fake_validate_system_status(workspace_root: Path, rule_ids: set[str] | None) -> StatusValidationResult:
+        validation_calls["count"] += 1
+        if validation_calls["count"] == 1:
+            return _status_validation_result(
+                _rule_result("status.snapshot_matches_workspace", passed=False),
+                compliant=False,
+            )
+        return _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=False),
+            compliant=False,
+        )
+
+    def fake_validate_system_summary(workspace_root: Path) -> StatusValidationResult:
+        return _status_validation_result(
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        )
+
+    class FakeSnapshot:
+        generated_at = "2026-04-03T21:30:00Z"
+        canonical_json_path = "ai_docs/system_status_snapshot.json"
+        derived_markdown_path = "SYSTEM_STATUS.md"
+
+    def fake_write_system_status_outputs(
+        workspace_root: Path,
+        canonical_json_path: str,
+        derived_markdown_path: str,
+        summary_path: str,
+    ) -> FakeSnapshot:
+        (workspace_root / canonical_json_path).write_text('{"status": "broken"}', encoding="utf-8")
+        (workspace_root / derived_markdown_path).write_text("# broken\n", encoding="utf-8")
+        (workspace_root / summary_path).write_text("# broken summary\n", encoding="utf-8")
+        return FakeSnapshot()
+
+    monkeypatch.setattr(remediation_module, "validate_system_status", fake_validate_system_status)
+    monkeypatch.setattr(remediation_module, "validate_system_summary", fake_validate_system_summary)
+    monkeypatch.setattr(remediation_module, "write_system_status_outputs", fake_write_system_status_outputs)
+
+    result = apply_status_artifact_remediation(workspace_root)
+
+    assert result.execution_attempted is True
+    assert result.applied is False
+    assert result.compliant is False
+    assert result.rollback_performed is True
+    assert result.rollback_summary["restored_paths"] == [
+        "SYSTEM_STATUS.md",
+        "SYSTEM_SUMMARY.md",
+        "ai_docs/system_status_snapshot.json",
+    ]
+    assert (workspace_root / "ai_docs" / "system_status_snapshot.json").read_text(encoding="utf-8") == original_snapshot
+    assert (workspace_root / "SYSTEM_STATUS.md").read_text(encoding="utf-8") == original_status
+    assert (workspace_root / "SYSTEM_SUMMARY.md").read_text(encoding="utf-8") == original_summary

@@ -12,7 +12,9 @@ from .system_status import (
     build_system_status_snapshot,
     render_system_status_markdown,
     render_system_summary_markdown,
+    validate_system_summary,
     validate_system_status,
+    write_system_status_outputs,
 )
 
 
@@ -136,6 +138,57 @@ class RemediationPlan:
             "provenance": self.provenance.to_dict(),
             "simulation_available": self.simulation_available,
             "simulation": self.simulation,
+            "notes": self.notes,
+        }
+
+
+@dataclass(frozen=True)
+class OperationExecutionResult:
+    operation_id: str
+    operation_type: str
+    target_paths: list[str]
+    status: str
+    mutation_performed: bool
+    details: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class RemediationExecutionResult:
+    workspace_root: str
+    plan_id: str
+    execution_phase: str
+    execution_attempted: bool
+    plan_available: bool
+    applied: bool
+    compliant: bool
+    rollback_performed: bool
+    rollback_summary: dict[str, Any]
+    triggering_rule_ids: list[str]
+    unsupported_failing_rule_ids: list[str]
+    operation_results: list[OperationExecutionResult]
+    status_validation: dict[str, Any] | None
+    summary_validation: dict[str, Any] | None
+    notes: list[str]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "workspace_root": self.workspace_root,
+            "plan_id": self.plan_id,
+            "execution_phase": self.execution_phase,
+            "execution_attempted": self.execution_attempted,
+            "plan_available": self.plan_available,
+            "applied": self.applied,
+            "compliant": self.compliant,
+            "rollback_performed": self.rollback_performed,
+            "rollback_summary": self.rollback_summary,
+            "triggering_rule_ids": self.triggering_rule_ids,
+            "unsupported_failing_rule_ids": self.unsupported_failing_rule_ids,
+            "operation_results": [operation.to_dict() for operation in self.operation_results],
+            "status_validation": self.status_validation,
+            "summary_validation": self.summary_validation,
             "notes": self.notes,
         }
 
@@ -397,6 +450,201 @@ def _build_dry_run_simulation(root_path: Path, rule_results: list[RuleResult]) -
             "Diff previews are deterministic excerpts from the simulated post-state for the governed status artifacts.",
         ],
     }
+
+
+def _capture_artifact_pre_state(root_path: Path, target_paths: list[str]) -> dict[str, dict[str, Any]]:
+    pre_state: dict[str, dict[str, Any]] = {}
+    for target_path in target_paths:
+        current_text = _read_optional_text(root_path / target_path)
+        pre_state[target_path] = {
+            "existed": current_text is not None,
+            "text": current_text,
+            "sha256": _sha256_text(current_text),
+        }
+    return pre_state
+
+
+def _restore_artifact_pre_state(root_path: Path, pre_state: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    restored_paths: list[str] = []
+    deleted_paths: list[str] = []
+    for target_path, state in sorted(pre_state.items()):
+        path = root_path / target_path
+        if state["existed"]:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(state["text"], encoding="utf-8")
+            restored_paths.append(target_path)
+        elif path.exists():
+            path.unlink()
+            deleted_paths.append(target_path)
+    return {
+        "restored_paths": restored_paths,
+        "deleted_paths": deleted_paths,
+    }
+
+
+def _build_operation_execution_result(
+    operation: PlanOperation,
+    *,
+    status: str,
+    mutation_performed: bool,
+    details: dict[str, Any],
+) -> OperationExecutionResult:
+    return OperationExecutionResult(
+        operation_id=operation.operation_id,
+        operation_type=operation.operation_type,
+        target_paths=operation.target_paths,
+        status=status,
+        mutation_performed=mutation_performed,
+        details=details,
+    )
+
+
+def apply_status_artifact_remediation(
+    workspace_root: str | Path,
+    rule_ids: set[str] | None = None,
+) -> RemediationExecutionResult:
+    root_path = Path(workspace_root).resolve()
+    plan = compile_status_artifact_remediation_plan(root_path, rule_ids, include_simulation=False)
+
+    if not plan.plan_available:
+        return RemediationExecutionResult(
+            workspace_root=str(root_path),
+            plan_id=plan.plan_id,
+            execution_phase="applied_structured_remediation",
+            execution_attempted=False,
+            plan_available=False,
+            applied=False,
+            compliant=plan.current_status_compliant,
+            rollback_performed=False,
+            rollback_summary={"restored_paths": [], "deleted_paths": []},
+            triggering_rule_ids=plan.triggering_rule_ids,
+            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+            operation_results=[],
+            status_validation=None,
+            summary_validation=None,
+            notes=[
+                "No supported applied remediation was executed because no bounded status-artifact remediation plan was available.",
+                *plan.notes,
+            ],
+        )
+
+    pre_state = _capture_artifact_pre_state(root_path, plan.affected_paths)
+    operation_results: list[OperationExecutionResult] = []
+
+    try:
+        status_snapshot = write_system_status_outputs(
+            root_path,
+            canonical_json_path=_DEFAULT_STATUS_JSON_PATH,
+            derived_markdown_path=_DEFAULT_STATUS_MARKDOWN_PATH,
+            summary_path=_DEFAULT_STATUS_SUMMARY_PATH,
+        )
+        operation_results.append(
+            _build_operation_execution_result(
+                plan.operations[0],
+                status="completed",
+                mutation_performed=True,
+                details={
+                    "generated_at": status_snapshot.generated_at,
+                    "canonical_json_path": status_snapshot.canonical_json_path,
+                    "derived_markdown_path": status_snapshot.derived_markdown_path,
+                },
+            )
+        )
+
+        verification_rule_ids = set(plan.verification_contract.required_rule_ids) if plan.verification_contract else None
+        status_validation = validate_system_status(root_path, verification_rule_ids)
+        operation_results.append(
+            _build_operation_execution_result(
+                plan.operations[1],
+                status="completed" if status_validation.compliant else "failed",
+                mutation_performed=False,
+                details={
+                    "compliant": status_validation.compliant,
+                    "issue_count": len(status_validation.issues),
+                    "rule_summary": summarize_rule_results(status_validation.rule_results),
+                },
+            )
+        )
+
+        summary_validation = validate_system_summary(root_path)
+        operation_results.append(
+            _build_operation_execution_result(
+                plan.operations[2],
+                status="completed" if summary_validation.compliant else "failed",
+                mutation_performed=False,
+                details={
+                    "compliant": summary_validation.compliant,
+                    "issue_count": len(summary_validation.issues),
+                    "rule_summary": summarize_rule_results(summary_validation.rule_results),
+                },
+            )
+        )
+
+        verification_passed = status_validation.compliant and summary_validation.compliant
+        if verification_passed:
+            return RemediationExecutionResult(
+                workspace_root=str(root_path),
+                plan_id=plan.plan_id,
+                execution_phase="applied_structured_remediation",
+                execution_attempted=True,
+                plan_available=True,
+                applied=True,
+                compliant=True,
+                rollback_performed=False,
+                rollback_summary={"restored_paths": [], "deleted_paths": []},
+                triggering_rule_ids=plan.triggering_rule_ids,
+                unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+                operation_results=operation_results,
+                status_validation=status_validation.to_dict(),
+                summary_validation=summary_validation.to_dict(),
+                notes=[
+                    "Applied remediation completed successfully for the bounded status-artifact slice.",
+                    "Verification passed without requiring rollback.",
+                ],
+            )
+
+        rollback_summary = _restore_artifact_pre_state(root_path, pre_state)
+        return RemediationExecutionResult(
+            workspace_root=str(root_path),
+            plan_id=plan.plan_id,
+            execution_phase="applied_structured_remediation",
+            execution_attempted=True,
+            plan_available=True,
+            applied=False,
+            compliant=False,
+            rollback_performed=True,
+            rollback_summary=rollback_summary,
+            triggering_rule_ids=plan.triggering_rule_ids,
+            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+            operation_results=operation_results,
+            status_validation=status_validation.to_dict(),
+            summary_validation=summary_validation.to_dict(),
+            notes=[
+                "Applied remediation failed verification and the bounded rollback contract restored the pre-remediation artifact state.",
+            ],
+        )
+    except Exception as error:
+        rollback_summary = _restore_artifact_pre_state(root_path, pre_state)
+        return RemediationExecutionResult(
+            workspace_root=str(root_path),
+            plan_id=plan.plan_id,
+            execution_phase="applied_structured_remediation",
+            execution_attempted=True,
+            plan_available=True,
+            applied=False,
+            compliant=False,
+            rollback_performed=True,
+            rollback_summary=rollback_summary,
+            triggering_rule_ids=plan.triggering_rule_ids,
+            unsupported_failing_rule_ids=plan.unsupported_failing_rule_ids,
+            operation_results=operation_results,
+            status_validation=None,
+            summary_validation=None,
+            notes=[
+                "Applied remediation encountered an exception and the bounded rollback contract restored the pre-remediation artifact state.",
+                f"Exception: {error}",
+            ],
+        )
 
 
 def _sorted_failed_rule_ids(rule_results: list[RuleResult]) -> list[str]:

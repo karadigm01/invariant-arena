@@ -8,7 +8,7 @@ import sys
 from typing import Any
 
 from .kb_integrity import validate_knowledge_base
-from .remediation import compile_status_artifact_remediation_plan
+from .remediation import apply_status_artifact_remediation, compile_status_artifact_remediation_plan
 from .resolver_registry import infer_route, resolve_explicit_path
 from .rules import (
     filter_rule_results,
@@ -262,10 +262,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         help="Restrict the underlying status validation to specific rule ids. Repeat for multiple rules.",
     )
-    remediation_plan_parser.add_argument(
+    remediation_mode_group = remediation_plan_parser.add_mutually_exclusive_group()
+    remediation_mode_group.add_argument(
         "--simulate",
         action="store_true",
         help="Include the phase-2 dry-run structured remediation simulation with predicted artifact diffs.",
+    )
+    remediation_mode_group.add_argument(
+        "--apply",
+        action="store_true",
+        help="Execute the bounded status-artifact remediation with verification and rollback.",
     )
 
     resolve_path_parser = subparsers.add_parser(
@@ -437,6 +443,20 @@ def main() -> int:
             profile_names=args.profile,
             rule_ids=args.rule_id,
         )
+        if args.apply:
+            execution_result = apply_status_artifact_remediation(
+                Path(args.workspace_root),
+                selected_rule_ids,
+            )
+            return _print_result(
+                type(
+                    "Report",
+                    (),
+                    {"to_dict": lambda self: execution_result.to_dict(), "compliant": execution_result.compliant},
+                )(),
+                args.pretty,
+            )
+
         plan = compile_status_artifact_remediation_plan(
             Path(args.workspace_root),
             selected_rule_ids,

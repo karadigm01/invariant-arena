@@ -26,10 +26,12 @@ from .resolver_registry import (
 from .remediation import (
 	ChangeProvenanceRecord,
 	PlanOperation,
+	RemediationExecutionResult,
 	RemediationPlan,
 	RemediationStrategy,
 	RollbackContract,
 	VerificationContract,
+	apply_status_artifact_remediation,
 	compile_status_artifact_remediation_plan,
 	list_supported_remediation_strategies,
 )
@@ -54,6 +56,7 @@ __all__ = [
 	"KnowledgeBaseValidationResult",
 	"PlanOperation",
 	"ReferenceIssue",
+	"RemediationExecutionResult",
 	"RemediationPlan",
 	"RemediationStrategy",
 	"RollbackContract",
@@ -72,6 +75,7 @@ __all__ = [
 	"build_test_coverage_snapshot",
 	"build_core_reference_view",
 	"build_resolver_capabilities",
+	"apply_status_artifact_remediation",
 	"compile_status_artifact_remediation_plan",
 	"filter_rule_results",
 	"get_registered_rules",
