@@ -891,7 +891,7 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
     technique_total = kb_index["total_techniques"]
 
     assert "# System Summary" in summary_markdown
-    assert "**Total Components:** 10" in summary_markdown
+    assert "**Total Components:** 11" in summary_markdown
     assert "**Test Inventory:**" in summary_markdown
     assert "collected" in summary_markdown
     assert "## Recent Governance Highlights" in summary_markdown
@@ -910,7 +910,7 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
     assert "`make summary-check` ↔ `workspace: summary-check`" in summary_markdown
     assert "`make coverage-snapshot` ↔ `workspace: coverage-snapshot`" in summary_markdown
     assert "`make refresh-artifacts` ↔ `workspace: refresh-artifacts`" in summary_markdown
-    assert "10 documented components and artifacts" in summary_markdown
+    assert "11 documented components and artifacts" in summary_markdown
     assert f"{technique_total} catalogued techniques" in summary_markdown
     assert "6 status rules" in summary_markdown
 
@@ -921,7 +921,7 @@ def test_render_system_summary_footer_uses_live_counts() -> None:
 
     footer = _render_system_summary_footer(snapshot, kb_index=kb_index)
 
-    assert footer.startswith("The system now includes 10 documented components and artifacts")
+    assert footer.startswith("The system now includes 11 documented components and artifacts")
     assert f"{kb_index['total_techniques']} catalogued techniques" in footer
     assert "1 recorded bug fix pattern" in footer
     assert f"{kb_index['total_automation_patterns']} automation patterns" in footer

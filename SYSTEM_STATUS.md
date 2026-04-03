@@ -1,6 +1,6 @@
 # System Status
 
-- **Generated At**: 2026-04-03T15:29:51Z
+- **Generated At**: 2026-04-03T16:56:41Z
 - **Workspace Root**: `/home/j/Desktop/inf.work`
 - **Canonical Data**: `ai_docs/system_status_snapshot.json`
 - **Derived Artifact**: `SYSTEM_STATUS.md`
@@ -8,18 +8,19 @@
 ## 1. Component Health
 - **Workspace Health Checker**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 4 dependents
 - **Core Reference View**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 1 dependency, 2 dependents
-- **Validation Rule Engine**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 4 dependents
+- **Validation Rule Engine**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 5 dependents
 - **Knowledge Base Cross-Reference Validator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 9 dependencies, 5 dependents
-- **System Status Generator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 3 dependents
-- **Package Public API Surface**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 6 dependencies, 0 dependents
-- **Unified CLI Entry Point**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 5 dependencies, 1 dependent
+- **System Status Generator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 4 dependents
+- **Package Public API Surface**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 0 dependents
+- **Unified CLI Entry Point**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 6 dependencies, 1 dependent
 - **KB Check Compatibility Wrapper**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
+- **Remediation Plan Compiler**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 2 dependents
 - **Resolver Capability Registry**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 3 dependents
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Inventory
-- **Collected Tests**: 261
-- **Collection Summary**: 261 collected
+- **Collected Tests**: 267
+- **Collection Summary**: 267 collected
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
@@ -27,6 +28,7 @@
 - **src/inf_work/core_reference.py**: 100% (tracked)
 - **src/inf_work/kb_check.py**: 100% (tracked)
 - **src/inf_work/kb_integrity.py**: 100% (tracked)
+- **src/inf_work/remediation.py**: 100% (tracked)
 - **src/inf_work/resolver_registry.py**: 100% (tracked)
 - **src/inf_work/rules.py**: 100% (tracked)
 - **src/inf_work/system_status.py**: 100% (tracked)

@@ -23,6 +23,16 @@ from .resolver_registry import (
 	resolve_explicit_path,
 	resolve_tile,
 )
+from .remediation import (
+	ChangeProvenanceRecord,
+	PlanOperation,
+	RemediationPlan,
+	RemediationStrategy,
+	RollbackContract,
+	VerificationContract,
+	compile_status_artifact_remediation_plan,
+	list_supported_remediation_strategies,
+)
 from .system_status import (
 	StatusValidationIssue,
 	StatusValidationResult,
@@ -40,8 +50,13 @@ from .workspace_health import ValidationResult, validate_workspace
 
 __all__ = [
 	"CoreReferenceView",
+	"ChangeProvenanceRecord",
 	"KnowledgeBaseValidationResult",
+	"PlanOperation",
 	"ReferenceIssue",
+	"RemediationPlan",
+	"RemediationStrategy",
+	"RollbackContract",
 	"RuleFinding",
 	"RuleResult",
 	"ResolverCapabilitiesSnapshot",
@@ -57,10 +72,12 @@ __all__ = [
 	"build_test_coverage_snapshot",
 	"build_core_reference_view",
 	"build_resolver_capabilities",
+	"compile_status_artifact_remediation_plan",
 	"filter_rule_results",
 	"get_registered_rules",
 	"get_rule_profiles",
 	"infer_route",
+	"list_supported_remediation_strategies",
 	"list_registered_tiles",
 	"repair_and_validate_system_status",
 	"render_system_status_markdown",
@@ -72,6 +89,7 @@ __all__ = [
 	"validate_knowledge_base",
 	"validate_system_status",
 	"validate_workspace",
+	"VerificationContract",
 	"write_test_coverage_snapshot",
 	"write_system_status_outputs",
 ]

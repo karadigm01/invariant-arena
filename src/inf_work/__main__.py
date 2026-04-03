@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 from .kb_integrity import validate_knowledge_base
+from .remediation import compile_status_artifact_remediation_plan
 from .resolver_registry import infer_route, resolve_explicit_path
 from .rules import (
     filter_rule_results,
@@ -235,6 +236,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print indented JSON output",
     )
 
+    remediation_plan_parser = subparsers.add_parser(
+        "remediation-plan",
+        help="Compile a deterministic phase-1 remediation plan for supported status-artifact drift rules.",
+    )
+    remediation_plan_parser.add_argument(
+        "workspace_root",
+        nargs="?",
+        default=".",
+        help="Workspace root containing the governed status artifacts.",
+    )
+    remediation_plan_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Print indented JSON output",
+    )
+    remediation_plan_parser.add_argument(
+        "--profile",
+        action="append",
+        choices=sorted(RULE_PROFILES),
+        help="Restrict the underlying status validation to a named bundle of rule ids. Repeat for multiple profiles.",
+    )
+    remediation_plan_parser.add_argument(
+        "--rule-id",
+        action="append",
+        help="Restrict the underlying status validation to specific rule ids. Repeat for multiple rules.",
+    )
+
     resolve_path_parser = subparsers.add_parser(
         "resolve-path",
         help="Resolve an explicit multi-hop path across the bounded resolver tile graph.",
@@ -334,7 +362,7 @@ def _build_filtered_rule_payload(
 def main() -> int:
     argv = sys.argv[1:]
 
-    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "refresh-artifacts", "resolve-path", "infer-route", "-h", "--help"}:
+    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "refresh-artifacts", "remediation-plan", "resolve-path", "infer-route", "-h", "--help"}:
         legacy_parser = argparse.ArgumentParser(
             description="Validate the governed workspace layout.",
         )
@@ -398,6 +426,14 @@ def main() -> int:
             status_snapshot=status_snapshot.to_dict(),
         )
         return _print_result(type("Report", (), {"to_dict": lambda self: result.to_dict(), "compliant": True})(), args.pretty)
+
+    if args.command == "remediation-plan":
+        selected_rule_ids = resolve_rule_selection(
+            profile_names=args.profile,
+            rule_ids=args.rule_id,
+        )
+        plan = compile_status_artifact_remediation_plan(Path(args.workspace_root), selected_rule_ids)
+        return _print_result(type("Report", (), {"to_dict": lambda self: plan.to_dict(), "compliant": True})(), args.pretty)
 
     if args.command is None:
         result = validate_workspace(Path("."), None)

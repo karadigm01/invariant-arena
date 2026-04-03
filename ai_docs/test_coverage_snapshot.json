@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-03T15:29:51Z",
+  "generated_at": "2026-04-03T16:56:41Z",
   "workspace_root": "/home/j/Desktop/inf.work",
   "coverage_command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
   "coverage_source": "ai_docs/test_coverage_snapshot.json",
@@ -7,15 +7,15 @@
     {
       "module_path": "src/inf_work/__init__.py",
       "coverage_percentage": 100,
-      "num_statements": 7,
-      "covered_lines": 7,
+      "num_statements": 8,
+      "covered_lines": 8,
       "missing_lines": 0
     },
     {
       "module_path": "src/inf_work/__main__.py",
       "coverage_percentage": 100,
-      "num_statements": 177,
-      "covered_lines": 177,
+      "num_statements": 187,
+      "covered_lines": 187,
       "missing_lines": 0
     },
     {
@@ -37,6 +37,13 @@
       "coverage_percentage": 100,
       "num_statements": 1025,
       "covered_lines": 1025,
+      "missing_lines": 0
+    },
+    {
+      "module_path": "src/inf_work/remediation.py",
+      "coverage_percentage": 100,
+      "num_statements": 122,
+      "covered_lines": 122,
       "missing_lines": 0
     },
     {
@@ -70,12 +77,12 @@
   ],
   "totals": {
     "coverage_percentage": 100,
-    "num_statements": 2054,
-    "covered_lines": 2054,
+    "num_statements": 2187,
+    "covered_lines": 2187,
     "missing_lines": 0
   },
   "metadata": {
-    "total_modules": 9,
+    "total_modules": 10,
     "schema_version": "2.0.0"
   }
 }

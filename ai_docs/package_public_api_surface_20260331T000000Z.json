@@ -4,6 +4,7 @@
   "dependencies": [
     "src/inf_work/core_reference.py",
     "src/inf_work/kb_integrity.py",
+    "src/inf_work/remediation.py",
     "src/inf_work/resolver_registry.py",
     "src/inf_work/rules.py",
     "src/inf_work/system_status.py",
@@ -11,7 +12,7 @@
   ],
   "interfaces": {
     "python_api": [
-      "from inf_work import CoreReferenceView, ResolverCapabilitiesSnapshot, ResolverTile, ResolverTraversalResult, ResolverTraversalStep, ValidationResult, build_resolver_capabilities, infer_route, list_registered_tiles, resolve_explicit_path, resolve_tile, validate_workspace, validate_knowledge_base, validate_system_status"
+      "from inf_work import ChangeProvenanceRecord, CoreReferenceView, PlanOperation, RemediationPlan, RemediationStrategy, ResolverCapabilitiesSnapshot, ResolverTile, ResolverTraversalResult, ResolverTraversalStep, RollbackContract, ValidationResult, VerificationContract, build_resolver_capabilities, compile_status_artifact_remediation_plan, infer_route, list_registered_tiles, list_supported_remediation_strategies, resolve_explicit_path, resolve_tile, validate_workspace, validate_knowledge_base, validate_system_status"
     ],
     "cli": []
   },
@@ -39,6 +40,6 @@
   ],
   "notes": [
     "Re-exports the supported Python API surface for the governed workspace package.",
-    "Keeps operator-facing imports deterministic by gathering stable validator and status symbols behind `inf_work` package imports."
+    "Keeps operator-facing imports deterministic by gathering stable validator, remediation-planning, and status symbols behind `inf_work` package imports."
   ]
 }

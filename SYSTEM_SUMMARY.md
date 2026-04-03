@@ -1,9 +1,9 @@
 # System Summary
 
 **Last Updated:** 2026-04-03  
-**Total Components:** 10  
+**Total Components:** 11  
 **System Health:** Healthy  
-**Test Inventory:** 261 collected
+**Test Inventory:** 267 collected
 
 ## Architecture
 
@@ -13,7 +13,7 @@
 - **Workspace Health Checker:** `src/inf_work/workspace_health.py` validates governed directories from `core_reference.json`.
 - **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures a collection-only test inventory, and validates both artifacts through status-domain rules.
 - **System Status Artifact:** `SYSTEM_STATUS.md` is the human-facing governance snapshot derived from `ai_docs/system_status_snapshot.json`.
-- **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, and `summary-check` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, and aggregate `all --fix-status` repair support for stale status artifacts.
+- **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, `summary-check`, and `remediation-plan` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, aggregate `all --fix-status` repair support for stale status artifacts, and a bounded plan-only remediation compiler for supported status drift.
 - **CI Check:** `.github/workflows/validator-check.yml` runs focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks.
 - **Local Check Shortcut:** `Makefile` and `.vscode/tasks.json` support `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, and the matching `workspace:*` tasks using `.venv`; `make check` regenerates then validates the canonical status artifacts.
 - **Operator Shortcut Pairs:** `make all-report` ↔ `workspace: all`; `make all-report-fix-status` ↔ `workspace: all-fix-status`; `make resolver-report` ↔ `workspace: resolver-only`; `make component-report` ↔ `workspace: component-governance`; `make status` ↔ `workspace: status`; `make status-check` ↔ `workspace: status-check`; `make summary-check` ↔ `workspace: summary-check`; `make coverage-snapshot` ↔ `workspace: coverage-snapshot`; `make refresh-artifacts` ↔ `workspace: refresh-artifacts`.
@@ -47,4 +47,4 @@
 - **Why It Matters:** Latest governance work focused on consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
 - **Latest Summary:** Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
 
-The system now includes 10 documented components and artifacts, 9 catalogued techniques, 1 recorded bug fix pattern, 59 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.
+The system now includes 11 documented components and artifacts, 9 catalogued techniques, 1 recorded bug fix pattern, 59 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.

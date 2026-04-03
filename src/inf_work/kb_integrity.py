@@ -21,6 +21,7 @@ SUPPORTED_INF_WORK_SUBCOMMANDS = {
     "summary-check",
     "coverage-snapshot",
     "refresh-artifacts",
+    "remediation-plan",
     "resolve-path",
     "infer-route",
 }

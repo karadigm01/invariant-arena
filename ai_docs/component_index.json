@@ -16,7 +16,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-28T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -46,7 +46,7 @@
         "resolver_capability_registry"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -74,11 +74,12 @@
       "dependents": [
         "knowledge_base_cross_reference_validator",
         "package_public_api_surface",
+        "remediation_plan_compiler",
         "unified_cli_entry_point",
         "workspace_health_checker"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -119,7 +120,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -157,11 +158,12 @@
       ],
       "dependents": [
         "package_public_api_surface",
+        "remediation_plan_compiler",
         "system_status_governance_artifact",
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -187,6 +189,7 @@
       "dependencies": [
         "src/inf_work/core_reference.py",
         "src/inf_work/kb_integrity.py",
+        "src/inf_work/remediation.py",
         "src/inf_work/resolver_registry.py",
         "src/inf_work/rules.py",
         "src/inf_work/system_status.py",
@@ -194,7 +197,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -219,6 +222,7 @@
       "file_path": "src/inf_work/__main__.py",
       "dependencies": [
         "src/inf_work/kb_integrity.py",
+        "src/inf_work/remediation.py",
         "src/inf_work/resolver_registry.py",
         "src/inf_work/rules.py",
         "src/inf_work/system_status.py",
@@ -228,7 +232,7 @@
         "kb_check_compatibility_wrapper"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -257,7 +261,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -270,6 +274,37 @@
       "related_techniques": [
         "technique_knowledge_base_cross_reference_validation",
         "technique_named_rule_profiles"
+      ],
+      "known_issues": []
+    },
+    {
+      "component_id": "remediation_plan_compiler",
+      "component_name": "Remediation Plan Compiler",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/remediation.py",
+      "dependencies": [
+        "src/inf_work/rules.py",
+        "src/inf_work/system_status.py"
+      ],
+      "dependents": [
+        "package_public_api_surface",
+        "unified_cli_entry_point"
+      ],
+      "creation_timestamp": "2026-04-03T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "<5s",
+        "memory_profile": "bounded_plan_compilation_and_status_validation_reuse"
+      },
+      "complexity_score": 3,
+      "documentation_path": "ai_docs/remediation_plan_compiler_20260403T000000Z.json",
+      "related_techniques": [
+        "technique_registered_validation_rules",
+        "technique_status_artifact_validation",
+        "technique_deterministic_profile_surface_promotion"
       ],
       "known_issues": []
     },
@@ -288,7 +323,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T15:29:51Z",
+      "last_modified_timestamp": "2026-04-03T16:56:41Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -334,12 +369,12 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-04-03T15:29:51Z",
-    "total_components": 10,
+    "last_updated": "2026-04-03T16:56:41Z",
+    "total_components": 11,
     "schema_version": "2.0.0"
   },
   "health_status": {
-    "total_healthy": 10,
+    "total_healthy": 11,
     "total_degraded": 0,
     "total_failing": 0
   },

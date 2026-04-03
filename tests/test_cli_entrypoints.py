@@ -79,20 +79,28 @@ def _run_module_entrypoint(module_name: str, warning_pattern: str) -> int:
 def test_package_public_api_exports_expected_symbols() -> None:
     expected_exports = {
         "CoreReferenceView",
+        "ChangeProvenanceRecord",
         "KnowledgeBaseValidationResult",
+        "PlanOperation",
         "ResolverCapabilitiesSnapshot",
         "ResolverTile",
         "ResolverTraversalResult",
         "ResolverTraversalStep",
+        "RemediationPlan",
+        "RemediationStrategy",
+        "RollbackContract",
         "RuleFinding",
         "RuleResult",
         "SystemStatusSnapshot",
         "ValidationResult",
+        "VerificationContract",
         "build_core_reference_view",
         "build_resolver_capabilities",
         "build_system_status_snapshot",
         "build_test_coverage_snapshot",
+        "compile_status_artifact_remediation_plan",
         "infer_route",
+        "list_supported_remediation_strategies",
         "list_registered_tiles",
         "resolve_explicit_path",
         "resolve_tile",
@@ -213,6 +221,23 @@ def test_build_parser_parses_refresh_artifacts_command() -> None:
     assert parsed_args.pretty is True
 
 
+def test_build_parser_parses_remediation_plan_command() -> None:
+    parsed_args = _parse_args(
+        [
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+            "--rule-id",
+            "status.snapshot_matches_workspace",
+        ]
+    )
+
+    assert parsed_args.command == "remediation-plan"
+    assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
+    assert parsed_args.pretty is True
+    assert parsed_args.rule_id == ["status.snapshot_matches_workspace"]
+
+
 def test_build_parser_parses_resolve_path_arguments() -> None:
     parsed_args = _parse_args(
         [
@@ -273,6 +298,40 @@ def test_unified_main_infer_route_outputs_traversal_payload(monkeypatch, capsys)
     assert payload["complete"] is True
     assert payload["requested_path"] == ["workspace_governance", "knowledge_base_index"]
     assert payload["total_hops"] == 1
+
+
+def test_unified_main_remediation_plan_outputs_compiled_plan(monkeypatch, capsys) -> None:
+    plan_result = FakeValidationResult(
+        payload={
+            "plan_id": "remediation_plan_status_artifact_regeneration",
+            "plan_available": True,
+            "triggering_rule_ids": ["status.snapshot_matches_workspace"],
+        }
+    )
+
+    monkeypatch.setattr(
+        unified_cli,
+        "compile_status_artifact_remediation_plan",
+        lambda workspace_root, selected_rule_ids: plan_result,
+    )
+
+    exit_code, payload = _run_main_json(
+        monkeypatch,
+        capsys,
+        [
+            "inf_work",
+            "remediation-plan",
+            str(WORKSPACE_ROOT),
+            "--pretty",
+        ],
+    )
+
+    assert exit_code == 0
+    assert payload == {
+        "plan_available": True,
+        "plan_id": "remediation_plan_status_artifact_regeneration",
+        "triggering_rule_ids": ["status.snapshot_matches_workspace"],
+    }
 
 
 def test_unified_main_resolve_path_returns_failure_for_unknown_tile(monkeypatch, capsys) -> None:

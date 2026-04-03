@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-04-03T15:29:51Z",
+  "generated_at": "2026-04-03T16:56:41Z",
   "workspace_root": "/home/j/Desktop/inf.work",
   "canonical_json_path": "ai_docs/system_status_snapshot.json",
   "derived_markdown_path": "SYSTEM_STATUS.md",
   "coverage_threshold": 85,
   "component_health": {
     "threshold": 85,
-    "total_components": 10,
-    "healthy_components": 10,
+    "total_components": 11,
+    "healthy_components": 11,
     "degraded_components": 0,
     "failing_components": 0,
     "below_threshold_components": [],
@@ -77,12 +77,14 @@
         "dependents": [
           "knowledge_base_cross_reference_validator",
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "unified_cli_entry_point",
           "workspace_health_checker"
         ],
         "derived_dependents": [
           "knowledge_base_cross_reference_validator",
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "unified_cli_entry_point",
           "workspace_health_checker"
         ],
@@ -149,11 +151,13 @@
         ],
         "dependents": [
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "system_status_governance_artifact",
           "unified_cli_entry_point"
         ],
         "derived_dependents": [
           "package_public_api_surface",
+          "remediation_plan_compiler",
           "system_status_governance_artifact",
           "unified_cli_entry_point"
         ],
@@ -171,6 +175,7 @@
         "dependencies": [
           "src/inf_work/core_reference.py",
           "src/inf_work/kb_integrity.py",
+          "src/inf_work/remediation.py",
           "src/inf_work/resolver_registry.py",
           "src/inf_work/rules.py",
           "src/inf_work/system_status.py",
@@ -191,6 +196,7 @@
         "compliance_status": "I1_I2_I3_I4_compliant",
         "dependencies": [
           "src/inf_work/kb_integrity.py",
+          "src/inf_work/remediation.py",
           "src/inf_work/resolver_registry.py",
           "src/inf_work/rules.py",
           "src/inf_work/system_status.py",
@@ -220,6 +226,29 @@
         "dependents": [],
         "derived_dependents": [],
         "documentation_path": "ai_docs/kb_check_compatibility_wrapper_20260331T000000Z.json"
+      },
+      {
+        "component_id": "remediation_plan_compiler",
+        "component_name": "Remediation Plan Compiler",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/remediation.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "src/inf_work/rules.py",
+          "src/inf_work/system_status.py"
+        ],
+        "dependents": [
+          "package_public_api_surface",
+          "unified_cli_entry_point"
+        ],
+        "derived_dependents": [
+          "package_public_api_surface",
+          "unified_cli_entry_point"
+        ],
+        "documentation_path": "ai_docs/remediation_plan_compiler_20260403T000000Z.json"
       },
       {
         "component_id": "resolver_capability_registry",
@@ -268,17 +297,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 261,
+    "total_tests": 267,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 261,
+      "passed": 267,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "261 collected",
+    "summary_text": "267 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
@@ -307,6 +336,12 @@
       },
       {
         "module_path": "src/inf_work/kb_integrity.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/remediation.py",
         "coverage_percentage": 100,
         "tracked_in_component_index": true,
         "coverage_flag": "meets_threshold"

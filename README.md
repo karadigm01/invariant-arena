@@ -15,12 +15,13 @@ A small Python starter component for this workspace.
 - `python3 -m inf_work status`: regenerates canonical structured status data and the derived `SYSTEM_STATUS.md` snapshot
 - `python3 -m inf_work status-check`: validates the canonical structured status data and the derived `SYSTEM_STATUS.md` snapshot, with optional `--fix` remediation
 - `python3 -m inf_work summary-check`: validates the derived `SYSTEM_SUMMARY.md` artifact, with optional `--fix` remediation
+- `python3 -m inf_work remediation-plan`: compiles a deterministic plan-only remediation payload for supported status-artifact drift rules without mutating the workspace
 - `python3 -m inf_work coverage-snapshot`: generates the canonical `ai_docs/test_coverage_snapshot.json` artifact from a real `pytest-cov` run so component coverage metadata can be governed from runtime data
 - `python3 -m inf_work refresh-artifacts`: refreshes the canonical coverage snapshot and then regenerates the governed status artifacts in one deterministic step
 - `python3 -m inf_work resolve-path`: resolves an explicit path across the bounded resolver tile graph and prints the traversal payload as JSON
 - `python3 -m inf_work infer-route`: infers a deterministic route between two resolver tiles and prints the traversal payload as JSON
 - `python3 -m inf_work all --fix-status`: repairs stale canonical status artifacts before running the aggregate validation report
-- `tests/test_core_reference.py`, `tests/test_workspace_health.py`, `tests/test_metadata_integrity.py`, `tests/test_kb_integrity.py`, `tests/test_rules.py`, `tests/test_cli_entrypoints.py`, and `tests/test_resolver_registry.py`: focused tests for core loading, rule registration, validation, JSON/index integrity, KB cross references, package exports, CLI entrypoint wrappers, and resolver capability plus multi-hop traversal reporting
+- `tests/test_core_reference.py`, `tests/test_workspace_health.py`, `tests/test_metadata_integrity.py`, `tests/test_kb_integrity.py`, `tests/test_rules.py`, `tests/test_cli_entrypoints.py`, `tests/test_resolver_registry.py`, and `tests/test_remediation.py`: focused tests for core loading, rule registration, validation, JSON/index integrity, KB cross references, package exports, CLI entrypoint wrappers, resolver capability plus multi-hop traversal reporting, and plan-only remediation compilation
 - `tests/test_system_status.py`: focused tests for canonical system status generation and markdown derivation
 - `.github/workflows/validator-check.yml`: lightweight CI for focused tests, validator smoke checks, canonical status generation and validation, the aggregate governance report, and the dedicated `resolver-only` runtime-integrity profile
 - `Makefile` and `.vscode/tasks.json`: local validation via `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, or the matching `workspace:*` tasks
@@ -83,6 +84,7 @@ A small Python starter component for this workspace.
 - `summary-check` exposes a dedicated validator for the generated `SYSTEM_SUMMARY.md` artifact.
 - `status-check --fix` regenerates stale status artifacts before validating them.
 - `summary-check --fix` refreshes the governed status outputs before validating the generated summary artifact.
+- `remediation-plan` compiles the minimum phase-1 remediation slice: a structured plan with bounded regeneration and verification steps for supported status drift.
 - `all --fix-status` applies that same status-artifact remediation before the combined aggregate report runs.
 - Canonical status rendering now surfaces threshold-aware follow-up actions when governed components fall below the configured coverage minimum and includes the `coverage-snapshot` operator shortcut alongside the other governed task pairs.
 - Canonical status generation now derives `ai_docs/system_status_snapshot.json:generated_at` from the freshest governed source artifacts instead of preserving a stale fixed timestamp.

@@ -1,0 +1,41 @@
+{
+  "component_id": "remediation_plan_compiler",
+  "creation_timestamp": "2026-04-03T00:00:00Z",
+  "dependencies": [
+    "src/inf_work/rules.py",
+    "src/inf_work/system_status.py"
+  ],
+  "interfaces": {
+    "python_api": [
+      "compile_status_artifact_remediation_plan(workspace_root: str | Path, rule_ids: set[str] | None = None) -> RemediationPlan",
+      "list_supported_remediation_strategies() -> list[RemediationStrategy]"
+    ],
+    "cli": []
+  },
+  "performance_metrics": {
+    "expected_latency": "sub-second plan compilation plus delegated status validation runtime",
+    "memory_usage_pattern": "bounded remediation plan objects and status validation payload reuse"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_remediation.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Remediation Plan Compiler",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/remediation.py",
+    "tests/test_remediation.py"
+  ],
+  "related_techniques": [
+    "technique_registered_validation_rules",
+    "technique_status_artifact_validation",
+    "technique_deterministic_profile_surface_promotion"
+  ],
+  "notes": [
+    "Implements the minimum phase-1 remediation slice by compiling deterministic plan-only responses to supported status-artifact drift rules.",
+    "Reuses existing status validation outputs instead of introducing a separate mutation path, keeping the slice bounded to governed artifact planning.",
+    "Carries structured strategy, verification, rollback, and provenance payloads so later dry-run or apply phases can extend the same immutable plan surface."
+  ]
+}
