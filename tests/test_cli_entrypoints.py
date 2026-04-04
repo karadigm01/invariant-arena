@@ -227,6 +227,14 @@ def test_build_parser_parses_refresh_artifacts_command() -> None:
     assert parsed_args.pretty is True
 
 
+def test_build_parser_parses_benchmark_command() -> None:
+    parsed_args = _parse_args(["benchmark", str(WORKSPACE_ROOT), "--pretty"])
+
+    assert parsed_args.command == "benchmark"
+    assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
+    assert parsed_args.pretty is True
+
+
 def test_build_parser_parses_remediation_plan_command() -> None:
     parsed_args = _parse_args(
         [
@@ -557,6 +565,27 @@ def test_unified_main_coverage_snapshot_outputs_payload(monkeypatch, capsys) -> 
     exit_code, payload = _run_main_json(monkeypatch, capsys, ["inf_work", "coverage-snapshot", str(WORKSPACE_ROOT), "--pretty"])
     assert exit_code == 0
     assert payload == expected_snapshot
+
+
+def test_unified_main_benchmark_outputs_payload(monkeypatch, capsys) -> None:
+    benchmark_result = FakeValidationResult(
+        payload={
+            "benchmark_id": "benchmark_governed_operator_workflows_v1",
+            "compliant": True,
+            "scenario_count": 7,
+        }
+    )
+
+    monkeypatch.setattr(unified_cli, "run_benchmark", lambda workspace_root: benchmark_result)
+
+    exit_code, payload = _run_main_json(monkeypatch, capsys, ["inf_work", "benchmark", str(WORKSPACE_ROOT), "--pretty"])
+
+    assert exit_code == 0
+    assert payload == {
+        "benchmark_id": "benchmark_governed_operator_workflows_v1",
+        "compliant": True,
+        "scenario_count": 7,
+    }
 
 
 def test_unified_main_refresh_artifacts_outputs_combined_payload(monkeypatch, capsys) -> None:

@@ -2,6 +2,7 @@
   "component_id": "unified_cli_entry_point",
   "creation_timestamp": "2026-03-31T00:00:00Z",
   "dependencies": [
+    "src/inf_work/benchmark.py",
     "src/inf_work/kb_integrity.py",
     "src/inf_work/remediation.py",
     "src/inf_work/resolver_registry.py",
@@ -18,6 +19,7 @@
       "python -m inf_work workspace <workspace_root> --pretty",
       "python -m inf_work kb <workspace_root> --pretty",
       "python -m inf_work all <workspace_root> --pretty",
+      "python -m inf_work benchmark <workspace_root> --pretty",
       "python -m inf_work refresh-artifacts <workspace_root> --pretty",
       "python -m inf_work remediation-plan <workspace_root> --pretty",
       "python -m inf_work remediation-plan <workspace_root> --pretty --intent intent.status.refresh_artifacts",
@@ -53,6 +55,7 @@
   ],
   "notes": [
     "Provides the unified command surface for workspace, knowledge-base, resolver traversal, status, summary validation, and bounded remediation flows.",
+    "Exposes the governed benchmark harness so operators can qualify product-level workflow behavior on temporary workspace copies through the same CLI surface.",
     "Supports a one-shot artifact refresh flow that regenerates runtime-backed coverage metadata before deriving governed status artifacts.",
     "Retains a legacy workspace-mode fallback for older invocations that omit an explicit subcommand.",
     "Carries the operator-facing exposure described by `technique_deterministic_profile_surface_promotion`, including deterministic profile access through aggregate CLI workflows and the bounded `remediation-plan` compiler, dry-run simulation support, explicit governed intent routing for status refresh, and applied verification-plus-rollback execution paths for supported status-artifact and package-export remediation slices."

@@ -8,6 +8,7 @@ import sys
 from typing import Any
 
 from .kb_integrity import validate_knowledge_base
+from .benchmark import run_benchmark
 from . import remediation
 from .remediation import apply_remediation_plan, compile_remediation_plan
 from .resolver_registry import infer_route, resolve_explicit_path
@@ -237,6 +238,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print indented JSON output",
     )
 
+    benchmark_parser = subparsers.add_parser(
+        "benchmark",
+        help="Run the governed operator-workflow benchmark against a temporary workspace copy.",
+    )
+    benchmark_parser.add_argument(
+        "workspace_root",
+        nargs="?",
+        default=".",
+        help="Workspace root containing the governed workflow surfaces to benchmark.",
+    )
+    benchmark_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Print indented JSON output",
+    )
+
     remediation_plan_parser = subparsers.add_parser(
         "remediation-plan",
         help="Compile a deterministic remediation plan for supported governed remediation slices, with optional dry-run simulation.",
@@ -379,7 +396,7 @@ def _build_filtered_rule_payload(
 def main() -> int:
     argv = sys.argv[1:]
 
-    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "refresh-artifacts", "remediation-plan", "resolve-path", "infer-route", "-h", "--help"}:
+    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "refresh-artifacts", "benchmark", "remediation-plan", "resolve-path", "infer-route", "-h", "--help"}:
         legacy_parser = argparse.ArgumentParser(
             description="Validate the governed workspace layout.",
         )
@@ -443,6 +460,10 @@ def main() -> int:
             status_snapshot=status_snapshot.to_dict(),
         )
         return _print_result(type("Report", (), {"to_dict": lambda self: result.to_dict(), "compliant": True})(), args.pretty)
+
+    if args.command == "benchmark":
+        result = run_benchmark(Path(args.workspace_root))
+        return _print_result(result, args.pretty)
 
     if args.command == "remediation-plan":
         selected_rule_ids = resolve_rule_selection(

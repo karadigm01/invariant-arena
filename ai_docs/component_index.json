@@ -16,7 +16,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-28T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -46,7 +46,7 @@
         "resolver_capability_registry"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -79,7 +79,7 @@
         "workspace_health_checker"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -121,7 +121,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -164,7 +164,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -198,7 +198,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -222,6 +222,7 @@
       "component_type": "python_module",
       "file_path": "src/inf_work/__main__.py",
       "dependencies": [
+        "src/inf_work/benchmark.py",
         "src/inf_work/kb_integrity.py",
         "src/inf_work/remediation.py",
         "src/inf_work/resolver_registry.py",
@@ -233,7 +234,7 @@
         "kb_check_compatibility_wrapper"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -252,6 +253,36 @@
       "known_issues": []
     },
     {
+      "component_id": "benchmark_harness",
+      "component_name": "Benchmark Harness",
+      "component_type": "python_module",
+      "file_path": "src/inf_work/benchmark.py",
+      "dependencies": [
+        "core_reference.json",
+        "behavioral_directives.json"
+      ],
+      "dependents": [
+        "unified_cli_entry_point"
+      ],
+      "creation_timestamp": "2026-04-03T00:00:00Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
+      "health_status": "healthy",
+      "test_coverage_percentage": 100,
+      "compliance_status": "I1_I2_I3_I4_compliant",
+      "performance_metrics": {
+        "response_latency_target": "bounded multi-command benchmark runtime over temporary workspace copies",
+        "memory_profile": "bounded temporary workspace copies with deterministic scorecard reporting"
+      },
+      "complexity_score": 3,
+      "documentation_path": "ai_docs/benchmark_harness_20260403T000000Z.json",
+      "related_techniques": [
+        "technique_workspace_health_core_reference_validation",
+        "technique_status_artifact_validation",
+        "technique_deterministic_profile_surface_promotion"
+      ],
+      "known_issues": []
+    },
+    {
       "component_id": "kb_check_compatibility_wrapper",
       "component_name": "KB Check Compatibility Wrapper",
       "component_type": "python_module",
@@ -262,7 +293,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -293,7 +324,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-04-03T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -325,7 +356,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-03T16:56:41Z",
+      "last_modified_timestamp": "2026-04-03T22:10:45Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -371,12 +402,12 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-04-03T16:56:41Z",
-    "total_components": 11,
+    "last_updated": "2026-04-03T22:10:45Z",
+    "total_components": 12,
     "schema_version": "2.0.0"
   },
   "health_status": {
-    "total_healthy": 11,
+    "total_healthy": 12,
     "total_degraded": 0,
     "total_failing": 0
   },

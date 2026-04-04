@@ -1,10 +1,10 @@
-.PHONY: bootstrap check test smoke kb-check all-report all-report-fix-status resolver-report component-report status status-check summary-check coverage-snapshot refresh-artifacts
+.PHONY: bootstrap check test smoke kb-check all-report all-report-fix-status resolver-report component-report status status-check summary-check coverage-snapshot refresh-artifacts benchmark
 
 PYTHONPATH_SRC := $(CURDIR)/src
 SYSTEM_PYTHON := /usr/bin/python3
 VENV_PYTHON := $(CURDIR)/.venv/bin/python
 PYTHON := $(if $(wildcard $(VENV_PYTHON)),$(VENV_PYTHON),$(SYSTEM_PYTHON))
-TEST_FILES := tests/test_core_reference.py tests/test_workspace_health.py tests/test_metadata_integrity.py tests/test_kb_integrity.py tests/test_rules.py tests/test_system_status.py tests/test_cli_entrypoints.py tests/test_resolver_registry.py tests/test_remediation.py
+TEST_FILES := tests/test_core_reference.py tests/test_workspace_health.py tests/test_metadata_integrity.py tests/test_kb_integrity.py tests/test_rules.py tests/test_system_status.py tests/test_cli_entrypoints.py tests/test_resolver_registry.py tests/test_remediation.py tests/test_remediation_e2e.py tests/test_benchmark.py
 
 bootstrap:
 	$(SYSTEM_PYTHON) -m venv .venv
@@ -46,6 +46,9 @@ coverage-snapshot:
 
 refresh-artifacts:
 	$(PYTHON) -m inf_work refresh-artifacts . --pretty
+
+benchmark:
+	$(PYTHON) -m inf_work benchmark . --pretty
 
 check:
 	$(MAKE) test

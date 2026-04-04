@@ -1,9 +1,9 @@
 # System Summary
 
 **Last Updated:** 2026-04-03  
-**Total Components:** 11  
+**Total Components:** 12  
 **System Health:** Healthy  
-**Test Inventory:** 286 collected
+**Test Inventory:** 309 collected
 
 ## Architecture
 
@@ -47,4 +47,4 @@
 - **Why It Matters:** Latest governance work focused on consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
 - **Latest Summary:** Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
 
-The system now includes 11 documented components and artifacts, 9 catalogued techniques, 1 recorded bug fix pattern, 59 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.
+The system now includes 12 documented components and artifacts, 9 catalogued techniques, 1 recorded bug fix pattern, 59 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.

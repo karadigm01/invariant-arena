@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-04-03T16:56:41Z",
+  "generated_at": "2026-04-03T22:10:45Z",
   "workspace_root": "/home/j/Desktop/inf.work",
   "canonical_json_path": "ai_docs/system_status_snapshot.json",
   "derived_markdown_path": "SYSTEM_STATUS.md",
   "coverage_threshold": 85,
   "component_health": {
     "threshold": 85,
-    "total_components": 11,
-    "healthy_components": 11,
+    "total_components": 12,
+    "healthy_components": 12,
     "degraded_components": 0,
     "failing_components": 0,
     "below_threshold_components": [],
@@ -197,6 +197,7 @@
         "coverage_flag": "meets_threshold",
         "compliance_status": "I1_I2_I3_I4_compliant",
         "dependencies": [
+          "src/inf_work/benchmark.py",
           "src/inf_work/kb_integrity.py",
           "src/inf_work/remediation.py",
           "src/inf_work/resolver_registry.py",
@@ -211,6 +212,27 @@
           "kb_check_compatibility_wrapper"
         ],
         "documentation_path": "ai_docs/unified_cli_entry_point_20260331T000000Z.json"
+      },
+      {
+        "component_id": "benchmark_harness",
+        "component_name": "Benchmark Harness",
+        "component_type": "python_module",
+        "file_path": "src/inf_work/benchmark.py",
+        "health_status": "healthy",
+        "test_coverage_percentage": 100,
+        "coverage_flag": "meets_threshold",
+        "compliance_status": "I1_I2_I3_I4_compliant",
+        "dependencies": [
+          "core_reference.json",
+          "behavioral_directives.json"
+        ],
+        "dependents": [
+          "unified_cli_entry_point"
+        ],
+        "derived_dependents": [
+          "unified_cli_entry_point"
+        ],
+        "documentation_path": "ai_docs/benchmark_harness_20260403T000000Z.json"
       },
       {
         "component_id": "kb_check_compatibility_wrapper",
@@ -300,17 +322,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 286,
+    "total_tests": 309,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 286,
+      "passed": 309,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "286 collected",
+    "summary_text": "309 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
@@ -321,6 +343,12 @@
       },
       {
         "module_path": "src/inf_work/__main__.py",
+        "coverage_percentage": 100,
+        "tracked_in_component_index": true,
+        "coverage_flag": "meets_threshold"
+      },
+      {
+        "module_path": "src/inf_work/benchmark.py",
         "coverage_percentage": 100,
         "tracked_in_component_index": true,
         "coverage_flag": "meets_threshold"

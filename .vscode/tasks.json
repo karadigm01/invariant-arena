@@ -182,6 +182,19 @@
       },
       "group": "test",
       "problemMatcher": []
+    },
+    {
+      "label": "workspace: benchmark",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "benchmark"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
     }
   ]
 }

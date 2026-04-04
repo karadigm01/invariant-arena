@@ -16,6 +16,7 @@ SUPPORTED_INF_WORK_SUBCOMMANDS = {
     "all",
     "workspace",
     "kb",
+    "benchmark",
     "status",
     "status-check",
     "summary-check",

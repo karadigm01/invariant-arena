@@ -1,0 +1,43 @@
+{
+  "component_id": "benchmark_harness",
+  "creation_timestamp": "2026-04-03T00:00:00Z",
+  "dependencies": [
+    "core_reference.json",
+    "behavioral_directives.json"
+  ],
+  "interfaces": {
+    "python_api": [
+      "run_benchmark(workspace_root: str | Path) -> BenchmarkReport"
+    ],
+    "cli": [
+      "python -m inf_work benchmark <workspace_root> --pretty"
+    ]
+  },
+  "performance_metrics": {
+    "expected_latency": "multi-command subprocess benchmark runtime over a governed temporary workspace",
+    "memory_usage_pattern": "bounded temporary workspace copies with deterministic JSON report assembly"
+  },
+  "test_coverage": {
+    "targeted_test_file": "tests/test_benchmark.py",
+    "status": "targeted_tests_added"
+  },
+  "compliance_status": "I1_I2_I3_I4_compliant",
+  "auto_generated": true,
+  "component_name": "Benchmark Harness",
+  "component_type": "python_module",
+  "file_paths": [
+    "src/inf_work/benchmark.py",
+    "tests/test_benchmark.py"
+  ],
+  "related_techniques": [
+    "technique_workspace_health_core_reference_validation",
+    "technique_status_artifact_validation",
+    "technique_deterministic_profile_surface_promotion"
+  ],
+  "notes": [
+    "Executes a deterministic benchmark pack against governed temporary workspace copies using real subprocess CLI workflows.",
+    "Scores aggregate validation, remediation simulation, remediation apply, rollback recovery, and simulation determinism without embedding raw wall-clock timings in the governed JSON output.",
+    "Provides a first-class operator benchmark surface for qualifying the product-level governance workflows beyond statement coverage.",
+    "Uses the copied workspace's own `src/` package as the subprocess import surface so each benchmark scenario exercises the same governed code layout an operator would run."
+  ]
+}
