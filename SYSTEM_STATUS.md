@@ -19,8 +19,8 @@
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Inventory
-- **Collected Tests**: 281
-- **Collection Summary**: 281 collected
+- **Collected Tests**: 286
+- **Collection Summary**: 286 collected
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
