@@ -22,13 +22,14 @@ A small Python starter component for this workspace.
 - `python3 -m inf_work coverage-snapshot`: generates the canonical `ai_docs/test_coverage_snapshot.json` artifact from a real `pytest-cov` run so component coverage metadata can be governed from runtime data
 - `python3 -m inf_work refresh-artifacts`: refreshes the canonical coverage snapshot and then regenerates the governed status artifacts in one deterministic step
 - `python3 -m inf_work benchmark`: runs the governed operator-workflow benchmark against temporary workspace copies and scores aggregate validation, remediation, rollback, and simulation determinism
+- `mutmut run`: runs the focused mutation-testing pilot against the smallest governed Python validation slice first, using the repo's `setup.cfg` configuration
 - `python3 -m inf_work resolve-path`: resolves an explicit path across the bounded resolver tile graph and prints the traversal payload as JSON
 - `python3 -m inf_work infer-route`: infers a deterministic route between two resolver tiles and prints the traversal payload as JSON
 - `python3 -m inf_work all --fix-status`: repairs stale canonical status artifacts before running the aggregate validation report
 - `tests/test_core_reference.py`, `tests/test_workspace_health.py`, `tests/test_metadata_integrity.py`, `tests/test_kb_integrity.py`, `tests/test_rules.py`, `tests/test_cli_entrypoints.py`, `tests/test_resolver_registry.py`, `tests/test_remediation.py`, `tests/test_remediation_e2e.py`, and `tests/test_benchmark.py`: focused tests for core loading, rule registration, validation, JSON/index integrity, KB cross references, package exports, CLI entrypoint wrappers, resolver capability plus multi-hop traversal reporting, bounded source-level remediation behavior, subprocess operator remediation journeys, and the governed benchmark harness
 - `tests/test_system_status.py`: focused tests for canonical system status generation and markdown derivation
 - `.github/workflows/validator-check.yml`: lightweight CI for focused tests, validator smoke checks, canonical status generation and validation, the aggregate governance report, and the dedicated `resolver-only` runtime-integrity profile
-- `Makefile` and `.vscode/tasks.json`: local validation via `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, `make benchmark`, or the matching `workspace:*` tasks
+- `Makefile` and `.vscode/tasks.json`: local validation via `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, `make benchmark`, `make mutation`, `make mutation-results`, or the matching `workspace:*` tasks
 
 ## Reporting features
 
@@ -124,6 +125,8 @@ make bootstrap
 .venv/bin/python -m inf_work summary-check . --pretty --fix
 .venv/bin/python -m inf_work refresh-artifacts . --pretty
 .venv/bin/python -m inf_work benchmark . --pretty
+.venv/bin/mutmut run --max-children 1
+.venv/bin/mutmut results
 .venv/bin/python -m inf_work resolve-path workspace_governance component_index knowledge_base_index --workspace-root . --pretty
 .venv/bin/python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty
 .venv/bin/python -m inf_work all . --pretty --fix-status
@@ -150,9 +153,32 @@ make summary-check
 make coverage-snapshot
 make refresh-artifacts
 make benchmark
+make mutation
+make mutation-results
 ```
 
-Use `make bootstrap` once to create `.venv` and install the project. After that, use `.venv/bin/python -m inf_work all` or `make all-report` for a single combined JSON report, use `make all-report-fix-status` when the aggregate report should refresh stale status artifacts first, use `make resolver-report` for the runtime-integrity resolver profile only, or use `make component-report` for the component-governance profile only. Use `.venv/bin/python -m inf_work status` or `make status` to regenerate `SYSTEM_STATUS.md`, use `.venv/bin/python -m inf_work status-check` or `make status-check` to validate the status artifacts, use `.venv/bin/python -m inf_work summary-check` or `make summary-check` to validate `SYSTEM_SUMMARY.md`, use `.venv/bin/python -m inf_work coverage-snapshot` or `make coverage-snapshot` to refresh the canonical runtime-backed coverage artifact, use `.venv/bin/python -m inf_work refresh-artifacts` or `make refresh-artifacts` to refresh coverage and immediately regenerate governed status outputs in one step, or use `.venv/bin/python -m inf_work benchmark` or `make benchmark` to run the deterministic operator-workflow benchmark pack. Add `--fix` to repair stale artifacts before validating them. `make check` now regenerates the canonical status artifacts before validating them. `make test` runs pytest only, `make smoke` runs `workspace`, and `make kb-check` runs `kb`. In VS Code, run `workspace: bootstrap` once, then use `workspace: all`, `workspace: all-fix-status`, `workspace: resolver-only`, `workspace: component-governance`, `workspace: status`, `workspace: status-check`, `workspace: summary-check`, `workspace: coverage-snapshot`, `workspace: refresh-artifacts`, `workspace: benchmark`, `workspace: check`, `workspace: test`, `workspace: smoke`, or `workspace: kb-check`.
+Use `make bootstrap` once to create `.venv` and install the project. After that, use `.venv/bin/python -m inf_work all` or `make all-report` for a single combined JSON report, use `make all-report-fix-status` when the aggregate report should refresh stale status artifacts first, use `make resolver-report` for the runtime-integrity resolver profile only, or use `make component-report` for the component-governance profile only. Use `.venv/bin/python -m inf_work status` or `make status` to regenerate `SYSTEM_STATUS.md`, use `.venv/bin/python -m inf_work status-check` or `make status-check` to validate the status artifacts, use `.venv/bin/python -m inf_work summary-check` or `make summary-check` to validate `SYSTEM_SUMMARY.md`, use `.venv/bin/python -m inf_work coverage-snapshot` or `make coverage-snapshot` to refresh the canonical runtime-backed coverage artifact, use `.venv/bin/python -m inf_work refresh-artifacts` or `make refresh-artifacts` to refresh coverage and immediately regenerate governed status outputs in one step, use `.venv/bin/python -m inf_work benchmark` or `make benchmark` to run the deterministic operator-workflow benchmark pack, or use `make mutation` to run the focused `mutmut` pilot against `src/inf_work/workspace_health.py` and `src/inf_work/core_reference.py` with their targeted tests. Use `make mutation-results` after a run to summarize surviving mutants. The mutation pilot intentionally uses the `.venv/bin/mutmut` console script because it avoids the module-entrypoint multiprocessing issue triggered by `python -m mutmut` in this environment. Add `--fix` to repair stale artifacts before validating them. `make check` now regenerates the canonical status artifacts before validating them. `make test` runs pytest only, `make smoke` runs `workspace`, and `make kb-check` runs `kb`. In VS Code, run `workspace: bootstrap` once, then use `workspace: all`, `workspace: all-fix-status`, `workspace: resolver-only`, `workspace: component-governance`, `workspace: status`, `workspace: status-check`, `workspace: summary-check`, `workspace: coverage-snapshot`, `workspace: refresh-artifacts`, `workspace: benchmark`, `workspace: mutation`, `workspace: mutation-results`, `workspace: check`, `workspace: test`, `workspace: smoke`, or `workspace: kb-check`.
+
+## Mutation testing pilot
+
+- The repo now includes a focused `mutmut` pilot configured in `setup.cfg`.
+- The initial mutation slice stays intentionally small so runs finish in a practical amount of time while still stress-testing real validation logic.
+- Current mutation targets:
+	- `src/inf_work/workspace_health.py`
+	- `src/inf_work/core_reference.py`
+- Current targeted tests:
+	- `tests/test_workspace_health.py::test_validate_workspace_reports_missing_directories`
+	- `tests/test_workspace_health.py::test_validate_workspace_reports_compliance`
+	- `tests/test_core_reference.py`
+
+Typical flow:
+
+```bash
+make mutation
+make mutation-results
+```
+
+After the baseline is stable, expand `paths_to_mutate` and `pytest_add_cli_args_test_selection` in `setup.cfg` to cover additional modules such as `src/inf_work/rules.py` or `src/inf_work/remediation.py`.
 
 Resolver traversal examples:
 

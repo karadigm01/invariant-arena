@@ -240,11 +240,41 @@
         ".vscode/tasks.json"
       ],
       "automation_safe": true
+    },
+    {
+      "id": "technique_focused_python_mutation_testing_pilot",
+      "name": "Focused Python mutation testing pilot",
+      "category": "architectural",
+      "description": "Introduce a bounded `mutmut` workflow that targets a small governed Python slice first, keeps sandbox inputs deterministic through explicit copy and test-selection configuration, and exposes the run through stable operator shortcuts.",
+      "constraints_compliance": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "discovery_context": "Post-100%-coverage hardening pass where coverage was complete and the next leverage point shifted to test quality rather than line execution breadth.",
+      "validation_status": "validated",
+      "created_timestamp": "2026-04-04T00:00:00Z",
+      "auto_catalogued": true,
+      "success_rate": 1.0,
+      "reusability_score": 0.95,
+      "code_examples": [
+        "setup.cfg",
+        "Makefile",
+        "README.md"
+      ],
+      "dependencies": [
+        "pyproject.toml",
+        "setup.cfg",
+        "Makefile",
+        ".vscode/tasks.json"
+      ],
+      "automation_safe": true
     }
   ],
   "metadata": {
-    "total_count": 9,
-    "last_updated": "2026-03-31T00:00:00Z",
+    "total_count": 10,
+    "last_updated": "2026-04-04T00:00:00Z",
     "schema_version": "2.0.0"
   }
 }

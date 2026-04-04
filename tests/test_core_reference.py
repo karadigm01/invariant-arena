@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import inf_work.core_reference as core_reference_module
 from inf_work.core_reference import build_core_reference_view, extract_required_directories, load_core_reference
 
 
@@ -53,3 +54,35 @@ def test_build_core_reference_view_reports_paths(tmp_path: Path) -> None:
     assert view.core_reference_path == str((tmp_path / "core_reference.json").resolve())
     assert view.required_directories == ["ai_docs", "src", "tests"]
     assert view.to_dict()["required_directories"] == ["ai_docs", "src", "tests"]
+
+
+def test_load_core_reference_reads_using_utf8_encoding(monkeypatch, tmp_path: Path) -> None:
+    write_core_reference(tmp_path)
+
+    original_read_text = Path.read_text
+
+    def fake_read_text(self: Path, *args, **kwargs) -> str:
+        assert self == (tmp_path / "core_reference.json")
+        assert kwargs.get("encoding") == "utf-8"
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fake_read_text)
+
+    loaded = core_reference_module.load_core_reference(tmp_path)
+
+    assert loaded["workspace_governance"]["directory_structure"]["src/"] == "Source code"
+
+
+def test_extract_required_directories_strips_only_trailing_slashes() -> None:
+    directories = extract_required_directories(
+        {
+            "workspace_governance": {
+                "directory_structure": {
+                    "src/X/": "Source",
+                    "tests/": "Tests",
+                }
+            }
+        }
+    )
+
+    assert directories == ["src/X", "tests"]

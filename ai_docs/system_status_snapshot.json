@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-03T22:10:45Z",
+  "generated_at": "2026-04-04T00:00:00Z",
   "workspace_root": "/home/j/Desktop/inf.work",
   "canonical_json_path": "ai_docs/system_status_snapshot.json",
   "derived_markdown_path": "SYSTEM_STATUS.md",
@@ -322,17 +322,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 315,
+    "total_tests": 330,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 315,
+      "passed": 330,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "315 collected",
+    "summary_text": "330 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
@@ -406,31 +406,32 @@
     "summary_mode": "collection_only"
   },
   "knowledge_base_metrics": {
-    "technique_count": 9,
+    "technique_count": 10,
     "latest_technique": {
-      "id": "technique_deterministic_profile_surface_promotion",
-      "name": "Deterministic profile surface promotion",
+      "id": "technique_focused_python_mutation_testing_pilot",
+      "name": "Focused Python mutation testing pilot",
       "category": "architectural",
-      "description": "Promote an existing named rule profile into operator shortcuts, CI workflow steps, and JSON-first governance reporting so the same deterministic rule bundle is runnable everywhere without drifting surfaces.",
+      "description": "Introduce a bounded `mutmut` workflow that targets a small governed Python slice first, keeps sandbox inputs deterministic through explicit copy and test-selection configuration, and exposes the run through stable operator shortcuts.",
       "constraints_compliance": [
         "I1",
         "I2",
         "I3",
         "I4"
       ],
-      "discovery_context": "Resolver-only promotion after the dedicated runtime-integrity profile had already been added to the rule engine and needed first-class operator plus CI exposure.",
+      "discovery_context": "Post-100%-coverage hardening pass where coverage was complete and the next leverage point shifted to test quality rather than line execution breadth.",
       "validation_status": "validated",
-      "created_timestamp": "2026-03-31T00:00:00Z",
+      "created_timestamp": "2026-04-04T00:00:00Z",
       "auto_catalogued": true,
       "success_rate": 1.0,
-      "reusability_score": 0.96,
+      "reusability_score": 0.95,
       "code_examples": [
-        "src/inf_work/system_status.py",
-        ".github/workflows/validator-check.yml",
+        "setup.cfg",
+        "Makefile",
         "README.md"
       ],
       "dependencies": [
-        "src/inf_work/rules.py",
+        "pyproject.toml",
+        "setup.cfg",
         "Makefile",
         ".vscode/tasks.json"
       ],
@@ -464,83 +465,80 @@
       ]
     },
     "bug_fix_count": 1,
-    "automation_pattern_count": 59,
-    "last_kb_update_timestamp": "2026-04-03T00:00:00Z"
+    "automation_pattern_count": 60,
+    "last_kb_update_timestamp": "2026-04-04T00:00:00Z"
   },
   "recent_session_activity": {
-    "session_count": 57,
+    "session_count": 58,
     "latest_session": {
-      "session_id": "session_20260403_status_markdown_shared_block_consolidation",
-      "created_timestamp": "2026-04-03T00:00:00Z",
-      "summary": "Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.",
+      "session_id": "session_20260404_focused_python_mutation_testing_pilot",
+      "created_timestamp": "2026-04-04T00:00:00Z",
+      "summary": "Adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.",
       "actions": [
-        "Updated `src/inf_work/system_status.py` to extract `_render_recent_governance_lines(...)` and `_render_where_to_look_first_lines(...)`, then routed both markdown renderers through the shared helpers while preserving their punctuation and wording differences.",
-        "Expanded `tests/test_system_status.py` with focused coverage for the shared recent-governance and navigation helpers plus the existing rendered markdown assertions.",
-        "Ran `python -m inf_work refresh-artifacts . --pretty` and `make check` to regenerate the canonical artifacts and confirm the consolidation preserved governed output parity."
+        "Added `mutmut` to the dev dependency surface, created `setup.cfg` with a bounded mutation slice for `src/inf_work/workspace_health.py` and `src/inf_work/core_reference.py`, and constrained the selected pytest nodes to a small deterministic validation subset.",
+        "Exposed the workflow through `make mutation`, `make mutation-results`, and matching `workspace: mutation` VS Code tasks, then documented the operator flow in `README.md`.",
+        "Installed `mutmut`, verified the focused mutation run through the console-script entrypoint, and captured the baseline pilot result for follow-up hardening work."
       ],
       "outcomes": [
-        "`SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` now share a single source of truth for the recent-governance and navigation blocks instead of duplicating those line lists inline.",
-        "The shared helpers keep the intended wording and punctuation differences between the status and summary documents while reducing future drift risk.",
-        "Focused status coverage plus the live refresh flow and aggregate workspace check remained compliant after regeneration."
+        "The workspace now has a practical Python-native mutation-testing surface that runs after the 100%-coverage milestone without requiring a whole-repo mutation pass on day one.",
+        "The initial pilot completed successfully with a bounded sandbox and produced a baseline mutation result set that highlights surviving and untested mutants for targeted next-step test work.",
+        "Mutation testing is now documented as a governed operator workflow instead of an ad hoc local experiment."
       ],
       "related_components": [
-        "system_status_generator",
-        "system_status_governance_artifact"
+        "workspace_health_checker",
+        "core_reference_view"
       ],
       "related_automation_patterns": [
-        "automation_system_status_regeneration",
-        "automation_status_markdown_shared_block_consolidation"
+        "automation_focused_mutmut_operator_surface"
       ]
     },
-    "latest_summary": "Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.",
+    "latest_summary": "Adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.",
     "latest_outcomes": [
-      "`SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` now share a single source of truth for the recent-governance and navigation blocks instead of duplicating those line lists inline.",
-      "The shared helpers keep the intended wording and punctuation differences between the status and summary documents while reducing future drift risk."
+      "The workspace now has a practical Python-native mutation-testing surface that runs after the 100%-coverage milestone without requiring a whole-repo mutation pass on day one.",
+      "The initial pilot completed successfully with a bounded sandbox and produced a baseline mutation result set that highlights surviving and untested mutants for targeted next-step test work."
     ],
     "latest_automation_pattern": {
-      "id": "automation_status_markdown_shared_block_consolidation",
-      "pattern_name": "Status markdown shared-block consolidation",
-      "automation_type": "documentation",
+      "id": "automation_focused_mutmut_operator_surface",
+      "pattern_name": "Focused mutmut operator surface",
+      "automation_type": "validation",
       "success_rate": 1.0,
       "false_positive_rate": 0.0,
-      "created_timestamp": "2026-04-03T00:00:00Z",
+      "created_timestamp": "2026-04-04T00:00:00Z",
       "requires_approval": false,
       "safety_constraints": [
-        "Extracts only shared markdown block renderers inside `src/inf_work/system_status.py`, preserves document-specific wording where required, and revalidates through focused status coverage plus aggregate workspace checks"
+        "Limits mutation testing to an explicit small Python slice, constrains the selected pytest nodes in `setup.cfg`, copies only governed workspace inputs into the sandbox, and exposes the workflow through stable `Makefile` and VS Code task entry points"
       ],
-      "rollback_strategy": "Inline the shared markdown helper outputs back into `render_system_status_markdown(...)` and `render_system_summary_markdown(...)`, then regenerate the governed artifacts if the consolidation must be reverted.",
+      "rollback_strategy": "Remove the `mutmut` dependency and `setup.cfg` pilot configuration, delete the `make mutation` operator targets, and drop the README/task references if the focused mutation-testing workflow must be withdrawn.",
       "related_techniques": [
-        "technique_deterministic_profile_surface_promotion",
-        "technique_named_rule_profiles",
-        "technique_registered_validation_rules",
-        "technique_canonical_status_snapshot_generation",
-        "technique_status_artifact_validation"
+        "technique_focused_python_mutation_testing_pilot",
+        "technique_deterministic_profile_surface_promotion"
       ]
     },
     "latest_technique": {
-      "id": "technique_deterministic_profile_surface_promotion",
-      "name": "Deterministic profile surface promotion",
+      "id": "technique_focused_python_mutation_testing_pilot",
+      "name": "Focused Python mutation testing pilot",
       "category": "architectural",
-      "description": "Promote an existing named rule profile into operator shortcuts, CI workflow steps, and JSON-first governance reporting so the same deterministic rule bundle is runnable everywhere without drifting surfaces.",
+      "description": "Introduce a bounded `mutmut` workflow that targets a small governed Python slice first, keeps sandbox inputs deterministic through explicit copy and test-selection configuration, and exposes the run through stable operator shortcuts.",
       "constraints_compliance": [
         "I1",
         "I2",
         "I3",
         "I4"
       ],
-      "discovery_context": "Resolver-only promotion after the dedicated runtime-integrity profile had already been added to the rule engine and needed first-class operator plus CI exposure.",
+      "discovery_context": "Post-100%-coverage hardening pass where coverage was complete and the next leverage point shifted to test quality rather than line execution breadth.",
       "validation_status": "validated",
-      "created_timestamp": "2026-03-31T00:00:00Z",
+      "created_timestamp": "2026-04-04T00:00:00Z",
       "auto_catalogued": true,
       "success_rate": 1.0,
-      "reusability_score": 0.96,
+      "reusability_score": 0.95,
       "code_examples": [
-        "src/inf_work/system_status.py",
-        ".github/workflows/validator-check.yml",
+        "setup.cfg",
+        "Makefile",
         "README.md"
       ],
       "dependencies": [
-        "src/inf_work/rules.py",
+        "pyproject.toml",
+        "setup.cfg",
         "Makefile",
         ".vscode/tasks.json"
       ],

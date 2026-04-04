@@ -119,6 +119,7 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     latest_automation_pattern = payload["recent_session_activity"]["latest_automation_pattern"]
     session_history = _read_workspace_json("knowledge_base/session_history.json")
     automation_patterns = _read_workspace_json("knowledge_base/automation_patterns.json")
+    techniques = _read_workspace_json("knowledge_base/techniques.json")
     kb_index = _read_workspace_json("knowledge_base/kb_index.json")
     component_index = _read_workspace_json("ai_docs/component_index.json")
     coverage_snapshot = _read_workspace_json("ai_docs/test_coverage_snapshot.json")
@@ -138,7 +139,9 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert payload["recent_session_activity"]["session_count"] >= 1
     assert latest_session["session_id"] == session_history["sessions"][-1]["session_id"]
     assert latest_automation_pattern["id"] == automation_patterns["automation_patterns"][-1]["id"]
-    assert payload["recent_session_activity"]["latest_technique"]["id"] == "technique_deterministic_profile_surface_promotion"
+    assert payload["recent_session_activity"]["latest_technique"]["id"] == system_status_module._find_latest_item(
+        techniques["techniques"]
+    )["id"]
     assert payload["recent_session_activity"]["latest_bug_fix"]["id"] == "bugfix_core_reference_malformed_schema_arrays"
     assert payload["knowledge_base_metrics"]["innovation_count"] == 2
     assert payload["knowledge_base_metrics"]["technique_count"] == kb_index["total_techniques"]

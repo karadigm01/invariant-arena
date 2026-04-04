@@ -195,6 +195,32 @@
       },
       "group": "test",
       "problemMatcher": []
+    },
+    {
+      "label": "workspace: mutation",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "mutation"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "workspace: mutation-results",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "mutation-results"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
     }
   ]
 }

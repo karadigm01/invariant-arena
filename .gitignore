@@ -3,4 +3,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .coverage
+.mutmut-cache
+mutants/
 build/
+ai_docs/backups/chats/internal/chat6.md

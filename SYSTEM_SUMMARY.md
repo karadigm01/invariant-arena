@@ -1,9 +1,9 @@
 # System Summary
 
-**Last Updated:** 2026-04-03  
+**Last Updated:** 2026-04-04  
 **Total Components:** 12  
 **System Health:** Healthy  
-**Test Inventory:** 315 collected
+**Test Inventory:** 330 collected
 
 ## Architecture
 
@@ -35,16 +35,16 @@
 
 ## Knowledge Base Status
 
-- **Techniques:** 9
+- **Techniques:** 10
 - **Bug Fixes:** 1
 - **Innovations:** 2
-- **Automation Patterns:** 59
+- **Automation Patterns:** 60
 
 ## Recent Governance Highlights
 
-- **Session Count:** 57
-- **KB Highlights:** session `session_20260403_status_markdown_shared_block_consolidation (2026-04-03)`; automation `Status markdown shared-block consolidation (2026-04-03)`; technique `Deterministic profile surface promotion (2026-03-31)`; bug fix `bugfix_core_reference_malformed_schema_arrays (2026-03-28)`
-- **Why It Matters:** Latest governance work focused on consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
-- **Latest Summary:** Consolidating shared recent-governance and navigation markdown blocks so `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` stay aligned without losing document-specific wording.
+- **Session Count:** 58
+- **KB Highlights:** session `session_20260404_focused_python_mutation_testing_pilot (2026-04-04)`; automation `Focused mutmut operator surface (2026-04-04)`; technique `Focused Python mutation testing pilot (2026-04-04)`; bug fix `bugfix_core_reference_malformed_schema_arrays (2026-03-28)`
+- **Why It Matters:** Latest governance work focused on adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.
+- **Latest Summary:** Adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.
 
-The system now includes 12 documented components and artifacts, 9 catalogued techniques, 1 recorded bug fix pattern, 59 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.
+The system now includes 12 documented components and artifacts, 10 catalogued techniques, 1 recorded bug fix pattern, 60 automation patterns, a canonical structured status snapshot with self-validation across 6 status rules, and targeted plus aggregate status remediation flows.

@@ -1362,12 +1362,34 @@
         "automation_system_status_regeneration",
         "automation_status_markdown_shared_block_consolidation"
       ]
+    },
+    {
+      "session_id": "session_20260404_focused_python_mutation_testing_pilot",
+      "created_timestamp": "2026-04-04T00:00:00Z",
+      "summary": "Adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.",
+      "actions": [
+        "Added `mutmut` to the dev dependency surface, created `setup.cfg` with a bounded mutation slice for `src/inf_work/workspace_health.py` and `src/inf_work/core_reference.py`, and constrained the selected pytest nodes to a small deterministic validation subset.",
+        "Exposed the workflow through `make mutation`, `make mutation-results`, and matching `workspace: mutation` VS Code tasks, then documented the operator flow in `README.md`.",
+        "Installed `mutmut`, verified the focused mutation run through the console-script entrypoint, and captured the baseline pilot result for follow-up hardening work."
+      ],
+      "outcomes": [
+        "The workspace now has a practical Python-native mutation-testing surface that runs after the 100%-coverage milestone without requiring a whole-repo mutation pass on day one.",
+        "The initial pilot completed successfully with a bounded sandbox and produced a baseline mutation result set that highlights surviving and untested mutants for targeted next-step test work.",
+        "Mutation testing is now documented as a governed operator workflow instead of an ad hoc local experiment."
+      ],
+      "related_components": [
+        "workspace_health_checker",
+        "core_reference_view"
+      ],
+      "related_automation_patterns": [
+        "automation_focused_mutmut_operator_surface"
+      ]
     }
   ],
   "metadata": {
-    "total_sessions": 57,
+    "total_sessions": 58,
     "first_session": "2026-03-31T00:00:00Z",
-    "last_session": "2026-04-03T00:00:00Z",
+    "last_session": "2026-04-04T00:00:00Z",
     "schema_version": "2.0.0"
   }
 }

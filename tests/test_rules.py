@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 
+import inf_work.rules as rules_module
 from inf_work.kb_integrity import run_knowledge_base_rules
 from inf_work.rules import (
     RuleFinding,
@@ -2150,6 +2151,221 @@ def test_severity_threshold_can_ignore_error_failures(tmp_path: Path) -> None:
     assert should_fail_rule_results(rule_results, "error") is True
     assert should_fail_rule_results(rule_results, "critical") is False
     assert should_fail_rule_results(rule_results, "none") is False
+
+
+def test_register_rule_register_rules_and_run_registered_rules_use_domain_registry(monkeypatch) -> None:
+    registry: dict[str, dict[str, ValidationRule]] = {}
+    monkeypatch.setattr(rules_module, "_RULE_REGISTRY", registry)
+
+    alpha_rule = ValidationRule(
+        rule_id="demo.alpha",
+        domain="demo",
+        category="unit",
+        severity="warning",
+        description="alpha",
+        evaluator=lambda context: [] if context["allow"] else [
+            RuleFinding(
+                message="blocked",
+                source_file="demo.json",
+                item_identifier="alpha",
+                field_name="allow",
+            )
+        ],
+    )
+    beta_rule = ValidationRule(
+        rule_id="demo.beta",
+        domain="demo",
+        category="unit",
+        severity="error",
+        description="beta",
+        evaluator=lambda context: [],
+    )
+
+    rules_module.register_rule(alpha_rule)
+    rules_module.register_rules([beta_rule])
+
+    assert set(registry) == {"demo"}
+    assert set(registry["demo"]) == {"demo.alpha", "demo.beta"}
+    assert registry["demo"]["demo.alpha"] is alpha_rule
+    assert registry["demo"]["demo.beta"] is beta_rule
+
+    selected_results = rules_module.run_registered_rules("demo", {"allow": True}, {"demo.beta"})
+
+    assert [result.rule_id for result in selected_results] == ["demo.beta"]
+    assert selected_results[0].passed is True
+
+
+def test_get_registered_rules_returns_empty_for_unknown_domain_and_selected_rules(monkeypatch) -> None:
+    rule = ValidationRule(
+        rule_id="demo.alpha",
+        domain="demo",
+        category="unit",
+        severity="warning",
+        description="alpha",
+        evaluator=lambda context: [],
+    )
+    monkeypatch.setattr(rules_module, "_RULE_REGISTRY", {"demo": {"demo.alpha": rule}})
+
+    assert rules_module.get_registered_rules(domain="missing") == []
+    assert rules_module.get_registered_rules(domain="demo", rule_ids={"demo.alpha"}) == [rule]
+    assert rules_module.get_registered_rules(domain="demo", rule_ids={"demo.beta"}) == []
+
+
+def test_get_rule_profiles_exposes_exact_profile_payload_shape() -> None:
+    profiles = get_rule_profiles()
+
+    assert all(set(profile_payload) == {"description", "rule_ids"} for profile_payload in profiles.values())
+    assert all(rule_id.startswith("knowledge_base.") for rule_id in profiles["kb-only"]["rule_ids"])
+    assert all(rule_id.startswith("status.") for rule_id in profiles["status-only"]["rule_ids"])
+    assert all(rule_id.startswith("workspace.") for rule_id in profiles["workspace-only"]["rule_ids"])
+    assert set(profiles["ci"]["rule_ids"]) == {rule.rule_id for rule in get_registered_rules()}
+
+
+def test_severity_at_or_above_handles_none_and_threshold_boundaries() -> None:
+    assert rules_module.severity_at_or_above("critical", "none") is False
+    assert rules_module.severity_at_or_above("warning", "warning") is True
+    assert rules_module.severity_at_or_above("error", "warning") is True
+    assert rules_module.severity_at_or_above("warning", "error") is False
+
+
+def test_filter_rule_results_preserves_later_matches_and_optional_failures_flag() -> None:
+    rule_results = [
+        make_rule_result(rule_id="workspace.pass", domain="workspace", category="coherence", passed=True),
+        make_rule_result(rule_id="kb.fail", domain="knowledge_base", category="cross_reference", passed=False),
+        make_rule_result(rule_id="status.fail", domain="status", category="runtime_integrity", severity="error", passed=False),
+        make_rule_result(rule_id="status.pass", domain="status", category="runtime_integrity", severity="error", passed=True),
+    ]
+
+    filtered_all = rules_module.filter_rule_results(
+        rule_results,
+        categories={"runtime_integrity"},
+        severities={"error"},
+        domains={"status"},
+        only_failures=False,
+    )
+    filtered_failures = rules_module.filter_rule_results(
+        rule_results,
+        categories={"runtime_integrity"},
+        severities={"error"},
+        domains={"status"},
+        only_failures=True,
+    )
+
+    assert [result.rule_id for result in filtered_all] == ["status.fail", "status.pass"]
+    assert [result.rule_id for result in filtered_failures] == ["status.fail"]
+
+
+def test_filter_rule_results_default_keeps_passing_results() -> None:
+    rule_results = [
+        make_rule_result(rule_id="workspace.pass", domain="workspace", category="coherence", passed=True),
+        make_rule_result(rule_id="workspace.fail", domain="workspace", category="coherence", passed=False),
+    ]
+
+    filtered = rules_module.filter_rule_results(rule_results)
+
+    assert [result.rule_id for result in filtered] == ["workspace.pass", "workspace.fail"]
+
+
+def test_filter_rule_results_only_failures_keeps_scanning_after_matching_pass() -> None:
+    rule_results = [
+        make_rule_result(rule_id="status.pass", domain="status", category="runtime_integrity", severity="error", passed=True),
+        make_rule_result(rule_id="status.fail", domain="status", category="runtime_integrity", severity="error", passed=False),
+    ]
+
+    filtered = rules_module.filter_rule_results(
+        rule_results,
+        categories={"runtime_integrity"},
+        severities={"error"},
+        domains={"status"},
+        only_failures=True,
+    )
+
+    assert [result.rule_id for result in filtered] == ["status.fail"]
+
+
+def test_bucket_helpers_and_summary_counts_are_exact() -> None:
+    bucket = rules_module._empty_bucket()
+    passing_result = make_rule_result(
+        rule_id="workspace.pass",
+        domain="workspace",
+        category="coherence",
+        severity="warning",
+        passed=True,
+        findings=[
+            RuleFinding(
+                message="note",
+                source_file="workspace.json",
+                item_identifier="workspace",
+                field_name="present",
+            )
+        ],
+    )
+    failing_result = make_rule_result(
+        rule_id="status.fail",
+        domain="status",
+        category="runtime_integrity",
+        severity="error",
+        passed=False,
+        findings=[
+            RuleFinding(
+                message="first",
+                source_file="status.json",
+                item_identifier="status",
+                field_name="a",
+            ),
+            RuleFinding(
+                message="second",
+                source_file="status.json",
+                item_identifier="status",
+                field_name="b",
+            ),
+        ],
+    )
+    second_failing_result = make_rule_result(
+        rule_id="status.fail.second",
+        domain="status",
+        category="runtime_integrity",
+        severity="error",
+        passed=False,
+        findings=[
+            RuleFinding(
+                message="third",
+                source_file="status.json",
+                item_identifier="status",
+                field_name="c",
+            )
+        ],
+    )
+
+    assert bucket == {"rules": 0, "failed_rules": 0, "findings": 0}
+
+    rules_module._increment_bucket(bucket, passing_result)
+    rules_module._increment_bucket(bucket, failing_result)
+    rules_module._increment_bucket(bucket, second_failing_result)
+
+    assert bucket == {"rules": 3, "failed_rules": 2, "findings": 4}
+
+    summary = rules_module.summarize_rule_results([passing_result, failing_result, second_failing_result])
+
+    assert set(summary) == {
+        "total_rules",
+        "passed_rules",
+        "failed_rules",
+        "total_findings",
+        "by_domain",
+        "by_category",
+        "by_severity",
+    }
+    assert summary["total_rules"] == 3
+    assert summary["passed_rules"] == 1
+    assert summary["failed_rules"] == 2
+    assert summary["total_findings"] == 4
+    assert summary["by_domain"]["workspace"] == {"rules": 1, "failed_rules": 0, "findings": 1}
+    assert summary["by_domain"]["status"] == {"rules": 2, "failed_rules": 2, "findings": 3}
+    assert summary["by_category"]["coherence"] == {"rules": 1, "failed_rules": 0, "findings": 1}
+    assert summary["by_category"]["runtime_integrity"] == {"rules": 2, "failed_rules": 2, "findings": 3}
+    assert summary["by_severity"]["warning"] == {"rules": 1, "failed_rules": 0, "findings": 1}
+    assert summary["by_severity"]["error"] == {"rules": 2, "failed_rules": 2, "findings": 3}
 
 
 def test_all_cli_can_filter_to_failing_kb_cross_reference_rules(tmp_path: Path) -> None:

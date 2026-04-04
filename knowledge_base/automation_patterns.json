@@ -1169,11 +1169,28 @@
         "technique_canonical_status_snapshot_generation",
         "technique_status_artifact_validation"
       ]
+    },
+    {
+      "id": "automation_focused_mutmut_operator_surface",
+      "pattern_name": "Focused mutmut operator surface",
+      "automation_type": "validation",
+      "success_rate": 1.0,
+      "false_positive_rate": 0.0,
+      "created_timestamp": "2026-04-04T00:00:00Z",
+      "requires_approval": false,
+      "safety_constraints": [
+        "Limits mutation testing to an explicit small Python slice, constrains the selected pytest nodes in `setup.cfg`, copies only governed workspace inputs into the sandbox, and exposes the workflow through stable `Makefile` and VS Code task entry points"
+      ],
+      "rollback_strategy": "Remove the `mutmut` dependency and `setup.cfg` pilot configuration, delete the `make mutation` operator targets, and drop the README/task references if the focused mutation-testing workflow must be withdrawn.",
+      "related_techniques": [
+        "technique_focused_python_mutation_testing_pilot",
+        "technique_deterministic_profile_surface_promotion"
+      ]
     }
   ],
   "metadata": {
-    "total_count": 59,
-    "last_updated": "2026-04-03T00:00:00Z",
+    "total_count": 60,
+    "last_updated": "2026-04-04T00:00:00Z",
     "schema_version": "2.0.0"
   }
 }

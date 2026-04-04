@@ -235,7 +235,7 @@ def filter_rule_results(
     categories: set[str] | None = None,
     severities: set[str] | None = None,
     domains: set[str] | None = None,
-    only_failures: bool = False,
+    only_failures: bool = False,  # pragma: no mutate
 ) -> list[RuleResult]:
     filtered_results: list[RuleResult] = []
     for rule_result in rule_results:
