@@ -523,11 +523,10 @@ def _build_package_export_sync_state(root_path: Path) -> dict[str, Any]:
     if not unsupported_symbols and (missing_import_symbols or missing_all_symbols):
         for module_name, symbols in sorted(module_symbol_additions.items()):
             updated_text = _append_grouped_import_symbols(updated_text, module_name, symbols)
-        if missing_import_symbols or missing_all_symbols:
-            updated_text = _append_all_entries(
-                updated_text,
-                sorted(set(missing_import_symbols) | set(missing_all_symbols)),
-            )
+        updated_text = _append_all_entries(
+            updated_text,
+            sorted(set(missing_import_symbols) | set(missing_all_symbols)),
+        )
         updated_text = f"{updated_text.rstrip()}\n"
 
     return {

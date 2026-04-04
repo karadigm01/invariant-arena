@@ -478,6 +478,23 @@ def test_extract_module_export_surface_and_provider_grouping_cover_fallback_path
     assert unsupported_symbols == ["missing_symbol", "shared_symbol"]
 
 
+def test_extract_module_export_surface_ignores_non_assign_nodes_and_non_all_assignments(tmp_path: Path) -> None:
+    module_path = tmp_path / "module.py"
+    module_path.write_text(
+        '"module doc"\n\n'
+        "VALUE = 1\n\n"
+        "class ExportedClass:\n"
+        "    pass\n",
+        encoding="utf-8",
+    )
+
+    exported_names, explicit_all = remediation_module._extract_module_export_surface(module_path)
+
+    assert "VALUE" in exported_names
+    assert "ExportedClass" in exported_names
+    assert explicit_all is None
+
+
 def test_append_grouped_import_symbols_and_artifact_change_cover_insert_create_and_noop(tmp_path: Path) -> None:
     current_text = '__all__ = [\n\t"existing_symbol",\n]\n'
 
@@ -496,6 +513,33 @@ def test_append_grouped_import_symbols_and_artifact_change_cover_insert_create_a
     assert noop_change["content_changed"] is False
 
 
+def test_append_grouped_import_symbols_skips_blank_lines_in_existing_block() -> None:
+    current_text = (
+        "from .beta import (\n"
+        "\n"
+        "\tunique_symbol,\n"
+        ")\n\n"
+        "__all__ = [\n"
+        '\t"unique_symbol",\n'
+        "]\n"
+    )
+
+    updated_text = remediation_module._append_grouped_import_symbols(current_text, "beta", ["second_symbol"])
+
+    assert "\n\n\t" not in updated_text.split("from .beta import (", maxsplit=1)[1]
+    assert "\tsecond_symbol," in updated_text
+
+
+def test_append_all_entries_skips_blank_lines_in_existing_all_block() -> None:
+    current_text = '__all__ = [\n\n\t"existing_symbol",\n]\n'
+
+    updated_text = remediation_module._append_all_entries(current_text, ["second_symbol"])
+
+    assert '\t"existing_symbol",' in updated_text
+    assert '\t"second_symbol",' in updated_text
+    assert "\n\n\t\"existing_symbol\"" not in updated_text
+
+
 def test_build_predicted_rule_outcomes_can_mark_would_fail_for_non_boolean_pass_value() -> None:
     non_boolean_rule = RuleResult(
         rule_id="status.snapshot_matches_workspace",
@@ -511,6 +555,32 @@ def test_build_predicted_rule_outcomes_can_mark_would_fail_for_non_boolean_pass_
 
     assert predicted_outcomes[0]["predicted_effect"] == "would_fail"
     assert predicted_summary["failed_rules"] == 0
+
+
+def test_build_package_export_simulation_preserves_target_rule_when_symbols_are_unsupported(tmp_path: Path) -> None:
+    module_path = tmp_path / "src" / "inf_work" / "__init__.py"
+    module_path.parent.mkdir(parents=True)
+    module_path.write_text('__all__ = []\n', encoding="utf-8")
+
+    rule_result = _rule_result(
+        "knowledge_base.component_doc_python_api_symbols_valid",
+        passed=False,
+        domain="knowledge_base",
+        category="api_surface",
+    )
+
+    simulation = remediation_module._build_package_export_simulation(
+        tmp_path,
+        [rule_result],
+        {
+            "unsupported_symbols": ["shared_symbol"],
+            "module_path": "src/inf_work/__init__.py",
+            "updated_text": '__all__ = []\n',
+        },
+    )
+
+    assert simulation["predicted_rule_outcomes"][0]["predicted_passed"] is False
+    assert simulation["predicted_rule_outcomes"][0]["predicted_effect"] == "unchanged"
 
 
 def test_restore_artifact_pre_state_deletes_created_files_and_build_no_plan_result() -> None:
@@ -560,6 +630,15 @@ def test_restore_artifact_pre_state_deletes_created_files_and_build_no_plan_resu
         assert result.to_dict()["notes"] == ["note"]
     finally:
         workspace_root.rmdir()
+
+
+def test_restore_artifact_pre_state_ignores_missing_paths_that_never_existed(tmp_path: Path) -> None:
+    rollback_summary = remediation_module._restore_artifact_pre_state(
+        tmp_path,
+        {"missing.txt": {"existed": False, "text": None, "sha256": None}},
+    )
+
+    assert rollback_summary == {"restored_paths": [], "deleted_paths": []}
 
 
 def test_apply_status_artifact_remediation_returns_noop_when_no_plan_is_available(monkeypatch, tmp_path: Path) -> None:
@@ -746,6 +825,27 @@ def test_compile_package_public_api_export_remediation_plan_reports_already_sync
 
     assert plan.plan_available is False
     assert plan.notes[-1] == "The package public API documentation already matches the explicit `inf_work` package re-export surface."
+
+
+def test_build_package_export_sync_state_updates_all_when_imports_exist_but_all_is_missing_symbol(tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "src" / "inf_work").mkdir(parents=True)
+    (workspace_root / "ai_docs" / "package_public_api_surface_20260331T000000Z.json").write_text(
+        json.dumps({"interfaces": {"python_api": ["from inf_work import synced_symbol"]}}),
+        encoding="utf-8",
+    )
+    (workspace_root / "src" / "inf_work" / "__init__.py").write_text(
+        'from .remediation import (\n\tsynced_symbol,\n)\n\n__all__ = [\n]\n',
+        encoding="utf-8",
+    )
+    (workspace_root / "src" / "inf_work" / "remediation.py").write_text("def synced_symbol():\n    return 1\n", encoding="utf-8")
+
+    sync_state = remediation_module._build_package_export_sync_state(workspace_root)
+
+    assert sync_state["missing_import_symbols"] == []
+    assert sync_state["missing_all_symbols"] == ["synced_symbol"]
+    assert '"synced_symbol"' in sync_state["updated_text"]
 
 
 def test_compile_package_public_api_export_remediation_plan_reports_unsupported_rule_slice(monkeypatch, tmp_path: Path) -> None:
