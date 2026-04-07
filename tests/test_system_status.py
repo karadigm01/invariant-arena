@@ -152,6 +152,11 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert payload["resolver_capabilities"]["pressure_telemetry_status"]["enabled"] is True
     assert payload["resolver_capabilities"]["pressure_telemetry_status"]["status"] == "configured"
     assert len(payload["resolver_capabilities"]["registered_tiles"]) == 3
+    assert [tile["capability_signature"] for tile in payload["resolver_capabilities"]["registered_tiles"]] == [
+        "core_reference.read",
+        "component_index.read",
+        "knowledge_base.rollup_read",
+    ]
     assert payload["resolver_capabilities"]["traversal_examples"]["explicit"]["complete"] is True
     assert payload["resolver_capabilities"]["traversal_examples"]["inferred"]["complete"] is True
     assert "schema_bundles" in payload["schema_contract_integrity"]
@@ -174,7 +179,7 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     recommended_actions = payload["next_recommended_actions"]
     assert recommended_actions
     assert any("execution-backed pass/fail data" in action["action"] for action in recommended_actions)
-    assert any("capability signatures" in action["action"] for action in recommended_actions)
+    assert all("capability signatures" not in action["action"] for action in recommended_actions)
 
 
 def test_build_system_status_snapshot_surfaces_latest_kb_records_end_to_end() -> None:
@@ -230,6 +235,9 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "- **Multi-Hop Explicit**: True" in markdown
     assert "- **Multi-Hop Inferred**: True" in markdown
     assert "- **Pressure Telemetry**: configured" in markdown
+    assert "- **workspace_governance**: `core_reference.read` (single_hop) -> `core_reference.json`" in markdown
+    assert "- **component_index**: `component_index.read` (single_hop) -> `ai_docs/component_index.json`" in markdown
+    assert "- **knowledge_base_index**: `knowledge_base.rollup_read` (single_hop) -> `knowledge_base/kb_index.json`" in markdown
     assert "- **Explicit Route Example**: workspace_governance -> component_index -> knowledge_base_index" in markdown
     assert "- **Inferred Route Example**: workspace_governance -> knowledge_base_index" in markdown
     assert "`make all-report-fix-status`" in markdown
@@ -247,7 +255,7 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "`ai_docs/component_index.json`" in markdown
     assert "`knowledge_base/kb_index.json`" in markdown
     assert "- **P3**: Augment the test suite section with execution-backed pass/fail data in addition to collection counts." in markdown
-    assert "- **P3**: Add capability signatures to registered resolver tiles so the status artifact can expose per-tile capability contracts." in markdown
+    assert "capability contracts" not in markdown
 
 
 def test_status_validation_dataclasses_to_dict_serialize_nested_results() -> None:
@@ -739,8 +747,44 @@ def test_build_recommended_actions_adds_collection_and_signature_follow_ups() ->
     )
 
     assert [action["priority"] for action in actions] == [3, 3]
-    assert "execution-backed pass/fail data" in actions[0]["action"] or "execution-backed pass/fail data" in actions[1]["action"]
+    assert any("execution-backed pass/fail data" in action["action"] for action in actions)
     assert any("workspace_governance" in action["reason"] for action in actions)
+
+
+def test_build_recommended_actions_omits_signature_follow_up_when_all_tiles_are_annotated() -> None:
+    actions = system_status_module._build_recommended_actions(
+        {
+            "component_health": {"below_threshold_components": []},
+            "known_gaps_technical_debt": {
+                "components_with_zero_percent_coverage": [],
+                "missing_automation_patterns": [],
+                "todo_fixme_items": [],
+            },
+            "knowledge_base_metrics": {"innovation_count": 2},
+            "test_suite_summary": {
+                "status_counts": {},
+                "pass_rate": 1.0,
+                "pending_or_skipped_tests": 0,
+                "summary_mode": "collection_only",
+            },
+            "schema_contract_integrity": {
+                "cross_reference_validation": {"compliant": True},
+                "workspace_coherence_validation": {"compliant": True},
+                "orphaned_or_dangling_references": {"component_files": [], "component_docs": []},
+            },
+            "resolver_capabilities": {
+                "inference_modes_supported": {"multi_hop_explicit": True, "multi_hop_inferred": True},
+                "registered_tiles": [
+                    {"tile_id": "workspace_governance", "capability_signature": "core_reference.read"},
+                    {"tile_id": "component_index", "capability_signature": "component_index.read"},
+                ],
+            },
+        }
+    )
+
+    assert len(actions) == 1
+    assert "execution-backed pass/fail data" in actions[0]["action"]
+    assert all("capability signatures" not in action["action"] for action in actions)
 
 
 def test_build_status_context_handles_regeneration_exceptions(tmp_path: Path, monkeypatch) -> None:
@@ -840,13 +884,21 @@ def test_render_system_status_markdown_uses_singular_count_phrases() -> None:
     payload["component_health"]["components"][0]["dependents"] = ["src/inf_work/__main__.py"]
     payload["schema_contract_integrity"]["orphaned_or_dangling_references"]["component_files"] = ["src/missing.py"]
     payload["schema_contract_integrity"]["orphaned_or_dangling_references"]["component_docs"] = ["ai_docs/missing.json"]
-    payload["resolver_capabilities"]["registered_tiles"] = ["tile_alpha"]
+    payload["resolver_capabilities"]["registered_tiles"] = [
+        {
+            "tile_id": "tile_alpha",
+            "capability_signature": "tile_alpha.read",
+            "inference_mode": "single_hop",
+            "target_path": "tile_alpha.json",
+        }
+    ]
 
     markdown = render_system_status_markdown(SystemStatusSnapshot(**payload))
 
     assert "1 dependency, 1 dependent" in markdown
     assert "- **Dangling References**: 1 file, 1 doc" in markdown
     assert "- **Registered Tiles**: 1 registered tile" in markdown
+    assert "- **tile_alpha**: `tile_alpha.read` (single_hop) -> `tile_alpha.json`" in markdown
 
 
 def test_render_operator_shortcut_pairs_uses_shared_shortcut_model() -> None:

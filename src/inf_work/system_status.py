@@ -1615,6 +1615,10 @@ def render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str:
         len(payload["resolver_capabilities"]["registered_tiles"]),
         "registered tile",
     )
+    registered_tile_lines = [
+        f"- **{tile['tile_id']}**: `{tile['capability_signature']}` ({tile['inference_mode']}) -> `{tile['target_path']}`"
+        for tile in payload["resolver_capabilities"]["registered_tiles"]
+    ] or ["- **Registered Tile Contracts**: none recorded"]
 
     return "\n".join(
         [
@@ -1656,6 +1660,7 @@ def render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str:
             f"- **Multi-Hop Explicit**: {payload['resolver_capabilities']['inference_modes_supported']['multi_hop_explicit']}",
             f"- **Multi-Hop Inferred**: {payload['resolver_capabilities']['inference_modes_supported']['multi_hop_inferred']}",
             f"- **Registered Tiles**: {registered_tile_count_text}",
+            *registered_tile_lines,
             f"- **Pressure Telemetry**: {payload['resolver_capabilities']['pressure_telemetry_status']['status']}",
             f"- **Explicit Route Example**: {explicit_route_text}",
             f"- **Inferred Route Example**: {inferred_route_text}",

@@ -322,17 +322,17 @@
   "test_suite_summary": {
     "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 398,
+    "total_tests": 399,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 398,
+      "passed": 399,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "398 collected",
+    "summary_text": "399 collected",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
@@ -629,6 +629,7 @@
         "target_path": "core_reference.json",
         "inference_mode": "single_hop",
         "description": "Resolve the governed workspace contract from the immutable core reference.",
+        "capability_signature": "core_reference.read",
         "available": true
       },
       {
@@ -637,6 +638,7 @@
         "target_path": "ai_docs/component_index.json",
         "inference_mode": "single_hop",
         "description": "Resolve the canonical component registry for governed modules and artifacts.",
+        "capability_signature": "component_index.read",
         "available": true
       },
       {
@@ -645,6 +647,7 @@
         "target_path": "knowledge_base/kb_index.json",
         "inference_mode": "single_hop",
         "description": "Resolve the aggregated knowledge-base rollup for techniques, bug fixes, innovations, and automation patterns.",
+        "capability_signature": "knowledge_base.rollup_read",
         "available": true
       }
     ],
@@ -814,12 +817,6 @@
     }
   ],
   "next_recommended_actions": [
-    {
-      "priority": 3,
-      "action": "Add capability signatures to registered resolver tiles so the status artifact can expose per-tile capability contracts.",
-      "reason": "Registered tiles missing capability signatures: workspace_governance, component_index, knowledge_base_index",
-      "complexity": "medium"
-    },
     {
       "priority": 3,
       "action": "Augment the test suite section with execution-backed pass/fail data in addition to collection counts.",

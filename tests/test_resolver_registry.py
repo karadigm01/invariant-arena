@@ -35,6 +35,11 @@ def test_build_resolver_capabilities_reports_multi_hop_registry() -> None:
         "knowledge_base_index",
     ]
     assert all(tile["available"] is True for tile in payload["registered_tiles"])
+    assert [tile["capability_signature"] for tile in payload["registered_tiles"]] == [
+        "core_reference.read",
+        "component_index.read",
+        "knowledge_base.rollup_read",
+    ]
     assert payload["pressure_telemetry_status"]["enabled"] is True
     assert payload["pressure_telemetry_status"]["status"] == "configured"
     assert payload["pressure_telemetry_status"]["sampling_mode"] == "workspace_snapshot"
@@ -59,6 +64,7 @@ def test_resolve_tile_returns_matching_tile() -> None:
     assert tile is not None
     assert tile.title == "Component Index"
     assert tile.target_path == "ai_docs/component_index.json"
+    assert tile.capability_signature == "component_index.read"
     assert tile.available is True
 
 

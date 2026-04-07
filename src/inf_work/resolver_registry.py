@@ -14,6 +14,7 @@ class ResolverTile:
     target_path: str
     inference_mode: str
     description: str
+    capability_signature: str
     available: bool
 
     def to_dict(self) -> dict[str, Any]:
@@ -66,6 +67,7 @@ _TILE_DEFINITIONS = (
         "core_reference.json",
         "single_hop",
         "Resolve the governed workspace contract from the immutable core reference.",
+        "core_reference.read",
     ),
     (
         "component_index",
@@ -73,6 +75,7 @@ _TILE_DEFINITIONS = (
         "ai_docs/component_index.json",
         "single_hop",
         "Resolve the canonical component registry for governed modules and artifacts.",
+        "component_index.read",
     ),
     (
         "knowledge_base_index",
@@ -80,6 +83,7 @@ _TILE_DEFINITIONS = (
         "knowledge_base/kb_index.json",
         "single_hop",
         "Resolve the aggregated knowledge-base rollup for techniques, bug fixes, innovations, and automation patterns.",
+        "knowledge_base.rollup_read",
     ),
 )
 
@@ -108,7 +112,7 @@ def _build_step(tile: ResolverTile) -> ResolverTraversalStep:
 def list_registered_tiles(workspace_root: str | Path) -> list[ResolverTile]:
     root_path = Path(workspace_root).resolve()
     tiles: list[ResolverTile] = []
-    for tile_id, title, target_path, inference_mode, description in _TILE_DEFINITIONS:
+    for tile_id, title, target_path, inference_mode, description, capability_signature in _TILE_DEFINITIONS:
         tiles.append(
             ResolverTile(
                 tile_id=tile_id,
@@ -116,6 +120,7 @@ def list_registered_tiles(workspace_root: str | Path) -> list[ResolverTile]:
                 target_path=target_path,
                 inference_mode=inference_mode,
                 description=description,
+                capability_signature=capability_signature,
                 available=(root_path / target_path).is_file(),
             )
         )
