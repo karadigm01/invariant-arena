@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-03T22:10:45Z",
+  "generated_at": "2026-04-07T01:08:36Z",
   "workspace_root": "/home/j/Desktop/inf.work",
   "coverage_command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
   "coverage_source": "ai_docs/test_coverage_snapshot.json",
@@ -49,15 +49,15 @@
     {
       "module_path": "src/inf_work/remediation.py",
       "coverage_percentage": 100,
-      "num_statements": 471,
-      "covered_lines": 471,
+      "num_statements": 484,
+      "covered_lines": 484,
       "missing_lines": 0
     },
     {
       "module_path": "src/inf_work/resolver_registry.py",
       "coverage_percentage": 100,
-      "num_statements": 120,
-      "covered_lines": 120,
+      "num_statements": 121,
+      "covered_lines": 121,
       "missing_lines": 0
     },
     {
@@ -69,10 +69,10 @@
     },
     {
       "module_path": "src/inf_work/system_status.py",
-      "coverage_percentage": 100,
-      "num_statements": 544,
-      "covered_lines": 544,
-      "missing_lines": 0
+      "coverage_percentage": 99,
+      "num_statements": 616,
+      "covered_lines": 615,
+      "missing_lines": 1
     },
     {
       "module_path": "src/inf_work/workspace_health.py",
@@ -83,13 +83,31 @@
     }
   ],
   "totals": {
-    "coverage_percentage": 100,
-    "num_statements": 2723,
-    "covered_lines": 2723,
-    "missing_lines": 0
+    "coverage_percentage": 99,
+    "num_statements": 2809,
+    "covered_lines": 2808,
+    "missing_lines": 1
   },
   "metadata": {
     "total_modules": 11,
     "schema_version": "2.0.0"
+  },
+  "test_execution_summary": {
+    "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
+    "exit_code": 0,
+    "total_tests": 401,
+    "pass_rate": 1.0,
+    "status_counts": {
+      "passed": 401,
+      "failed": 0,
+      "skipped": 0,
+      "xfailed": 0,
+      "xpassed": 0,
+      "errors": 0
+    },
+    "summary_text": "401 passed in 208.65s (0:03:28)",
+    "raw_summary": "401 passed in 208.65s (0:03:28)",
+    "pending_or_skipped_tests": 0,
+    "summary_mode": "executed_via_pytest_cov"
   }
 }

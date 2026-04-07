@@ -133,8 +133,8 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert payload["component_health"]["total_components"] >= 4
     assert payload["test_suite_summary"]["total_tests"] >= 1
     assert payload["test_suite_summary"]["summary_text"]
-    assert payload["test_suite_summary"]["summary_text"].endswith("collected")
-    assert payload["test_suite_summary"]["summary_mode"] == "collection_only"
+    assert payload["test_suite_summary"]["summary_text"]
+    assert payload["test_suite_summary"]["summary_mode"] == "executed_via_pytest_cov"
     assert "raw_summary" not in payload["test_suite_summary"]
     assert payload["recent_session_activity"]["session_count"] >= 1
     assert latest_session["session_id"] == session_history["sessions"][-1]["session_id"]
@@ -177,8 +177,7 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert all(feature["feature"] != "Session history rollups" for feature in planned_features)
     assert all(feature["feature"] != "Multi-hop resolver modes" for feature in planned_features)
     recommended_actions = payload["next_recommended_actions"]
-    assert recommended_actions
-    assert any("execution-backed pass/fail data" in action["action"] for action in recommended_actions)
+    assert recommended_actions == []
     assert all("capability signatures" not in action["action"] for action in recommended_actions)
 
 
@@ -254,7 +253,7 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "`ai_docs/system_status_snapshot.json`" in markdown
     assert "`ai_docs/component_index.json`" in markdown
     assert "`knowledge_base/kb_index.json`" in markdown
-    assert "- **P3**: Augment the test suite section with execution-backed pass/fail data in addition to collection counts." in markdown
+    assert "- **Actions**: no immediate follow-up recorded" in markdown
     assert "capability contracts" not in markdown
 
 
@@ -322,12 +321,23 @@ def test_build_test_coverage_snapshot_filters_python_package_modules(tmp_path: P
     monkeypatch.setattr(
         system_status_module.subprocess,
         "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="", stderr=""),
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="2 passed in 0.10s\n", stderr=""),
     )
 
     snapshot = system_status_module.build_test_coverage_snapshot(tmp_path)
 
     assert snapshot["generated_at"] == "2026-04-03T10:00:00Z"
+    assert snapshot["test_execution_summary"] == {
+        "command": f"{sys.executable} -m pytest --cov=src/inf_work --cov-report=json:{tmp_path / 'build' / 'runtime_test_coverage.json'} -q",
+        "exit_code": 0,
+        "total_tests": 2,
+        "pass_rate": 1.0,
+        "status_counts": {"passed": 2, "failed": 0, "skipped": 0, "xfailed": 0, "xpassed": 0, "errors": 0},
+        "summary_text": "2 passed in 0.10s",
+        "raw_summary": "2 passed in 0.10s",
+        "pending_or_skipped_tests": 0,
+        "summary_mode": "executed_via_pytest_cov",
+    }
     assert snapshot["module_coverage"] == [
         {
             "module_path": "src/inf_work/a.py",
@@ -549,7 +559,104 @@ def test_collect_test_suite_summary_tracks_unindexed_python_modules(tmp_path: Pa
     assert summary["total_tests"] == 2
     assert summary["summary_text"] == "2 collected"
     assert summary["coverage_source"] == "component_index_fallback"
+    assert summary["summary_mode"] == "collection_only"
     assert any(module["module_path"] == "src/inf_work/extra.py" and module["tracked_in_component_index"] is False for module in summary["coverage_by_module"])
+
+
+def test_collect_test_suite_summary_uses_execution_backed_snapshot_when_fresh(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "src" / "inf_work").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "inf_work" / "tracked.py").write_text("pass\n", encoding="utf-8")
+    _write_json(
+        tmp_path / "ai_docs" / "component_index.json",
+        {
+            "components": [
+                {
+                    "component_id": "tracked_component",
+                    "component_name": "Tracked",
+                    "component_type": "python_module",
+                    "file_path": "src/inf_work/tracked.py",
+                    "dependencies": [],
+                    "dependents": [],
+                    "health_status": "healthy",
+                    "test_coverage_percentage": 100,
+                    "compliance_status": "I1_I2_I3_I4_compliant",
+                }
+            ]
+        },
+    )
+    _write_json(
+        tmp_path / "ai_docs" / "test_coverage_snapshot.json",
+        {
+            "module_coverage": [{"module_path": "src/inf_work/tracked.py", "coverage_percentage": 100}],
+            "test_execution_summary": {
+                "total_tests": 2,
+                "pass_rate": 0.5,
+                "status_counts": {"passed": 1, "failed": 1, "skipped": 0, "xfailed": 0, "xpassed": 0, "errors": 0},
+                "summary_text": "1 failed, 1 passed in 0.10s",
+                "summary_mode": "executed_via_pytest_cov",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        system_status_module.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="tests/test_alpha.py\ntests/test_beta.py\n", stderr=""),
+    )
+
+    summary = system_status_module._collect_test_suite_summary(tmp_path, 90)
+
+    assert summary["total_tests"] == 2
+    assert summary["pass_rate"] == 0.5
+    assert summary["status_counts"]["failed"] == 1
+    assert summary["summary_text"] == "1 failed, 1 passed in 0.10s"
+    assert summary["summary_mode"] == "executed_via_pytest_cov"
+
+
+def test_collect_test_suite_summary_falls_back_when_execution_snapshot_is_stale(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "src" / "inf_work").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "inf_work" / "tracked.py").write_text("pass\n", encoding="utf-8")
+    _write_json(
+        tmp_path / "ai_docs" / "component_index.json",
+        {
+            "components": [
+                {
+                    "component_id": "tracked_component",
+                    "component_name": "Tracked",
+                    "component_type": "python_module",
+                    "file_path": "src/inf_work/tracked.py",
+                    "dependencies": [],
+                    "dependents": [],
+                    "health_status": "healthy",
+                    "test_coverage_percentage": 100,
+                    "compliance_status": "I1_I2_I3_I4_compliant",
+                }
+            ]
+        },
+    )
+    _write_json(
+        tmp_path / "ai_docs" / "test_coverage_snapshot.json",
+        {
+            "module_coverage": [{"module_path": "src/inf_work/tracked.py", "coverage_percentage": 100}],
+            "test_execution_summary": {
+                "total_tests": 1,
+                "pass_rate": 1.0,
+                "status_counts": {"passed": 1, "failed": 0, "skipped": 0, "xfailed": 0, "xpassed": 0, "errors": 0},
+                "summary_text": "1 passed in 0.10s",
+                "summary_mode": "executed_via_pytest_cov",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        system_status_module.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="tests/test_alpha.py\ntests/test_beta.py\n", stderr=""),
+    )
+
+    summary = system_status_module._collect_test_suite_summary(tmp_path, 90)
+
+    assert summary["total_tests"] == 2
+    assert summary["summary_text"] == "2 collected"
+    assert summary["summary_mode"] == "collection_only"
 
 
 def test_collect_recent_session_activity_returns_empty_defaults(tmp_path: Path) -> None:
@@ -698,7 +805,7 @@ def test_build_recommended_actions_handles_below_threshold_without_zero_percent_
                 "todo_fixme_items": [],
             },
             "knowledge_base_metrics": {"innovation_count": 1},
-            "test_suite_summary": {"status_counts": {}, "pass_rate": 1.0},
+            "test_suite_summary": {"status_counts": {}, "pass_rate": 1.0, "summary_mode": "executed_via_pytest_cov"},
             "schema_contract_integrity": {
                 "cross_reference_validation": {"compliant": True},
                 "workspace_coherence_validation": {"compliant": True},
@@ -1015,7 +1122,7 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
     assert "# System Summary" in summary_markdown
     assert f"**Total Components:** {total_components}" in summary_markdown
     assert "**Test Suite Summary:**" in summary_markdown
-    assert "collected" in summary_markdown
+    assert snapshot.test_suite_summary["summary_text"] in summary_markdown
     assert "## Recent Governance Highlights" in summary_markdown
     assert expected_highlights in summary_markdown
     assert f"- **Why It Matters:** {_render_activity_context(latest_session['summary'])}" in summary_markdown

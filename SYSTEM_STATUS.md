@@ -1,6 +1,6 @@
 # System Status
 
-- **Generated At**: 2026-04-04T00:00:00Z
+- **Generated At**: 2026-04-07T01:08:36Z
 - **Workspace Root**: `/home/j/Desktop/inf.work`
 - **Canonical Data**: `ai_docs/system_status_snapshot.json`
 - **Derived Artifact**: `SYSTEM_STATUS.md`
@@ -10,7 +10,7 @@
 - **Core Reference View**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 1 dependency, 2 dependents
 - **Validation Rule Engine**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 5 dependents
 - **Knowledge Base Cross-Reference Validator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 9 dependencies, 6 dependents
-- **System Status Generator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 4 dependents
+- **System Status Generator**: healthy, 99% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 4 dependents
 - **Package Public API Surface**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 0 dependents
 - **Unified CLI Entry Point**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 1 dependent
 - **Benchmark Harness**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 1 dependent
@@ -20,8 +20,8 @@
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Suite Summary
-- **Collected Tests**: 399
-- **Collection Summary**: 399 collected
+- **Collected Tests**: 401
+- **Collection Summary**: 401 passed in 208.65s (0:03:28)
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
@@ -33,7 +33,7 @@
 - **src/inf_work/remediation.py**: 100% (tracked)
 - **src/inf_work/resolver_registry.py**: 100% (tracked)
 - **src/inf_work/rules.py**: 100% (tracked)
-- **src/inf_work/system_status.py**: 100% (tracked)
+- **src/inf_work/system_status.py**: 99% (tracked)
 - **src/inf_work/workspace_health.py**: 100% (tracked)
 
 ## 3. Knowledge Base Metrics
@@ -107,4 +107,4 @@
 - **KB Rollup**: `knowledge_base/kb_index.json` aggregates KB counts, freshness, lookup indices, and automation metrics.
 
 ## 10. Next Recommended Actions
-- **P3**: Augment the test suite section with execution-backed pass/fail data in addition to collection counts. (medium) — The status snapshot currently reports collection-only test inventory rather than the latest executed test outcome summary.
+- **Actions**: no immediate follow-up recorded

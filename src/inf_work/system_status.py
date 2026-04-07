@@ -141,6 +141,16 @@ def _normalize_utc_timestamp(value: str) -> str:
     return parsed.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _extract_pytest_summary_line(output_text: str) -> str | None:
+    summary_counts = {"passed", "failed", "skipped", "xfailed", "xpassed", "errors"}
+    summary_line = None
+    for line in output_text.splitlines():
+        stripped_line = line.strip()
+        if " in " in stripped_line and any(keyword in stripped_line for keyword in summary_counts):
+            summary_line = stripped_line
+    return summary_line
+
+
 def build_test_coverage_snapshot(
     workspace_root: str | Path,
     *,
@@ -167,6 +177,9 @@ def build_test_coverage_snapshot(
         raise RuntimeError("Unable to generate coverage snapshot from pytest-cov run.")
 
     coverage_payload = _load_json(coverage_json_path)
+    summary_counts = _parse_pytest_summary(completed.stdout)
+    total_tests = sum(summary_counts.values())
+    summary_line = _extract_pytest_summary_line(completed.stdout)
     files_payload = coverage_payload.get("files", {})
     module_coverage: list[dict[str, Any]] = []
     for module_path, module_payload in sorted(files_payload.items()):
@@ -198,6 +211,17 @@ def build_test_coverage_snapshot(
         "metadata": {
             "total_modules": len(module_coverage),
             "schema_version": "2.0.0",
+        },
+        "test_execution_summary": {
+            "command": " ".join(command),
+            "exit_code": completed.returncode,
+            "total_tests": total_tests,
+            "pass_rate": 0.0 if total_tests == 0 else round(summary_counts["passed"] / total_tests, 4),
+            "status_counts": summary_counts,
+            "summary_text": summary_line or f"{summary_counts['passed']} passed",
+            "raw_summary": summary_line or "",
+            "pending_or_skipped_tests": summary_counts["skipped"] + summary_counts["xfailed"] + summary_counts["xpassed"],
+            "summary_mode": "executed_via_pytest_cov",
         },
     }
 
@@ -359,11 +383,7 @@ def _parse_pytest_summary(output_text: str) -> dict[str, int]:
         "xpassed": 0,
         "errors": 0,
     }
-    summary_line = None
-    for line in output_text.splitlines():
-        stripped_line = line.strip()
-        if " in " in stripped_line and any(keyword in stripped_line for keyword in summary_counts):
-            summary_line = stripped_line
+    summary_line = _extract_pytest_summary_line(output_text)
     if summary_line is None:
         return summary_counts
 
@@ -386,7 +406,7 @@ def _collect_test_suite_summary(root_path: Path, coverage_threshold: int) -> dic
     collected_tests = len(
         [line for line in completed.stdout.splitlines() if line.strip().startswith("tests/")]
     )
-    summary_counts = {
+    fallback_summary_counts = {
         "passed": collected_tests,
         "failed": 0,
         "skipped": 0,
@@ -395,11 +415,25 @@ def _collect_test_suite_summary(root_path: Path, coverage_threshold: int) -> dic
         "errors": 0,
     }
     summary_text = f"{collected_tests} collected"
-    total_tests = sum(summary_counts.values())
-    pass_rate = 0.0 if total_tests == 0 else round(summary_counts["passed"] / total_tests, 4)
+    total_tests = sum(fallback_summary_counts.values())
+    pass_rate = 0.0 if total_tests == 0 else round(fallback_summary_counts["passed"] / total_tests, 4)
 
     component_index = _load_json(root_path / "ai_docs" / "component_index.json")
     coverage_snapshot = _load_test_coverage_snapshot(root_path)
+    execution_summary = ((coverage_snapshot or {}).get("test_execution_summary", {}) if coverage_snapshot else {})
+    use_execution_summary = bool(execution_summary) and int(execution_summary.get("total_tests", -1)) == collected_tests
+    summary_counts = (
+        {
+            key: int(execution_summary.get("status_counts", {}).get(key, 0))
+            for key in fallback_summary_counts
+        }
+        if use_execution_summary
+        else fallback_summary_counts
+    )
+    total_tests = int(execution_summary.get("total_tests", collected_tests)) if use_execution_summary else collected_tests
+    pass_rate = float(execution_summary.get("pass_rate", pass_rate)) if use_execution_summary else pass_rate
+    summary_text = str(execution_summary.get("summary_text", summary_text)) if use_execution_summary else summary_text
+    summary_mode = str(execution_summary.get("summary_mode", "executed_via_pytest_cov")) if use_execution_summary else "collection_only"
     snapshot_coverage_by_module = {
         str(entry.get("module_path", "")): int(entry.get("coverage_percentage", 0))
         for entry in coverage_snapshot.get("module_coverage", [])
@@ -447,7 +481,7 @@ def _collect_test_suite_summary(root_path: Path, coverage_threshold: int) -> dic
         "pending_or_skipped_tests": summary_counts["skipped"] + summary_counts["xfailed"] + summary_counts["xpassed"],
         "coverage_by_module": coverage_by_module,
         "coverage_source": _DEFAULT_COVERAGE_SNAPSHOT_PATH if coverage_snapshot else "component_index_fallback",
-        "summary_mode": "collection_only",
+        "summary_mode": summary_mode,
     }
 
 
@@ -907,7 +941,7 @@ def render_system_summary_markdown(
             "- **Validation Rule Engine:** `src/inf_work/rules.py` registers deterministic rules and standardized rule results for all validators.",
             "- **KB Integrity Validator:** `src/inf_work/kb_integrity.py` validates technique and component cross references across `knowledge_base/` and `ai_docs/`.",
             "- **Workspace Health Checker:** `src/inf_work/workspace_health.py` validates governed directories from `core_reference.json`.",
-            "- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures a collection-only test suite summary, and validates both artifacts through status-domain rules.",
+            "- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures execution-backed test summaries with collection fallback, and validates both artifacts through status-domain rules.",
             "- **System Status Artifact:** `SYSTEM_STATUS.md` is the human-facing governance snapshot derived from `ai_docs/system_status_snapshot.json`.",
             "- **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, `summary-check`, and `remediation-plan` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, aggregate `all --fix-status` repair support for stale status artifacts, explicit governed status-refresh intent routing, and bounded remediation slices for status-artifact drift plus package-export source synchronization.",
             "- **CI Check:** `.github/workflows/validator-check.yml` runs focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks.",
@@ -1131,7 +1165,7 @@ def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]
             }
         )
 
-    if test_suite_summary.get("summary_mode") == "collection_only":
+    if not str(test_suite_summary.get("summary_mode", "")).startswith("executed_"):
         actions.append(
             {
                 "priority": 3,
