@@ -172,7 +172,9 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert all(feature["feature"] != "Session history rollups" for feature in planned_features)
     assert all(feature["feature"] != "Multi-hop resolver modes" for feature in planned_features)
     recommended_actions = payload["next_recommended_actions"]
-    assert recommended_actions == []
+    assert recommended_actions
+    assert any("execution-backed pass/fail data" in action["action"] for action in recommended_actions)
+    assert any("capability signatures" in action["action"] for action in recommended_actions)
 
 
 def test_build_system_status_snapshot_surfaces_latest_kb_records_end_to_end() -> None:
@@ -244,7 +246,8 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "`ai_docs/system_status_snapshot.json`" in markdown
     assert "`ai_docs/component_index.json`" in markdown
     assert "`knowledge_base/kb_index.json`" in markdown
-    assert "- **Actions**: no immediate follow-up recorded" in markdown
+    assert "- **P3**: Augment the test suite section with execution-backed pass/fail data in addition to collection counts." in markdown
+    assert "- **P3**: Add capability signatures to registered resolver tiles so the status artifact can expose per-tile capability contracts." in markdown
 
 
 def test_status_validation_dataclasses_to_dict_serialize_nested_results() -> None:
@@ -645,16 +648,35 @@ def test_build_recommended_actions_covers_all_branches() -> None:
             "known_gaps_technical_debt": {
                 "components_with_zero_percent_coverage": ["src/inf_work/component_alpha.py"],
                 "missing_automation_patterns": ["Status regeneration automation pattern is not yet catalogued."],
+                "todo_fixme_items": [{"path": "notes.py", "line_number": 3, "text": "# TODO: finish"}],
             },
             "knowledge_base_metrics": {"innovation_count": 0},
+            "test_suite_summary": {
+                "status_counts": {"failed": 2, "errors": 1},
+                "pass_rate": 0.5,
+                "pending_or_skipped_tests": 3,
+                "summary_mode": "collection_only",
+            },
+            "schema_contract_integrity": {
+                "cross_reference_validation": {"compliant": False},
+                "workspace_coherence_validation": {"compliant": False},
+                "orphaned_or_dangling_references": {
+                    "component_files": ["src/missing.py"],
+                    "component_docs": ["ai_docs/missing.json"],
+                },
+            },
             "resolver_capabilities": {
                 "inference_modes_supported": {"multi_hop_explicit": False, "multi_hop_inferred": False},
+                "registered_tiles": [{"tile_id": "workspace_governance"}],
             },
         }
     )
 
-    assert [action["priority"] for action in actions] == [1, 2, 3, 4]
+    assert [action["priority"] for action in actions] == [1, 1, 1, 2, 2, 2, 3, 3, 3, 3]
     assert "0% modules" in actions[0]["reason"]
+    assert any("TODO/FIXME" in action["action"] for action in actions)
+    assert any("execution-backed pass/fail data" in action["action"] for action in actions)
+    assert any("capability signatures" in action["action"] for action in actions)
 
 
 def test_build_recommended_actions_handles_below_threshold_without_zero_percent_modules() -> None:
@@ -665,16 +687,60 @@ def test_build_recommended_actions_handles_below_threshold_without_zero_percent_
             "known_gaps_technical_debt": {
                 "components_with_zero_percent_coverage": [],
                 "missing_automation_patterns": [],
+                "todo_fixme_items": [],
             },
             "knowledge_base_metrics": {"innovation_count": 1},
+            "test_suite_summary": {"status_counts": {}, "pass_rate": 1.0},
+            "schema_contract_integrity": {
+                "cross_reference_validation": {"compliant": True},
+                "workspace_coherence_validation": {"compliant": True},
+                "orphaned_or_dangling_references": {"component_files": [], "component_docs": []},
+            },
             "resolver_capabilities": {
                 "inference_modes_supported": {"multi_hop_explicit": True, "multi_hop_inferred": True},
+                "registered_tiles": [{"tile_id": "workspace_governance", "capability_signature": "core_reference.read"}],
             },
         }
     )
 
     assert len(actions) == 1
     assert "0% modules" not in actions[0]["reason"]
+
+
+def test_build_recommended_actions_adds_collection_and_signature_follow_ups() -> None:
+    actions = system_status_module._build_recommended_actions(
+        {
+            "component_health": {"below_threshold_components": []},
+            "known_gaps_technical_debt": {
+                "components_with_zero_percent_coverage": [],
+                "missing_automation_patterns": [],
+                "todo_fixme_items": [],
+            },
+            "knowledge_base_metrics": {"innovation_count": 2},
+            "test_suite_summary": {
+                "status_counts": {},
+                "pass_rate": 1.0,
+                "pending_or_skipped_tests": 0,
+                "summary_mode": "collection_only",
+            },
+            "schema_contract_integrity": {
+                "cross_reference_validation": {"compliant": True},
+                "workspace_coherence_validation": {"compliant": True},
+                "orphaned_or_dangling_references": {"component_files": [], "component_docs": []},
+            },
+            "resolver_capabilities": {
+                "inference_modes_supported": {"multi_hop_explicit": True, "multi_hop_inferred": True},
+                "registered_tiles": [
+                    {"tile_id": "workspace_governance"},
+                    {"tile_id": "component_index", "capability_signature": "component_index.read"},
+                ],
+            },
+        }
+    )
+
+    assert [action["priority"] for action in actions] == [3, 3]
+    assert "execution-backed pass/fail data" in actions[0]["action"] or "execution-backed pass/fail data" in actions[1]["action"]
+    assert any("workspace_governance" in action["reason"] for action in actions)
 
 
 def test_build_status_context_handles_regeneration_exceptions(tmp_path: Path, monkeypatch) -> None:

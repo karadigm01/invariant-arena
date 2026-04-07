@@ -1001,10 +1001,17 @@ SUMMARY_RULES = [
 
 def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
     actions: list[dict[str, Any]] = []
-    below_threshold_components = snapshot["component_health"]["below_threshold_components"]
-    zero_coverage_components = snapshot["known_gaps_technical_debt"]["components_with_zero_percent_coverage"]
+    component_health = snapshot.get("component_health", {})
+    known_gaps = snapshot.get("known_gaps_technical_debt", {})
+    knowledge_base_metrics = snapshot.get("knowledge_base_metrics", {})
+    resolver_capabilities = snapshot.get("resolver_capabilities", {})
+    schema_contract_integrity = snapshot.get("schema_contract_integrity", {})
+    test_suite_summary = snapshot.get("test_suite_summary", {})
+
+    below_threshold_components = component_health.get("below_threshold_components", [])
+    zero_coverage_components = known_gaps.get("components_with_zero_percent_coverage", [])
     if below_threshold_components:
-        threshold = snapshot["coverage_threshold"]
+        threshold = snapshot.get("coverage_threshold", 0)
         coverage_reason = (
             f"Components below the {threshold}% coverage threshold: {', '.join(below_threshold_components)}"
         )
@@ -1018,16 +1025,103 @@ def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]
                 "complexity": "medium",
             }
         )
-    if not snapshot["knowledge_base_metrics"]["innovation_count"]:
+
+    cross_reference_validation = schema_contract_integrity.get("cross_reference_validation", {})
+    workspace_coherence_validation = schema_contract_integrity.get("workspace_coherence_validation", {})
+    dangling_references = schema_contract_integrity.get("orphaned_or_dangling_references", {})
+    dangling_component_files = dangling_references.get("component_files", [])
+    dangling_component_docs = dangling_references.get("component_docs", [])
+    if (
+        not cross_reference_validation.get("compliant", True)
+        or not workspace_coherence_validation.get("compliant", True)
+        or dangling_component_files
+        or dangling_component_docs
+    ):
+        integrity_signals: list[str] = []
+        if not cross_reference_validation.get("compliant", True):
+            integrity_signals.append("cross-reference validation is reporting issues")
+        if not workspace_coherence_validation.get("compliant", True):
+            integrity_signals.append("workspace coherence validation is reporting issues")
+        if dangling_component_files:
+            integrity_signals.append(f"dangling component files: {', '.join(dangling_component_files)}")
+        if dangling_component_docs:
+            integrity_signals.append(f"dangling component docs: {', '.join(dangling_component_docs)}")
+        actions.append(
+            {
+                "priority": 1,
+                "action": "Repair schema and workspace integrity findings, then rerun the governed status validation surface.",
+                "reason": "; ".join(integrity_signals),
+                "complexity": "medium",
+            }
+        )
+
+    status_counts = test_suite_summary.get("status_counts", {})
+    failed_tests = int(status_counts.get("failed", 0))
+    errored_tests = int(status_counts.get("errors", 0))
+    pass_rate = float(test_suite_summary.get("pass_rate", 1.0))
+    if failed_tests or errored_tests or pass_rate < 1.0:
+        failure_signals: list[str] = []
+        if failed_tests:
+            failure_signals.append(f"{failed_tests} failed tests")
+        if errored_tests:
+            failure_signals.append(f"{errored_tests} errored tests")
+        if pass_rate < 1.0:
+            failure_signals.append(f"pass rate is {pass_rate}")
+        actions.append(
+            {
+                "priority": 1,
+                "action": "Stabilize the failing test surface before publishing another status snapshot.",
+                "reason": ", ".join(failure_signals),
+                "complexity": "medium",
+            }
+        )
+
+    todo_fixme_items = known_gaps.get("todo_fixme_items", [])
+    if todo_fixme_items:
+        first_item = todo_fixme_items[0]
         actions.append(
             {
                 "priority": 2,
+                "action": "Triage recorded TODO/FIXME items and convert the confirmed work into governed follow-up tasks.",
+                "reason": f"{len(todo_fixme_items)} TODO/FIXME items detected; first hit at {first_item['path']}:{first_item['line_number']}",
+                "complexity": "small",
+            }
+        )
+
+    pending_or_skipped_tests = int(test_suite_summary.get("pending_or_skipped_tests", 0))
+    if pending_or_skipped_tests:
+        actions.append(
+            {
+                "priority": 2,
+                "action": "Review skipped or pending tests and either re-enable them or document why they remain excluded.",
+                "reason": f"{pending_or_skipped_tests} tests are currently pending, skipped, or expected to fail.",
+                "complexity": "small",
+            }
+        )
+
+    missing_automation_patterns = known_gaps.get("missing_automation_patterns", [])
+    if missing_automation_patterns:
+        actions.append(
+            {
+                "priority": 2,
+                "action": "Catalog the missing governed workflow as an automation pattern.",
+                "reason": missing_automation_patterns[0],
+                "complexity": "small",
+            }
+        )
+
+    if not knowledge_base_metrics.get("innovation_count", 0):
+        actions.append(
+            {
+                "priority": 3,
                 "action": "Document the next constraint-driven innovation in `knowledge_base/constraint_innovations.json`.",
                 "reason": "Innovation catalog is currently empty.",
                 "complexity": "small",
             }
         )
-    if not snapshot["resolver_capabilities"]["inference_modes_supported"]["multi_hop_explicit"] or not snapshot["resolver_capabilities"]["inference_modes_supported"]["multi_hop_inferred"]:
+
+    inference_modes_supported = resolver_capabilities.get("inference_modes_supported", {})
+    if not inference_modes_supported.get("multi_hop_explicit", True) or not inference_modes_supported.get("multi_hop_inferred", True):
         actions.append(
             {
                 "priority": 3,
@@ -1036,17 +1130,42 @@ def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]
                 "complexity": "large",
             }
         )
-    if not snapshot["known_gaps_technical_debt"]["missing_automation_patterns"]:
-        return actions
-    actions.append(
-        {
-            "priority": 4,
-            "action": "Catalog the status regeneration workflow as an automation pattern.",
-            "reason": snapshot["known_gaps_technical_debt"]["missing_automation_patterns"][0],
-            "complexity": "small",
-        }
-    )
-    return actions
+
+    if test_suite_summary.get("summary_mode") == "collection_only":
+        actions.append(
+            {
+                "priority": 3,
+                "action": "Augment the test suite section with execution-backed pass/fail data in addition to collection counts.",
+                "reason": "The status snapshot currently reports collection-only test inventory rather than the latest executed test outcome summary.",
+                "complexity": "medium",
+            }
+        )
+
+    registered_tiles = resolver_capabilities.get("registered_tiles", [])
+    tiles_missing_signatures = [
+        tile.get("tile_id", "unknown_tile")
+        for tile in registered_tiles
+        if "capability_signature" not in tile
+    ]
+    if tiles_missing_signatures:
+        actions.append(
+            {
+                "priority": 3,
+                "action": "Add capability signatures to registered resolver tiles so the status artifact can expose per-tile capability contracts.",
+                "reason": f"Registered tiles missing capability signatures: {', '.join(tiles_missing_signatures)}",
+                "complexity": "medium",
+            }
+        )
+
+    deduplicated_actions: list[dict[str, Any]] = []
+    seen_actions: set[tuple[int, str]] = set()
+    for action in sorted(actions, key=lambda item: (int(item["priority"]), str(item["action"]))):
+        action_key = (int(action["priority"]), str(action["action"]))
+        if action_key in seen_actions:
+            continue
+        seen_actions.add(action_key)
+        deduplicated_actions.append(action)
+    return deduplicated_actions
 
 
 def build_system_status_snapshot(

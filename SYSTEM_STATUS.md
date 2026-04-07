@@ -20,8 +20,8 @@
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Suite Summary
-- **Collected Tests**: 397
-- **Collection Summary**: 397 collected
+- **Collected Tests**: 398
+- **Collection Summary**: 398 collected
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
@@ -104,4 +104,5 @@
 - **KB Rollup**: `knowledge_base/kb_index.json` aggregates KB counts, freshness, lookup indices, and automation metrics.
 
 ## 10. Next Recommended Actions
-- **Actions**: no immediate follow-up recorded
+- **P3**: Add capability signatures to registered resolver tiles so the status artifact can expose per-tile capability contracts. (medium) — Registered tiles missing capability signatures: workspace_governance, component_index, knowledge_base_index
+- **P3**: Augment the test suite section with execution-backed pass/fail data in addition to collection counts. (medium) — The status snapshot currently reports collection-only test inventory rather than the latest executed test outcome summary.
