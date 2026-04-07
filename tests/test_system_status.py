@@ -894,6 +894,49 @@ def test_build_recommended_actions_omits_signature_follow_up_when_all_tiles_are_
     assert all("capability signatures" not in action["action"] for action in actions)
 
 
+def test_build_recommended_actions_deduplicates_duplicate_sorted_entries(monkeypatch) -> None:
+    duplicate_action = {
+        "priority": 2,
+        "action": "Triage recorded TODO/FIXME items and convert the confirmed work into governed follow-up tasks.",
+        "reason": "1 TODO/FIXME items detected; first hit at notes.txt:7",
+        "complexity": "small",
+    }
+
+    original_sorted = sorted
+
+    def duplicate_sorted(iterable, *args, **kwargs):
+        sorted_actions = original_sorted(iterable, *args, **kwargs)
+        if sorted_actions == [duplicate_action]:
+            return [duplicate_action, dict(duplicate_action)]
+        return sorted_actions
+
+    monkeypatch.setattr("builtins.sorted", duplicate_sorted)
+
+    actions = system_status_module._build_recommended_actions(
+        {
+            "component_health": {"below_threshold_components": []},
+            "known_gaps_technical_debt": {
+                "components_with_zero_percent_coverage": [],
+                "missing_automation_patterns": [],
+                "todo_fixme_items": [{"path": "notes.txt", "line_number": 7}],
+            },
+            "knowledge_base_metrics": {"innovation_count": 1},
+            "test_suite_summary": {"status_counts": {}, "pass_rate": 1.0, "summary_mode": "executed_via_pytest_cov"},
+            "schema_contract_integrity": {
+                "cross_reference_validation": {"compliant": True},
+                "workspace_coherence_validation": {"compliant": True},
+                "orphaned_or_dangling_references": {"component_files": [], "component_docs": []},
+            },
+            "resolver_capabilities": {
+                "inference_modes_supported": {"multi_hop_explicit": True, "multi_hop_inferred": True},
+                "registered_tiles": [{"tile_id": "workspace_governance", "capability_signature": "core_reference.read"}],
+            },
+        }
+    )
+
+    assert actions == [duplicate_action]
+
+
 def test_build_status_context_handles_regeneration_exceptions(tmp_path: Path, monkeypatch) -> None:
     _write_json(tmp_path / "ai_docs" / "system_status_snapshot.json", _minimal_status_snapshot_payload(tmp_path))
     (tmp_path / "SYSTEM_STATUS.md").write_text("# System Status\n", encoding="utf-8")
