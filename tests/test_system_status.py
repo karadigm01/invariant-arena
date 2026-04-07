@@ -214,7 +214,7 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
 
     assert "# System Status" in markdown
     assert "## 1. Component Health" in markdown
-    assert "## 2. Test Inventory" in markdown
+    assert "## 2. Test Suite Summary" in markdown
     assert "- **Collected Tests**:" in markdown
     assert "- **Collection Summary**:" in markdown
     assert f"- **Technique Count**: {technique_count} (latest: {latest_technique_name})" in markdown
@@ -896,7 +896,7 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
 
     assert "# System Summary" in summary_markdown
     assert f"**Total Components:** {total_components}" in summary_markdown
-    assert "**Test Inventory:**" in summary_markdown
+    assert "**Test Suite Summary:**" in summary_markdown
     assert "collected" in summary_markdown
     assert "## Recent Governance Highlights" in summary_markdown
     assert expected_highlights in summary_markdown

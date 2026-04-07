@@ -3,7 +3,7 @@
 **Last Updated:** 2026-04-04  
 **Total Components:** 12  
 **System Health:** Healthy  
-**Test Inventory:** 330 collected
+**Test Suite Summary:** 397 collected
 
 ## Architecture
 
@@ -11,7 +11,7 @@
 - **Validation Rule Engine:** `src/inf_work/rules.py` registers deterministic rules and standardized rule results for all validators.
 - **KB Integrity Validator:** `src/inf_work/kb_integrity.py` validates technique and component cross references across `knowledge_base/` and `ai_docs/`.
 - **Workspace Health Checker:** `src/inf_work/workspace_health.py` validates governed directories from `core_reference.json`.
-- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures a collection-only test inventory, and validates both artifacts through status-domain rules.
+- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures a collection-only test suite summary, and validates both artifacts through status-domain rules.
 - **System Status Artifact:** `SYSTEM_STATUS.md` is the human-facing governance snapshot derived from `ai_docs/system_status_snapshot.json`.
 - **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, `summary-check`, and `remediation-plan` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, aggregate `all --fix-status` repair support for stale status artifacts, explicit governed status-refresh intent routing, and bounded remediation slices for status-artifact drift plus package-export source synchronization.
 - **CI Check:** `.github/workflows/validator-check.yml` runs focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks.

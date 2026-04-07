@@ -19,9 +19,9 @@
 - **Resolver Capability Registry**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 3 dependents
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
-## 2. Test Inventory
-- **Collected Tests**: 330
-- **Collection Summary**: 330 collected
+## 2. Test Suite Summary
+- **Collected Tests**: 397
+- **Collection Summary**: 397 collected
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
