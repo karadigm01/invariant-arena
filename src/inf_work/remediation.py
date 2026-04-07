@@ -374,7 +374,7 @@ def _build_package_export_provenance_record(trigger_rule_ids: list[str], support
 def _sha256_text(value: str | None) -> str | None:
     if value is None:
         return None
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return hashlib.sha256(value.encode()).hexdigest()
 
 
 def _read_optional_text(path: Path) -> str | None:
@@ -383,10 +383,11 @@ def _read_optional_text(path: Path) -> str | None:
     return path.read_text(encoding="utf-8")
 
 
-def _line_preview(value: str | None, *, limit: int = 12) -> list[str]:
+def _line_preview(value: str | None, *, limit: int | None = None) -> list[str]:
     if value is None:
         return []
-    return value.splitlines()[:limit]
+    preview_limit = 12 if limit is None else limit
+    return value.splitlines()[:preview_limit]
 
 
 def _serialize_snapshot(snapshot: Any) -> str:
@@ -419,7 +420,7 @@ def _extract_module_export_surface(module_path: Path) -> tuple[set[str], set[str
                 try:
                     literal_value = ast.literal_eval(node.value)
                 except (ValueError, SyntaxError):
-                    literal_value = None
+                    continue
                 if isinstance(literal_value, (list, tuple)) and all(isinstance(value, str) for value in literal_value):
                     explicit_all = set(literal_value)
 
@@ -466,16 +467,20 @@ def _append_grouped_import_symbols(current_text: str, module_name: str, symbols:
     header = f"from .{module_name} import ("
     for index, line in enumerate(lines):
         if line == header:
-            end_index = index + 1
             existing_symbols: list[str] = []
-            while end_index < len(lines) and lines[end_index].strip() != ")":
-                stripped_line = lines[end_index].strip().rstrip(",")
+            tail_start = len(lines)
+            for end_index, raw_line in enumerate(lines[index + 1 :], start=index + 1):
+                stripped_line = raw_line.strip()
+                if stripped_line == ")":
+                    tail_start = end_index + 1
+                    break
+                if stripped_line.endswith(","):
+                    stripped_line = stripped_line[:-1]
                 if stripped_line:
                     existing_symbols.append(stripped_line)
-                end_index += 1
             updated_symbols = existing_symbols + [symbol for symbol in symbols if symbol not in existing_symbols]
             replacement_block = [header, *[f"\t{symbol}," for symbol in updated_symbols], ")"]
-            return "\n".join([*lines[:index], *replacement_block, *lines[end_index + 1 :]])
+            return "\n".join([*lines[:index], *replacement_block, *lines[tail_start:]])
 
     insert_index = next(index for index, line in enumerate(lines) if line.startswith("__all__ = ["))
     new_block = [header, *[f"\t{symbol}," for symbol in symbols], ")", ""]
@@ -485,16 +490,23 @@ def _append_grouped_import_symbols(current_text: str, module_name: str, symbols:
 def _append_all_entries(current_text: str, symbols: list[str]) -> str:
     lines = current_text.splitlines()
     start_index = next(index for index, line in enumerate(lines) if line.startswith("__all__ = ["))
-    end_index = start_index + 1
     existing_symbols: list[str] = []
-    while end_index < len(lines) and lines[end_index].strip() != "]":
-        stripped_line = lines[end_index].strip().rstrip(",")
+    tail_start = len(lines)
+    for end_index, raw_line in enumerate(lines[start_index + 1 :], start=start_index + 1):
+        stripped_line = raw_line.strip()
+        if stripped_line == "]":
+            tail_start = end_index + 1
+            break
+        if stripped_line.endswith(","):
+            stripped_line = stripped_line[:-1]
         if stripped_line:
-            existing_symbols.append(stripped_line.strip('"'))
-        end_index += 1
+            if stripped_line.startswith('"') and stripped_line.endswith('"'):
+                existing_symbols.append(stripped_line[1:-1])
+            else:
+                existing_symbols.append(stripped_line)
     updated_symbols = existing_symbols + [symbol for symbol in symbols if symbol not in existing_symbols]
     replacement_block = ["__all__ = [", *[f'\t"{symbol}",' for symbol in updated_symbols], "]"]
-    return "\n".join([*lines[:start_index], *replacement_block, *lines[end_index + 1 :]])
+    return "\n".join([*lines[:start_index], *replacement_block, *lines[tail_start:]])
 
 
 def _build_package_export_sync_state(root_path: Path) -> dict[str, Any]:
@@ -504,7 +516,7 @@ def _build_package_export_sync_state(root_path: Path) -> dict[str, Any]:
         (entry for entry in python_api_entries if isinstance(entry, str) and entry.strip().startswith("from inf_work import ")),
         None,
     )
-    documented_symbols = sorted(_extract_package_import_symbols(package_import_entry or ""))
+    documented_symbols = sorted(_extract_package_import_symbols(package_import_entry)) if package_import_entry else []
 
     module_path = root_path / _PACKAGE_PUBLIC_API_MODULE_PATH
     current_text = module_path.read_text(encoding="utf-8")
@@ -1021,8 +1033,9 @@ def compile_package_public_api_export_remediation_plan(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
     *,
-    include_simulation: bool = False,
+    include_simulation: bool | None = None,
 ) -> RemediationPlan:
+    simulation_requested = bool(include_simulation)
     root_path = Path(workspace_root).resolve()
     validation_result = validate_knowledge_base(root_path, rule_ids)
     failed_rule_ids = _sorted_failed_rule_ids(validation_result.rule_results)
@@ -1039,13 +1052,13 @@ def compile_package_public_api_export_remediation_plan(
     ]
 
     if plan_available:
-        simulation = _build_package_export_simulation(root_path, validation_result.rule_results, sync_state) if include_simulation else None
+        simulation = _build_package_export_simulation(root_path, validation_result.rule_results, sync_state) if simulation_requested else None
         return RemediationPlan(
             workspace_root=str(root_path),
             plan_id="remediation_plan_package_public_api_export_sync",
             objective="Synchronize the governed `inf_work` package export surface so the package public API documentation references only explicit re-exports.",
-            plan_phase="dry_run_source_level_remediation" if include_simulation else "bounded_source_level_remediation",
-            plan_only=not include_simulation,
+            plan_phase="dry_run_source_level_remediation" if simulation_requested else "bounded_source_level_remediation",
+            plan_only=not simulation_requested,
             current_status_compliant=validation_result.compliant,
             plan_available=True,
             selected_rule_ids=selected_rule_ids,
@@ -1086,8 +1099,8 @@ def compile_package_public_api_export_remediation_plan(
         workspace_root=str(root_path),
         plan_id="remediation_plan_package_public_api_export_sync",
         objective="Determine whether the bounded package-export source-level remediation slice should compile a deterministic plan.",
-        plan_phase="dry_run_source_level_remediation" if include_simulation else "bounded_source_level_remediation",
-        plan_only=not include_simulation,
+        plan_phase="dry_run_source_level_remediation" if simulation_requested else "bounded_source_level_remediation",
+        plan_only=not simulation_requested,
         current_status_compliant=validation_result.compliant,
         plan_available=False,
         selected_rule_ids=selected_rule_ids,
@@ -1230,19 +1243,20 @@ def compile_remediation_plan(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
     *,
-    include_simulation: bool = False,
+    include_simulation: bool | None = None,
     intent_id: str | None = None,
 ) -> RemediationPlan:
+    simulation_requested = bool(include_simulation)
     root_path = Path(workspace_root).resolve()
     selected_rule_ids = sorted(rule_ids) if rule_ids else []
     status_plan = compile_status_artifact_remediation_plan(
         root_path,
         rule_ids,
-        include_simulation=include_simulation,
+        include_simulation=simulation_requested,
         intent_id=intent_id,
     )
-    package_plan = compile_package_public_api_export_remediation_plan(root_path, rule_ids, include_simulation=include_simulation)
-    selected_domains = {rule_id.split(".", maxsplit=1)[0] for rule_id in selected_rule_ids}
+    package_plan = compile_package_public_api_export_remediation_plan(root_path, rule_ids, include_simulation=simulation_requested)
+    selected_domains = {rule_id.partition(".")[0] for rule_id in selected_rule_ids}
 
     if intent_id == _STATUS_REFRESH_INTENT_ID:
         return status_plan
@@ -1298,9 +1312,10 @@ def compile_status_artifact_remediation_plan(
     workspace_root: str | Path,
     rule_ids: set[str] | None = None,
     *,
-    include_simulation: bool = False,
+    include_simulation: bool | None = None,
     intent_id: str | None = None,
 ) -> RemediationPlan:
+    simulation_requested = bool(include_simulation)
     root_path = Path(workspace_root).resolve()
     validation_result = validate_system_status(root_path, rule_ids)
     failed_rule_ids = _sorted_failed_rule_ids(validation_result.rule_results)
@@ -1321,7 +1336,7 @@ def compile_status_artifact_remediation_plan(
         operations = _build_plan_operations(str(root_path), effective_rule_ids)
         verification_contract = _build_verification_contract(str(root_path), effective_rule_ids)
         rollback_contract = _build_plan_only_rollback_contract()
-        simulation = _build_dry_run_simulation(root_path, validation_result.rule_results) if include_simulation else None
+        simulation = _build_dry_run_simulation(root_path, validation_result.rule_results) if simulation_requested else None
         return RemediationPlan(
             workspace_root=str(root_path),
             plan_id="remediation_plan_status_artifact_regeneration",
@@ -1330,8 +1345,8 @@ def compile_status_artifact_remediation_plan(
                 if explicit_intent_selected
                 else "Regenerate stale governed status artifacts and verify that the current workspace state is reflected across the canonical snapshot and derived markdown outputs."
             ),
-            plan_phase="intent_driven_governed_change" if explicit_intent_selected else ("dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation"),
-            plan_only=not include_simulation,
+            plan_phase="intent_driven_governed_change" if explicit_intent_selected else ("dry_run_structured_remediation" if simulation_requested else "plan_only_structured_remediation"),
+            plan_only=not simulation_requested,
             current_status_compliant=validation_result.compliant,
             plan_available=True,
             selected_rule_ids=selected_rule_ids,
@@ -1376,8 +1391,8 @@ def compile_status_artifact_remediation_plan(
         workspace_root=str(root_path),
         plan_id="remediation_plan_status_artifact_regeneration",
         objective="Determine whether the bounded status-artifact remediation slice should compile a deterministic plan.",
-        plan_phase="dry_run_structured_remediation" if include_simulation else "plan_only_structured_remediation",
-        plan_only=not include_simulation,
+        plan_phase="dry_run_structured_remediation" if simulation_requested else "plan_only_structured_remediation",
+        plan_only=not simulation_requested,
         current_status_compliant=validation_result.compliant,
         plan_available=False,
         selected_rule_ids=selected_rule_ids,
