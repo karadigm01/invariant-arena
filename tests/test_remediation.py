@@ -523,6 +523,95 @@ def test_compile_status_artifact_remediation_plan_supports_explicit_status_refre
     assert payload["provenance"]["governed_intent_ids"] == ["intent.status.refresh_artifacts"]
 
 
+def test_compile_status_artifact_remediation_plan_handles_markdown_only_drift(monkeypatch) -> None:
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_status",
+        lambda workspace_root, rule_ids: _status_validation_result(
+            _rule_result("status.markdown_matches_snapshot", passed=False),
+            compliant=False,
+        ),
+    )
+
+    plan = compile_status_artifact_remediation_plan(WORKSPACE_ROOT)
+    payload = plan.to_dict()
+
+    assert plan.plan_available is True
+    assert plan.current_status_compliant is False
+    assert plan.triggering_rule_ids == ["status.markdown_matches_snapshot"]
+    assert payload["triggering_evidence"] == [
+        _rule_result("status.markdown_matches_snapshot", passed=False).to_dict()
+    ]
+    assert payload["unsupported_failing_rule_ids"] == []
+    assert payload["verification_contract"]["required_rule_ids"] == ["status.markdown_matches_snapshot"]
+    assert payload["current_rule_summary"] == remediation_module.summarize_rule_results(
+        [_rule_result("status.markdown_matches_snapshot", passed=False)]
+    )
+
+
+def test_compile_status_artifact_remediation_plan_supports_explicit_status_refresh_intent_dry_run(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+    (workspace_root / "knowledge_base").mkdir()
+    (workspace_root / "ai_docs" / "system_status_snapshot.json").write_text('{"current": true}', encoding="utf-8")
+    (workspace_root / "SYSTEM_STATUS.md").write_text("# current\n", encoding="utf-8")
+    (workspace_root / "SYSTEM_SUMMARY.md").write_text("# current summary\n", encoding="utf-8")
+    (workspace_root / "ai_docs" / "component_index.json").write_text('{"components": [], "metadata": {}}', encoding="utf-8")
+    (workspace_root / "knowledge_base" / "kb_index.json").write_text(
+        '{"total_techniques": 10, "total_bug_fixes": 1, "total_innovations": 2, "total_automation_patterns": 60}',
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_status",
+        lambda workspace_root, rule_ids: _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=True),
+            _rule_result("status.markdown_matches_snapshot", passed=True),
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        ),
+    )
+
+    class FakeSnapshot:
+        def to_dict(self) -> dict[str, object]:
+            return {
+                "generated_at": "2026-04-07T00:00:00Z",
+                "workspace_root": str(workspace_root.resolve()),
+                "canonical_json_path": "ai_docs/system_status_snapshot.json",
+                "derived_markdown_path": "SYSTEM_STATUS.md",
+            }
+
+    monkeypatch.setattr(remediation_module, "build_system_status_snapshot", lambda *args, **kwargs: FakeSnapshot())
+    monkeypatch.setattr(remediation_module, "render_system_status_markdown", lambda snapshot: "# System Status\n\nrefreshed\n")
+    monkeypatch.setattr(
+        remediation_module,
+        "render_system_summary_markdown",
+        lambda snapshot, component_index, kb_index: "# System Summary\n\nrefreshed\n",
+    )
+
+    plan = compile_status_artifact_remediation_plan(
+        workspace_root,
+        include_simulation=True,
+        intent_id="intent.status.refresh_artifacts",
+    )
+    payload = plan.to_dict()
+
+    assert plan.plan_available is True
+    assert payload["plan_phase"] == "intent_driven_governed_change"
+    assert payload["plan_only"] is False
+    assert payload["triggering_rule_ids"] == list(remediation_module.SUPPORTED_STATUS_ARTIFACT_TRIGGER_RULE_IDS)
+    assert payload["provenance"]["governed_intent_ids"] == ["intent.status.refresh_artifacts"]
+    assert payload["simulation_available"] is True
+    assert payload["simulation"] is not None
+    assert payload["simulation"]["simulation_phase"] == "dry_run_structured_remediation"
+    assert payload["simulation"]["workspace_mutation"] is False
+
+
+
 def test_compile_status_artifact_remediation_plan_reports_unsupported_failures(monkeypatch) -> None:
     monkeypatch.setattr(
         remediation_module,
@@ -866,6 +955,75 @@ def test_apply_status_artifact_remediation_rolls_back_on_failed_verification(mon
     assert payload["notes"] == [
         "Applied remediation failed verification and the bounded rollback contract restored the pre-remediation artifact state.",
     ]
+
+
+def test_apply_status_artifact_remediation_deletes_newly_created_artifacts_on_failed_verification(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    workspace_root = tmp_path
+    (workspace_root / "ai_docs").mkdir()
+
+    validation_calls = {"count": 0}
+
+    def fake_validate_system_status(workspace_root: Path, rule_ids: set[str] | None) -> StatusValidationResult:
+        validation_calls["count"] += 1
+        if validation_calls["count"] == 1:
+            return _status_validation_result(
+                _rule_result("status.snapshot_matches_workspace", passed=False),
+                compliant=False,
+            )
+        return _status_validation_result(
+            _rule_result("status.snapshot_matches_workspace", passed=False),
+            compliant=False,
+        )
+
+    monkeypatch.setattr(remediation_module, "validate_system_status", fake_validate_system_status)
+    monkeypatch.setattr(
+        remediation_module,
+        "validate_system_summary",
+        lambda workspace_root: _status_validation_result(
+            _rule_result("status.summary_matches_workspace", passed=True),
+            compliant=True,
+        ),
+    )
+
+    class FakeSnapshot:
+        generated_at = "2026-04-07T00:30:00Z"
+        canonical_json_path = "ai_docs/system_status_snapshot.json"
+        derived_markdown_path = "SYSTEM_STATUS.md"
+
+    def fake_write_system_status_outputs(
+        workspace_root: Path,
+        canonical_json_path: str,
+        derived_markdown_path: str,
+        summary_path: str,
+    ) -> FakeSnapshot:
+        (workspace_root / canonical_json_path).write_text('{"created": true}', encoding="utf-8")
+        (workspace_root / derived_markdown_path).write_text("# created status\n", encoding="utf-8")
+        (workspace_root / summary_path).write_text("# created summary\n", encoding="utf-8")
+        return FakeSnapshot()
+
+    monkeypatch.setattr(remediation_module, "write_system_status_outputs", fake_write_system_status_outputs)
+
+    result = apply_status_artifact_remediation(workspace_root)
+    payload = result.to_dict()
+
+    assert result.applied is False
+    assert result.rollback_performed is True
+    assert payload["rollback_summary"] == {
+        "restored_paths": [],
+        "deleted_paths": [
+            "SYSTEM_STATUS.md",
+            "SYSTEM_SUMMARY.md",
+            "ai_docs/system_status_snapshot.json",
+        ],
+    }
+    assert not (workspace_root / "ai_docs" / "system_status_snapshot.json").exists()
+    assert not (workspace_root / "SYSTEM_STATUS.md").exists()
+    assert not (workspace_root / "SYSTEM_SUMMARY.md").exists()
+    assert payload["operation_results"][1]["status"] == "failed"
+    assert payload["operation_results"][2]["status"] == "completed"
 
 
 def test_apply_status_artifact_remediation_marks_summary_validation_failure_explicitly(monkeypatch, tmp_path: Path) -> None:
@@ -2296,53 +2454,46 @@ def test_build_package_export_simulation_preserves_target_rule_when_symbols_are_
     assert simulation["predicted_rule_outcomes"][0]["predicted_effect"] == "unchanged"
 
 
-def test_restore_artifact_pre_state_deletes_created_files_and_build_no_plan_result() -> None:
-    workspace_root = WORKSPACE_ROOT / ".pytest-remediation-temp-do-not-keep"
-    if workspace_root.exists():
-        raise AssertionError("Unexpected leftover remediation temp path.")
+def test_restore_artifact_pre_state_deletes_created_files_and_build_no_plan_result(tmp_path: Path) -> None:
+    workspace_root = tmp_path
+    created_path = workspace_root / "created.txt"
+    created_path.write_text("temporary\n", encoding="utf-8")
+    rollback_summary = remediation_module._restore_artifact_pre_state(
+        workspace_root,
+        {"created.txt": {"existed": False, "text": None, "sha256": None}},
+    )
 
-    workspace_root.mkdir()
-    try:
-        created_path = workspace_root / "created.txt"
-        created_path.write_text("temporary\n", encoding="utf-8")
-        rollback_summary = remediation_module._restore_artifact_pre_state(
-            workspace_root,
-            {"created.txt": {"existed": False, "text": None, "sha256": None}},
-        )
+    assert rollback_summary == {"restored_paths": [], "deleted_paths": ["created.txt"]}
+    assert not created_path.exists()
 
-        assert rollback_summary == {"restored_paths": [], "deleted_paths": ["created.txt"]}
-        assert not created_path.exists()
+    plan = remediation_module.RemediationPlan(
+        workspace_root=str(workspace_root),
+        plan_id="no-plan",
+        objective="noop",
+        plan_phase="phase",
+        plan_only=True,
+        current_status_compliant=True,
+        plan_available=False,
+        selected_rule_ids=[],
+        triggering_rule_ids=[],
+        unsupported_failing_rule_ids=[],
+        selected_strategy=None,
+        triggering_evidence=[],
+        current_rule_summary={},
+        affected_paths=[],
+        operations=[],
+        verification_contract=None,
+        rollback_contract=None,
+        provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
+        simulation_available=False,
+        simulation=None,
+        notes=["existing"],
+    )
 
-        plan = remediation_module.RemediationPlan(
-            workspace_root=str(workspace_root),
-            plan_id="no-plan",
-            objective="noop",
-            plan_phase="phase",
-            plan_only=True,
-            current_status_compliant=True,
-            plan_available=False,
-            selected_rule_ids=[],
-            triggering_rule_ids=[],
-            unsupported_failing_rule_ids=[],
-            selected_strategy=None,
-            triggering_evidence=[],
-            current_rule_summary={},
-            affected_paths=[],
-            operations=[],
-            verification_contract=None,
-            rollback_contract=None,
-            provenance=remediation_module.ChangeProvenanceRecord("id", "kind", [], [], [], [], []),
-            simulation_available=False,
-            simulation=None,
-            notes=["existing"],
-        )
+    result = remediation_module._build_no_plan_execution_result(plan, notes=["note"])
 
-        result = remediation_module._build_no_plan_execution_result(plan, notes=["note"])
-
-        assert result.to_dict()["execution_attempted"] is False
-        assert result.to_dict()["notes"] == ["note"]
-    finally:
-        workspace_root.rmdir()
+    assert result.to_dict()["execution_attempted"] is False
+    assert result.to_dict()["notes"] == ["note"]
 
 
 def test_restore_artifact_pre_state_restores_nested_files_with_parent_creation_and_utf8(monkeypatch, tmp_path: Path) -> None:

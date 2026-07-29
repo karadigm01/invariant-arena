@@ -22,6 +22,7 @@ from .rules import (
 from .system_status import (
     repair_and_validate_system_status,
     repair_and_validate_system_summary,
+    write_mutation_test_snapshot,
     validate_system_status,
     validate_system_summary,
     write_test_coverage_snapshot,
@@ -222,6 +223,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print indented JSON output",
     )
 
+    mutation_snapshot_parser = subparsers.add_parser(
+        "mutation-snapshot",
+        help="Run the bounded mutmut pilot and write the canonical mutation summary artifact.",
+    )
+    mutation_snapshot_parser.add_argument(
+        "workspace_root",
+        nargs="?",
+        default=".",
+        help="Workspace root containing the governed mutation-testing inputs.",
+    )
+    mutation_snapshot_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="Print indented JSON output",
+    )
+
     refresh_artifacts_parser = subparsers.add_parser(
         "refresh-artifacts",
         help="Refresh the canonical coverage snapshot and regenerate governed status artifacts in one step.",
@@ -396,7 +413,7 @@ def _build_filtered_rule_payload(
 def main() -> int:
     argv = sys.argv[1:]
 
-    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "refresh-artifacts", "benchmark", "remediation-plan", "resolve-path", "infer-route", "-h", "--help"}:
+    if argv and argv[0] not in {"workspace", "kb", "all", "status", "status-check", "summary-check", "coverage-snapshot", "mutation-snapshot", "refresh-artifacts", "benchmark", "remediation-plan", "resolve-path", "infer-route", "-h", "--help"}:
         legacy_parser = argparse.ArgumentParser(
             description="Validate the governed workspace layout.",
         )
@@ -448,6 +465,10 @@ def main() -> int:
 
     if args.command == "coverage-snapshot":
         snapshot = write_test_coverage_snapshot(Path(args.workspace_root))
+        return _print_result(type("Report", (), {"to_dict": lambda self: snapshot, "compliant": True})(), args.pretty)
+
+    if args.command == "mutation-snapshot":
+        snapshot = write_mutation_test_snapshot(Path(args.workspace_root))
         return _print_result(type("Report", (), {"to_dict": lambda self: snapshot, "compliant": True})(), args.pretty)
 
     if args.command == "refresh-artifacts":

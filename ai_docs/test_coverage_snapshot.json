@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-04-07T01:20:54Z",
-  "workspace_root": "/home/j/Desktop/inf.work",
-  "coverage_command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
+  "generated_at": "2026-07-27T21:35:53Z",
+  "workspace_root": "/tmp/inf.work",
+  "coverage_command": "/tmp/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/tmp/inf.work/build/runtime_test_coverage.json -q",
   "coverage_source": "ai_docs/test_coverage_snapshot.json",
   "module_coverage": [
     {
@@ -14,8 +14,8 @@
     {
       "module_path": "src/inf_work/__main__.py",
       "coverage_percentage": 100,
-      "num_statements": 202,
-      "covered_lines": 202,
+      "num_statements": 208,
+      "covered_lines": 208,
       "missing_lines": 0
     },
     {
@@ -69,10 +69,10 @@
     },
     {
       "module_path": "src/inf_work/system_status.py",
-      "coverage_percentage": 100,
-      "num_statements": 616,
-      "covered_lines": 616,
-      "missing_lines": 0
+      "coverage_percentage": 93,
+      "num_statements": 788,
+      "covered_lines": 732,
+      "missing_lines": 56
     },
     {
       "module_path": "src/inf_work/workspace_health.py",
@@ -83,30 +83,30 @@
     }
   ],
   "totals": {
-    "coverage_percentage": 100,
-    "num_statements": 2809,
-    "covered_lines": 2809,
-    "missing_lines": 0
+    "coverage_percentage": 98,
+    "num_statements": 2987,
+    "covered_lines": 2931,
+    "missing_lines": 56
   },
   "metadata": {
     "total_modules": 11,
     "schema_version": "2.0.0"
   },
   "test_execution_summary": {
-    "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/home/j/Desktop/inf.work/build/runtime_test_coverage.json -q",
+    "command": "/tmp/inf.work/.venv/bin/python -m pytest --cov=src/inf_work --cov-report=json:/tmp/inf.work/build/runtime_test_coverage.json -q",
     "exit_code": 0,
-    "total_tests": 402,
+    "total_tests": 412,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 402,
+      "passed": 412,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "402 passed in 211.73s (0:03:31)",
-    "raw_summary": "402 passed in 211.73s (0:03:31)",
+    "summary_text": "412 passed in 125.18s (0:02:05)",
+    "raw_summary": "412 passed in 125.18s (0:02:05)",
     "pending_or_skipped_tests": 0,
     "summary_mode": "executed_via_pytest_cov"
   }

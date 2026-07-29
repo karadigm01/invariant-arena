@@ -1,9 +1,10 @@
 # System Summary
 
-**Last Updated:** 2026-04-07  
+**Last Updated:** 2026-07-27  
 **Total Components:** 12  
 **System Health:** Healthy  
-**Test Suite Summary:** 402 passed in 211.73s (0:03:31)
+**Test Suite Summary:** 412 passed in 125.18s (0:02:05)  
+**Mutation Testing:** 0 killed, 0 survived, 0 no-test
 
 ## Architecture
 
@@ -11,12 +12,12 @@
 - **Validation Rule Engine:** `src/inf_work/rules.py` registers deterministic rules and standardized rule results for all validators.
 - **KB Integrity Validator:** `src/inf_work/kb_integrity.py` validates technique and component cross references across `knowledge_base/` and `ai_docs/`.
 - **Workspace Health Checker:** `src/inf_work/workspace_health.py` validates governed directories from `core_reference.json`.
-- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures execution-backed test summaries with collection fallback, and validates both artifacts through status-domain rules.
+- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures execution-backed test summaries with collection fallback plus governed mutation-summary snapshots, and validates both artifacts through status-domain rules.
 - **System Status Artifact:** `SYSTEM_STATUS.md` is the human-facing governance snapshot derived from `ai_docs/system_status_snapshot.json`.
 - **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, `summary-check`, and `remediation-plan` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, aggregate `all --fix-status` repair support for stale status artifacts, explicit governed status-refresh intent routing, and bounded remediation slices for status-artifact drift plus package-export source synchronization.
 - **CI Check:** `.github/workflows/validator-check.yml` runs focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks.
-- **Local Check Shortcut:** `Makefile` and `.vscode/tasks.json` support `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, and the matching `workspace:*` tasks using `.venv`; `make check` regenerates then validates the canonical status artifacts.
-- **Operator Shortcut Pairs:** `make all-report` ↔ `workspace: all`; `make all-report-fix-status` ↔ `workspace: all-fix-status`; `make resolver-report` ↔ `workspace: resolver-only`; `make component-report` ↔ `workspace: component-governance`; `make status` ↔ `workspace: status`; `make status-check` ↔ `workspace: status-check`; `make summary-check` ↔ `workspace: summary-check`; `make coverage-snapshot` ↔ `workspace: coverage-snapshot`; `make refresh-artifacts` ↔ `workspace: refresh-artifacts`.
+- **Local Check Shortcut:** `Makefile` and `.vscode/tasks.json` support `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, `make mutation`, `make mutation-results`, `make mutation-snapshot`, and the matching `workspace:*` tasks using `.venv`; `make check` regenerates then validates the canonical status artifacts.
+- **Operator Shortcut Pairs:** `make all-report` ↔ `workspace: all`; `make all-report-fix-status` ↔ `workspace: all-fix-status`; `make resolver-report` ↔ `workspace: resolver-only`; `make component-report` ↔ `workspace: component-governance`; `make status` ↔ `workspace: status`; `make status-check` ↔ `workspace: status-check`; `make summary-check` ↔ `workspace: summary-check`; `make coverage-snapshot` ↔ `workspace: coverage-snapshot`; `make refresh-artifacts` ↔ `workspace: refresh-artifacts`; `make mutation` ↔ `workspace: mutation`; `make mutation-results` ↔ `workspace: mutation-results`; `make mutation-snapshot` ↔ `workspace: mutation-snapshot`.
 
 ## Where to look first
 

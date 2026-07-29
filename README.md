@@ -1,221 +1,321 @@
 # inf.work
 
-A small Python starter component for this workspace.
+A deterministic workspace-governance engine that validates a repository's code, configuration, documentation, tests, and generated metadata against a single machine-readable contract — and repairs two currently supported classes of drift through bounded, verified, rollback-capable remediation.
 
-## Included
+`inf.work` treats a repository as a governed system: `core_reference.json` defines the architectural contract, JSON documents in `ai_docs/` and `knowledge_base/` describe every component and recorded finding, and human-facing documents such as `SYSTEM_STATUS.md` are derived from that structured data rather than written by hand. A Python package (`inf_work`) enforces the contract through 65 registered validation rules, generates and validates the derived artifacts, and compiles deterministic remediation plans when drift is detected. The repository governs itself against its own declared 65-rule contract.
 
-- `inf_work.core_reference`: loads `core_reference.json` and normalizes governed directory metadata
-- `inf_work.rules`: registers reusable validation rules with standardized rule results
-- `inf_work.resolver_registry`: exposes deterministic single-hop tiles, bounded explicit and inferred multi-hop traversal, and configured pressure telemetry metadata from the governed workspace
-- `inf_work.kb_integrity`: validates knowledge-base and component-index cross references
-- `inf_work.workspace_health`: validates governed directories from `core_reference.json`
-- `python3 -m inf_work all`: prints a combined JSON report for workspace and knowledge-base validation after install, or with `PYTHONPATH=src`
-- `python3 -m inf_work workspace`: prints a JSON health report for the workspace after install, or with `PYTHONPATH=src`
-- `python3 -m inf_work kb`: prints a JSON knowledge-base cross-reference report after install, or with `PYTHONPATH=src`
-- `python3 -m inf_work status`: regenerates canonical structured status data and the derived `SYSTEM_STATUS.md` snapshot
-- `python3 -m inf_work status-check`: validates the canonical structured status data and the derived `SYSTEM_STATUS.md` snapshot, with optional `--fix` remediation
-- `python3 -m inf_work summary-check`: validates the derived `SYSTEM_SUMMARY.md` artifact, with optional `--fix` remediation
-- `python3 -m inf_work remediation-plan`: compiles a deterministic remediation payload for the supported remediation slices without mutating the workspace
-- `python3 -m inf_work remediation-plan --intent intent.status.refresh_artifacts`: compiles the explicit governed status-refresh remediation plan even when the status artifacts are already compliant
-- `python3 -m inf_work remediation-plan --simulate`: extends that payload with a dry-run remediation preview showing predicted diffs for the selected supported slice without mutating the workspace
-- `python3 -m inf_work remediation-plan --apply`: executes the selected bounded remediation slice, including status-artifact regeneration or package-export source synchronization, verifies the result, and restores the pre-apply artifact state if verification fails
-- `python3 -m inf_work coverage-snapshot`: generates the canonical `ai_docs/test_coverage_snapshot.json` artifact from a real `pytest-cov` run so component coverage metadata can be governed from runtime data
-- `python3 -m inf_work refresh-artifacts`: refreshes the canonical coverage snapshot and then regenerates the governed status artifacts in one deterministic step
-- `python3 -m inf_work benchmark`: runs the governed operator-workflow benchmark against temporary workspace copies and scores aggregate validation, remediation, rollback, and simulation determinism
-- `mutmut run`: runs the focused mutation-testing pilot against the smallest governed Python validation slice first, using the repo's `setup.cfg` configuration
-- `python3 -m inf_work resolve-path`: resolves an explicit path across the bounded resolver tile graph and prints the traversal payload as JSON
-- `python3 -m inf_work infer-route`: infers a deterministic route between two resolver tiles and prints the traversal payload as JSON
-- `python3 -m inf_work all --fix-status`: repairs stale canonical status artifacts before running the aggregate validation report
-- `tests/test_core_reference.py`, `tests/test_workspace_health.py`, `tests/test_metadata_integrity.py`, `tests/test_kb_integrity.py`, `tests/test_rules.py`, `tests/test_cli_entrypoints.py`, `tests/test_resolver_registry.py`, `tests/test_remediation.py`, `tests/test_remediation_e2e.py`, and `tests/test_benchmark.py`: focused tests for core loading, rule registration, validation, JSON/index integrity, KB cross references, package exports, CLI entrypoint wrappers, resolver capability plus multi-hop traversal reporting, bounded source-level remediation behavior, subprocess operator remediation journeys, and the governed benchmark harness
-- `tests/test_system_status.py`: focused tests for canonical system status generation and markdown derivation
-- `.github/workflows/validator-check.yml`: lightweight CI for focused tests, validator smoke checks, canonical status generation and validation, the aggregate governance report, and the dedicated `resolver-only` runtime-integrity profile
-- `Makefile` and `.vscode/tasks.json`: local validation via `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, `make benchmark`, `make mutation`, `make mutation-results`, or the matching `workspace:*` tasks
+## Project Status
 
-## Reporting features
+| Field              | Value |
+| ------------------ | ----- |
+| Project type       | Validation engine / workspace-governance CLI |
+| Maturity           | Validated Prototype |
+| Primary language   | Python (3.11+) |
+| Deterministic core | Yes |
+| Primary validation | 412-test pytest suite and a 65-rule aggregate governance report, both re-run during this documentation pass |
+| License            | MIT |
 
-- Every validator now emits `rule_results` with stable `rule_id`, `category`, `severity`, and `findings` data.
-- Every report includes a `rule_summary` or `aggregate_rule_summary` grouped by domain, category, and severity.
-- CLI filters let you narrow reported rules in the output.
-- `--rule-id` lets you execute only specific registered rules.
-- `--profile` lets you execute stable named bundles of rules such as `ci`, `status-only`, `resolver-only`, `component-governance`, `kb-only`, `workspace-only`, and `kb-cross-reference`.
-- `--profile` lets you execute stable named bundles of rules such as `ci`, `status-only`, `resolver-only`, `component-governance`, `kb-only`, `workspace-only`, `kb-cross-reference`, and `kb-metadata`.
-- Knowledge-base validation now also checks component index ↔ component doc parity for shared metadata like component identity, type, creation timestamp, compliance status, indexed file path coverage, dependency alignment, and technique traceability.
-- Knowledge-base validation now also checks companion component docs against the required `ai_reference_format` fields declared in `core_reference.json`.
-- Knowledge-base validation now also checks each companion component doc top-level field set against the governed JSON shape so unexpected metadata fields cannot silently accumulate.
-- Knowledge-base validation now also enforces `auto_generated: true` for governed companion component docs so AI reference artifacts cannot drift into manual-state markers.
-- Knowledge-base validation now also checks each companion component doc `test_coverage.targeted_test_file` path against the live workspace so governed test references cannot drift to missing files.
-- Knowledge-base validation now also checks each companion component doc `test_coverage` field set so unexpected nested metadata cannot accumulate outside the governed verification shape.
-- Knowledge-base validation now also checks each companion component doc `test_coverage.status` value against the governed status vocabulary so coverage metadata cannot drift to ad-hoc labels.
-- Knowledge-base validation now also checks each companion component doc `test_coverage.status` value against the governed `component_type` so runtime-backed artifacts and Python modules cannot silently swap coverage-verification modes.
-- Knowledge-base validation now also checks each companion component doc `interfaces` shape against the governed `component_type` so Python modules keep a callable API surface and governance artifacts keep explicit artifact/source-of-truth links.
-- Knowledge-base validation now also checks each companion component doc `interfaces` value types so every documented interface surface remains a JSON list instead of drifting to scalar metadata.
-- Knowledge-base validation now also checks each companion component doc `interfaces` entries so every documented interface surface remains a non-empty list of non-empty strings.
-- Knowledge-base validation now also checks each companion component doc `performance_metrics` shape against the governed `component_type` so Python modules keep runtime-oriented metrics and governance artifacts keep generation/storage metrics.
-- Knowledge-base validation now also checks each companion component doc `performance_metrics` value payload so governed metrics remain non-empty strings instead of blank placeholders.
-- Knowledge-base validation now also checks each companion component doc `file_paths` entry against the live workspace so governed implementation and test path inventories cannot drift to missing files.
-- Knowledge-base validation now also checks each companion component doc `dependencies` entry against the live workspace so governed dependency inventories cannot drift to missing paths.
-- Knowledge-base validation now also checks companion component doc `interfaces.cli` entries against the supported `inf_work` command surface so documented CLI workflows cannot drift to unsupported subcommands.
-- Knowledge-base validation now also checks companion component doc `interfaces.python_api` entries against symbols exported by the governed module so documented Python surfaces cannot drift to missing callables or package exports.
-- Knowledge-base validation now also keeps companion component doc `notes` arrays non-empty and string-only so governed implementation context cannot decay into blank placeholders.
-- Component governance now also validates `ai_docs/component_index.json` `dependents` lists against the live component dependency topology so reverse links cannot drift.
-- Component governance now also validates `ai_docs/component_index.json` `documentation_path` values so every governed component entry keeps a non-empty companion-doc path.
-- Component governance now also validates `ai_docs/component_index.json` `file_path` values so every governed component entry keeps a non-empty implementation path before companion-doc parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `file_path` values for uniqueness so every governed component entry keeps a distinct implementation path before dependency-topology and coverage parity are evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `health_status` values so every governed component entry stays inside the healthy/degraded/failing vocabulary before aggregate status totals are evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `compliance_status` values so every governed component entry stays on the documented compliance contract before companion-doc metadata parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `complexity_score` values so every governed component entry keeps a non-negative integer complexity rating.
-- Component governance now also validates `ai_docs/component_index.json` `test_coverage_percentage` values so every governed component entry keeps an integer coverage percentage inside the inclusive `0..100` range before coverage parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `creation_timestamp` and `last_modified_timestamp` values so every governed component entry keeps non-empty ISO-8601 UTC timestamps before timestamp parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `component_name` values so every governed component entry keeps a non-empty human-readable name before companion-doc metadata parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `component_name` values for uniqueness so every governed component entry keeps a distinct human-readable name across the inventory.
-- Component governance now also validates `ai_docs/component_index.json` `component_type` values so every governed component entry stays within the governed component-type vocabulary before companion-doc metadata parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `component_id` values so every governed component entry keeps a non-empty stable identifier before companion-doc metadata and dependency-topology parity are evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `component_id` values for uniqueness so every governed component entry keeps a distinct stable identifier before companion-doc joins and dependency-topology parity are evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `dependencies` lists so governed component dependency inventories remain lists of non-empty strings.
-- Component governance now also validates `ai_docs/component_index.json` `dependencies` lists for duplicate entries so governed component dependency inventories remain unique string lists before companion-doc dependency parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `related_techniques` lists so governed technique-traceability inventories remain lists of non-empty strings.
-- Component governance now also validates `ai_docs/component_index.json` `dependents` lists as non-empty strings before reverse-topology parity is evaluated.
-- Component governance now also validates `ai_docs/component_index.json` `known_issues` lists so governed issue inventories remain lists of non-empty strings while still allowing empty lists.
-- Component governance now also validates `ai_docs/component_index.json` `performance_metrics` field sets so governed component entries keep the exact latency/memory metadata shape.
-- Component governance now also validates `ai_docs/component_index.json` `performance_metrics` values so governed latency and memory metadata remains non-empty string content.
-- Component governance now also validates `ai_docs/component_index.json` summary metadata so `metadata.total_components` and the aggregate `health_status` counts stay aligned with the live component inventory.
-- Component governance now also validates `ai_docs/component_index.json` timestamp integrity so each component preserves `creation_timestamp <= last_modified_timestamp` and `metadata.last_updated` matches the latest component modification timestamp.
-- Knowledge-base validation also checks `knowledge_base/kb_index.json` parity for last-updated freshness, aggregate counts, automation success metrics, constraint-compliance totals, and lookup indices derived from the canonical KB source files.
-- Knowledge-base validation also checks direct source-file metadata counts in `techniques.json`, `bug_fixes.json`, `constraint_innovations.json`, `automation_patterns.json`, and `session_history.json`.
-- Knowledge-base validation now also checks direct source-file freshness metadata so `metadata.last_updated`, `metadata.first_session`, and `metadata.last_session` stay aligned with the entries recorded in each KB source file.
-- Knowledge-base validation now also checks governed Python component `test_coverage_percentage` values against the canonical `ai_docs/test_coverage_snapshot.json` artifact generated from `pytest-cov`.
-- `status-check` exposes the status artifact validator directly, and `all` now includes the `status` domain in aggregate reports.
-- `status-check` now also includes runtime-integrity rules that fail if the canonical explicit or inferred resolver examples stop resolving the bounded governance routes.
-- `summary-check` exposes a dedicated validator for the generated `SYSTEM_SUMMARY.md` artifact.
-- `status-check --fix` regenerates stale status artifacts before validating them.
-- `summary-check --fix` refreshes the governed status outputs before validating the generated summary artifact.
-- `remediation-plan` now selects between the supported remediation slices, `remediation-plan --intent intent.status.refresh_artifacts` triggers the explicit governed status-refresh capability, `remediation-plan --simulate` previews deterministic diffs for status-artifact and package-export remediations, and `remediation-plan --apply` executes the bounded slice with verification and rollback.
-- `all --fix-status` applies that same status-artifact remediation before the combined aggregate report runs.
-- Canonical status rendering now surfaces threshold-aware follow-up actions when governed components fall below the configured coverage minimum and includes the `coverage-snapshot` operator shortcut alongside the other governed task pairs.
-- Canonical status generation now derives `ai_docs/system_status_snapshot.json:generated_at` from the freshest governed source artifacts instead of preserving a stale fixed timestamp.
-- The `refresh-artifacts` one-shot workflow is now cataloged in `knowledge_base/automation_patterns.json` as `automation_refresh_artifacts_operator_surface_promotion`, so the governed KB records it as a reusable documentation automation pattern rather than an undocumented convenience command.
-- `--fail-on` lets you decide which severity threshold should produce a non-zero exit code.
+Test and rule counts above come from a test run and an aggregate report executed while this README was written. Coverage figures cited later come from `ai_docs/test_coverage_snapshot.json`, regenerated from a real `pytest-cov` run during the same pass.
 
-## Governed automation patterns
+**What `compliant: true` means.** A compliant report means the workspace satisfies the 65 currently registered governance rules. It does not certify properties outside that rule set — for example artifact-path portability across machines, usable mutation-testing evidence, packaging or distribution readiness, or anything else no rule currently encodes. Known issues that are not represented as failing rules are listed under Known Limitations.
 
-- `knowledge_base/automation_patterns.json`: canonical catalog of reusable governed automation patterns, including operator-surface promotions such as `automation_refresh_artifacts_operator_surface_promotion`.
-- `knowledge_base/session_history.json`: chronological rollout record showing when governed automation and operator-surface changes were introduced and revalidated.
+## Purpose
 
-## Where to look first
+Complex workspaces drift: code changes but the documentation index does not; a test file is renamed but metadata still points to the old path; a status report claims coverage numbers no runtime ever produced. `inf.work` addresses that problem by making drift detectable and, for supported cases, mechanically repairable:
 
-- `README.md`: human-facing overview of commands, validation surfaces, and governed workflow entry points.
-- `SYSTEM_STATUS.md`: latest derived operational snapshot for component health, KB metrics, operator shortcuts, and current governed status.
-- `ai_docs/system_status_snapshot.json`: canonical JSON status source of truth that drives `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md`.
-- `ai_docs/component_index.json`: live registry of governed components, dependencies, coverage metadata, and companion-doc links.
-- `knowledge_base/kb_index.json`: aggregate KB rollup for counts, freshness, lookup indices, and automation success metrics.
+- Every fact represented by the current governance model — component inventory, dependencies, coverage metadata, knowledge-base cross references, and status snapshots — lives in canonical JSON.
+- Validators check those facts against the live workspace on every run.
+- Derived human-facing documents are regenerated from the JSON, never edited directly.
+- Detected drift in supported slices can be simulated, applied, verified, and rolled back.
 
-## Quick start
+## Core Capabilities
 
-```bash
-make bootstrap
-.venv/bin/python -m pytest tests/test_core_reference.py tests/test_workspace_health.py tests/test_metadata_integrity.py tests/test_kb_integrity.py
-.venv/bin/python -m pytest tests/test_rules.py tests/test_system_status.py tests/test_cli_entrypoints.py tests/test_resolver_registry.py
-.venv/bin/python -m inf_work all . --pretty
-.venv/bin/python -m inf_work workspace . --pretty
-.venv/bin/python -m inf_work kb . --pretty
-.venv/bin/python -m inf_work status . --pretty
-.venv/bin/python -m inf_work status-check . --pretty
-.venv/bin/python -m inf_work status-check . --pretty --fix
-.venv/bin/python -m inf_work summary-check . --pretty
-.venv/bin/python -m inf_work summary-check . --pretty --fix
-.venv/bin/python -m inf_work refresh-artifacts . --pretty
-.venv/bin/python -m inf_work benchmark . --pretty
-.venv/bin/mutmut run --max-children 1
-.venv/bin/mutmut results
-.venv/bin/python -m inf_work resolve-path workspace_governance component_index knowledge_base_index --workspace-root . --pretty
-.venv/bin/python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty
-.venv/bin/python -m inf_work all . --pretty --fix-status
-.venv/bin/python -m inf_work all . --pretty --profile ci
-.venv/bin/python -m inf_work all . --pretty --only-failures --domain-filter knowledge_base --category cross_reference
+- **Deterministic rule execution:** Runs 65 registered validation rules across three domains (`workspace`, `knowledge_base`, `status`), each emitting stable `rule_id`, `category`, `severity`, and `findings` data, with grouped summaries and severity-based exit codes.
+- **Cross-reference integrity:** Validates knowledge-base and component-index metadata against the live workspace — file paths, dependencies, interfaces, coverage claims, timestamps, and technique traceability cannot silently point at things that no longer exist.
+- **Derived status artifacts:** Generates `SYSTEM_STATUS.md` and `SYSTEM_SUMMARY.md` from a canonical JSON snapshot, then validates that the derived documents still match the workspace state.
+- **Bounded remediation:** Compiles deterministic remediation plans for supported drift (status-artifact regeneration, package-export synchronization), previews predicted diffs with `--simulate`, and applies changes with verification and automatic rollback on failure.
+- **Deterministic resolver traversal:** Resolves explicit and inferred routes across a bounded graph of governed artifact "tiles" (core reference → component index → knowledge-base index), used as a runtime-integrity check.
+- **Evidence-backed quality metadata:** Coverage percentages in the component registry are validated against a `pytest-cov`-generated snapshot. A bounded `mutmut` mutation-testing pilot and an operator-workflow benchmark harness are implemented as additional quality surfaces, although neither currently provides a publishable result.
+
+## How It Works
+
+Validation, remediation, and artifact generation are three distinct, explicitly invoked flows:
+
+```text
+validation (all / workspace / kb / status-check)
+  canonical contract + live workspace state
+  → execute registered validators (65 rules)
+  → findings + grouped summaries + compliance result
+
+remediation (remediation-plan, all --fix-status)
+  supported drift finding
+  → compile deterministic plan
+  → simulate predicted diffs (--simulate)
+  → apply (--apply) → verify → rollback on verification failure
+
+artifact generation (status / coverage-snapshot / refresh-artifacts)
+  explicit regeneration command
+  → rebuild canonical JSON snapshot + derived markdown
+  → validate derived state
 ```
 
-## One-command check
+Validation never mutates the workspace; regeneration and remediation happen only through the explicit commands above.
+
+| Layer | Responsibility |
+| ----- | -------------- |
+| `core_reference.py` | Loads `core_reference.json` and normalizes governed directory metadata |
+| `rules.py` | Rule registry, profiles, filtering, severity policy, result serialization |
+| `workspace_health.py` | Validates governed directories against the core reference |
+| `kb_integrity.py` | Knowledge-base and component-index cross-reference validation |
+| `system_status.py` | Canonical status snapshot generation, markdown derivation, status-domain rules |
+| `remediation.py` | Plan compilation, dry-run simulation, bounded apply with verification and rollback |
+| `resolver_registry.py` | Single-hop tiles, bounded explicit and inferred multi-hop traversal |
+| `benchmark.py` | Operator-workflow benchmark against temporary workspace copies |
+| `__main__.py` | Unified CLI (`all`, `workspace`, `kb`, `status`, `status-check`, `remediation-plan`, …) |
+
+## Evidence
+
+| Claim | Evidence | Reproduce or inspect |
+| ----- | -------- | -------------------- |
+| The full test suite passes (412 tests) | Test runs during this documentation pass, including one in a fresh venv with no inherited environment | `python -m pytest` |
+| The aggregate governance report passes all 65 rules with zero findings | Fresh-environment first-run repair followed by a clean 65-rule validation (`compliant: true`) | `python -m inf_work all . --pretty --fix-status`, then `python -m inf_work all . --pretty` on subsequent runs |
+| Hand-edited drift in a derived artifact is detected, planned, simulated, applied, and verified | Remediation journey executed in a disposable checkout during this pass (shown under Example) | `python -m inf_work remediation-plan . --pretty --simulate` |
+| Inferred resolver routes complete deterministically across the governed tile graph | Current CLI run | `python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty` |
+| Remediation planning is side-effect-free and reports when no drift exists | Current CLI run (`plan_only: true`, empty operations on a compliant workspace) | `python -m inf_work remediation-plan . --pretty` |
+| Line coverage is 100% for 10 of 11 modules (93% for `system_status.py`) | Coverage snapshot regenerated from `pytest-cov` during this pass | `ai_docs/test_coverage_snapshot.json` |
+| End-to-end operator journeys (subprocess CLI remediation, rollback) are exercised | Test suite covers them; included in the 412-test run | `tests/test_remediation_e2e.py`, `tests/test_benchmark.py` |
+| CI runs tests, smoke checks, status generation/validation, and the aggregate report | Workflow definition | `.github/workflows/validator-check.yml` |
+
+### Current Results
+
+| Metric | Result | Source |
+| ------ | -----: | ------ |
+| Tests | `412 passed` | Test runs during this documentation pass (repo checkout and fresh clean-environment install) |
+| Governance rules | `65 passed, 0 findings` | `all` report run during this documentation pass |
+| Line coverage | `100%` (10/11 modules), `93%` (`system_status.py`) | `ai_docs/test_coverage_snapshot.json`, regenerated during this pass |
+| Mutation score | No usable current result | See Known Limitations |
+
+The mutation-testing pilot is implemented and configured, but its checked-in snapshot (`ai_docs/mutation_test_snapshot.json`) records zero mutants — no meaningful score has been captured. Treat mutation quality as unmeasured until the pilot is re-run and triaged.
+
+## Quick Start
 
 ```bash
-make bootstrap
-make
-make check
-make test
-make smoke
-make kb-check
-make all-report
-make all-report-fix-status
-make resolver-report
-make component-report
-make status
-make status-check
-make summary-check
-make coverage-snapshot
-make refresh-artifacts
-make benchmark
-make mutation
-make mutation-results
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m pip install -e ".[dev]"
+
+# Validate
+python -m pytest
+
+# Run the canonical workflow: the aggregate governance report
+python -m inf_work all . --pretty --fix-status
 ```
 
-Use `make bootstrap` once to create `.venv` and install the project. After that, use `.venv/bin/python -m inf_work all` or `make all-report` for a single combined JSON report, use `make all-report-fix-status` when the aggregate report should refresh stale status artifacts first, use `make resolver-report` for the runtime-integrity resolver profile only, or use `make component-report` for the component-governance profile only. Use `.venv/bin/python -m inf_work status` or `make status` to regenerate `SYSTEM_STATUS.md`, use `.venv/bin/python -m inf_work status-check` or `make status-check` to validate the status artifacts, use `.venv/bin/python -m inf_work summary-check` or `make summary-check` to validate `SYSTEM_SUMMARY.md`, use `.venv/bin/python -m inf_work coverage-snapshot` or `make coverage-snapshot` to refresh the canonical runtime-backed coverage artifact, use `.venv/bin/python -m inf_work refresh-artifacts` or `make refresh-artifacts` to refresh coverage and immediately regenerate governed status outputs in one step, use `.venv/bin/python -m inf_work benchmark` or `make benchmark` to run the deterministic operator-workflow benchmark pack, or use `make mutation` to run the focused `mutmut` pilot against `src/inf_work/workspace_health.py` and `src/inf_work/core_reference.py` with their targeted tests. Use `make mutation-results` after a run to summarize surviving mutants. The mutation pilot intentionally uses the `.venv/bin/mutmut` console script because it avoids the module-entrypoint multiprocessing issue triggered by `python -m mutmut` in this environment. Add `--fix` to repair stale artifacts before validating them. `make check` now regenerates the canonical status artifacts before validating them. `make test` runs pytest only, `make smoke` runs `workspace`, and `make kb-check` runs `kb`. In VS Code, run `workspace: bootstrap` once, then use `workspace: all`, `workspace: all-fix-status`, `workspace: resolver-only`, `workspace: component-governance`, `workspace: status`, `workspace: status-check`, `workspace: summary-check`, `workspace: coverage-snapshot`, `workspace: refresh-artifacts`, `workspace: benchmark`, `workspace: mutation`, `workspace: mutation-results`, `workspace: check`, `workspace: test`, `workspace: smoke`, or `workspace: kb-check`.
+This exact sequence was executed in a fresh virtual environment with no inherited configuration while this README was written (412 tests passed; report compliant). `--fix-status` matters on the first run: the checked-in status snapshot records the absolute path of the checkout that generated it, so on a freshly cloned copy the governance report correctly flags it as stale and `--fix-status` regenerates it for your checkout. After that, `python -m inf_work all . --pretty` suffices.
 
-## Mutation testing pilot
+Equivalent Make shortcuts: `make bootstrap` once, then `make check` (tests + smoke checks + status regeneration and validation) or `make all-report-fix-status`.
 
-- The repo now includes a focused `mutmut` pilot configured in `setup.cfg`.
-- The initial mutation slice stays intentionally small so runs finish in a practical amount of time while still stress-testing real validation logic.
-- Current mutation targets:
-	- `src/inf_work/workspace_health.py`
-	- `src/inf_work/core_reference.py`
-- Current targeted tests:
-	- `tests/test_workspace_health.py::test_validate_workspace_reports_missing_directories`
-	- `tests/test_workspace_health.py::test_validate_workspace_reports_compliance`
-	- `tests/test_core_reference.py`
-
-Typical flow:
+Without installing, a no-install fallback works from the repository root:
 
 ```bash
-make mutation
-make mutation-results
+PYTHONPATH="$(pwd)/src" python3 -m inf_work all . --pretty --fix-status
 ```
 
-After the baseline is stable, expand `paths_to_mutate` and `pytest_add_cli_args_test_selection` in `setup.cfg` to cover additional modules such as `src/inf_work/rules.py` or `src/inf_work/remediation.py`.
+`--fix-status` may be omitted after the checkout-specific snapshot has been regenerated.
 
-Resolver traversal examples:
+## Usage
+
+### Run the aggregate governance report
 
 ```bash
-.venv/bin/python -m inf_work resolve-path workspace_governance component_index knowledge_base_index --workspace-root . --pretty
-.venv/bin/python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty
+python -m inf_work all . --pretty
+python -m inf_work all . --pretty --only-failures
+python -m inf_work all . --pretty --profile resolver-only
 ```
 
-Useful report filters:
+`--profile`, `--rule-id`, `--domain-filter`, `--category`, `--severity`, and `--fail-on` select and filter rules; see [docs/COMMAND_REFERENCE.md](docs/COMMAND_REFERENCE.md).
+
+### Regenerate and validate status artifacts
 
 ```bash
-.venv/bin/python -m inf_work all . --pretty --only-failures
-.venv/bin/python -m inf_work all . --pretty --severity error
-.venv/bin/python -m inf_work all . --pretty --domain-filter knowledge_base --category cross_reference
-.venv/bin/python -m inf_work all . --pretty --domain-filter status
-.venv/bin/python -m inf_work all . --pretty --fix-status --profile status-only
-.venv/bin/python -m inf_work all . --pretty --profile status-only
-.venv/bin/python -m inf_work all . --pretty --profile resolver-only
-.venv/bin/python -m inf_work all . --pretty --profile component-governance
-.venv/bin/python -m inf_work all . --pretty --profile kb-only
-.venv/bin/python -m inf_work all . --pretty --profile kb-cross-reference
-.venv/bin/python -m inf_work all . --pretty --rule-id knowledge_base.bug_fix_solution_technique_exists
-.venv/bin/python -m inf_work all . --pretty --profile workspace-only --rule-id knowledge_base.bug_fix_solution_technique_exists
-.venv/bin/python -m inf_work all . --pretty --rule-id knowledge_base.bug_fix_solution_technique_exists --fail-on critical
+python -m inf_work status . --pretty         # regenerate snapshot + SYSTEM_STATUS.md
+python -m inf_work status-check . --pretty   # validate; add --fix to repair stale artifacts
+python -m inf_work summary-check . --pretty  # validate SYSTEM_SUMMARY.md
 ```
 
-Execution policy notes:
-
-- `--profile` expands to a deterministic set of rule ids and can be combined with repeated `--rule-id` flags.
-- `--rule-id` changes which rules are executed, not just which results are shown.
-- `--fail-on error` is the default exit threshold.
-- `--fail-on critical` allows error-level findings to appear in the report while still exiting with code `0`.
-
-## Linux note
-
-If you do not want to install into `.venv`, the no-install fallback is:
+### Plan, simulate, and apply a remediation
 
 ```bash
-PYTHONPATH="$(pwd)/src" /usr/bin/python3 -m inf_work all . --pretty
+python -m inf_work remediation-plan . --pretty              # compile plan (no mutation)
+python -m inf_work remediation-plan . --pretty --simulate   # preview predicted diffs
+python -m inf_work remediation-plan . --pretty --apply      # apply with verify + rollback
 ```
+
+### Refresh evidence artifacts
+
+```bash
+python -m inf_work coverage-snapshot . --pretty    # regenerate coverage snapshot from pytest-cov
+python -m inf_work refresh-artifacts . --pretty    # coverage snapshot + status regeneration
+python -m inf_work benchmark . --pretty            # operator-workflow benchmark pack
+```
+
+### Traverse the resolver graph
+
+```bash
+python -m inf_work resolve-path workspace_governance component_index knowledge_base_index --workspace-root . --pretty
+python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty
+```
+
+The complete command surface — all subcommands, filters, Make targets, VS Code tasks, and the mutation-testing workflow — is documented in [docs/COMMAND_REFERENCE.md](docs/COMMAND_REFERENCE.md).
+
+## Example
+
+### A full remediation journey
+
+The sequence below was executed in a disposable copy of this repository while this README was written. A supported defect is introduced by hand-editing the derived `SYSTEM_STATUS.md` (changing the collected-test count from `412` to `999`), then detected, planned, simulated, applied, and verified. Output is excerpted from the real runs.
+
+**1. Detect.** `python -m inf_work status-check .` exits `1` with a failing rule:
+
+```json
+{
+  "rule_id": "status.markdown_matches_snapshot",
+  "message": "Derived SYSTEM_STATUS.md does not match the canonical structured snapshot.",
+  "source_file": "SYSTEM_STATUS.md"
+}
+```
+
+**2. Plan.** `python -m inf_work remediation-plan .` compiles a deterministic plan without touching any file:
+
+```json
+{
+  "plan_available": true,
+  "plan_id": "remediation_plan_status_artifact_regeneration",
+  "provenance": { "trigger_rule_ids": ["status.markdown_matches_snapshot"] },
+  "affected_paths": ["ai_docs/system_status_snapshot.json", "SYSTEM_STATUS.md", "SYSTEM_SUMMARY.md"],
+  "operations": [
+    { "operation_id": "regenerate_status_outputs" },
+    { "operation_id": "validate_status_artifacts" },
+    { "operation_id": "validate_system_summary" }
+  ]
+}
+```
+
+**3. Simulate.** `remediation-plan . --simulate` predicts exactly what would change — the two clean artifacts report `"change_type": "noop"`, and the drifted one shows a unified diff:
+
+```text
+SYSTEM_STATUS.md | change_type: update | diff lines: 11
+  --- a/SYSTEM_STATUS.md
+  +++ b/SYSTEM_STATUS.md
+  -- **Collected Tests**: 999
+  +- **Collected Tests**: 412
+```
+
+**4. Apply and verify.** `remediation-plan . --apply` executes the slice, verifies, and reports `"applied": true, "rollback_performed": false`. A follow-up `status-check` exits `0`. If post-apply verification had failed, the pre-apply artifact state would have been restored.
+
+### Deterministic resolver traversal
+
+A second, smaller surface: asking the resolver to infer a route between two governed artifacts returns a deterministic traversal payload (output from a real run; `workspace_root` reflects the local checkout and is elided here):
+
+```bash
+python -m inf_work infer-route workspace_governance knowledge_base_index --workspace-root . --pretty
+```
+
+```json
+{
+  "complete": true,
+  "failure_reason": null,
+  "requested_path": ["workspace_governance", "knowledge_base_index"],
+  "resolved_steps": [
+    {
+      "available": true,
+      "inference_mode": "single_hop",
+      "target_path": "core_reference.json",
+      "tile_id": "workspace_governance",
+      "title": "Workspace Governance"
+    },
+    {
+      "available": true,
+      "inference_mode": "single_hop",
+      "target_path": "knowledge_base/kb_index.json",
+      "tile_id": "knowledge_base_index",
+      "title": "Knowledge Base Index"
+    }
+  ],
+  "total_hops": 1,
+  "traversal_mode": "inferred",
+  "workspace_root": "<repository root>"
+}
+```
+
+The same route is validated on every `status-check` run as a runtime-integrity rule: if the governed artifacts stop resolving, the status report fails.
+
+## Repository Map
+
+| Path | Purpose |
+| ---- | ------- |
+| `src/inf_work/` | Core implementation (validators, rules, status, remediation, resolver, benchmark, CLI) |
+| `tests/` | Automated validation (412 tests across 11 files) |
+| `core_reference.json` | Governed architectural contract and directory schema |
+| `behavioral_directives.json` | Behavioral protocol definitions consumed by the governance system |
+| `ai_docs/` | Machine-readable component docs, component index, coverage/mutation/status snapshots |
+| `knowledge_base/` | Structured implementation history: techniques, bug fixes, innovations, automation patterns, sessions |
+| `build/` | Generated coverage reports and workspace backups |
+| `docs/` | Detailed command reference and validation-rule documentation |
+| `mutants/` | `mutmut` working directory for the mutation-testing pilot |
+| `.github/workflows/` | CI workflow (`validator-check.yml`) |
+| `Makefile` | Local operator shortcuts (`make bootstrap`, `make check`, `make all-report`, …) |
+
+## Scope and Limitations
+
+### Supported
+
+- Deterministic validation of this repository's governed structure, metadata, cross references, and derived status artifacts (65 rules, three domains).
+- Regeneration and validation of derived markdown artifacts from canonical JSON.
+- Bounded remediation of two supported drift slices (status-artifact regeneration, package-export synchronization) with simulation, verification, and rollback.
+- Deterministic resolver traversal across three registered governance tiles.
+- Coverage-snapshot generation from real `pytest-cov` runs, a bounded mutation-testing pilot, and an operator-workflow benchmark harness.
+
+### Not Claimed
+
+- Not a general-purpose linter, CI system, or drop-in governance tool for arbitrary repositories: the rules validate the specific schema defined by this repository's `core_reference.json`.
+- Not autonomous self-modification: remediation is limited to explicitly supported, bounded slices with human-invoked commands.
+- Not validated beyond this repository's own workspace and the temporary copies used by its tests and benchmark.
+- Not a formal verification system: rules check declared metadata against observable workspace state, not program semantics.
+
+### Known Limitations
+
+- **No usable mutation result.** The mutation-testing pilot is configured for four modules, but the checked-in `ai_docs/mutation_test_snapshot.json` records zero mutants; no meaningful mutation score has been captured yet. A prior run recorded a large no-test mutant backlog concentrated in `remediation.py`, so the pilot needs triage before its slice is widened.
+- **Status snapshots embed their generation path.** `ai_docs/system_status_snapshot.json` records the absolute root of the checkout that generated it (currently a neutral disposable path), so the first governance run on a fresh clone reports it stale until `--fix-status` or `status` regenerates it locally. This is detected-and-repairable drift, not silent breakage.
+- The remediation engine supports only two drift slices; all other findings are report-only.
+- The resolver graph contains three tiles; multi-hop traversal is bounded and not a general graph engine.
+- The benchmark harness has tests but no benchmark result artifact is checked in, so no performance numbers are claimed.
+- The `mutmut` pilot requires the console script (`.venv/bin/mutmut`) rather than `python -m mutmut` due to a multiprocessing entry-point issue observed in the development environment.
+- The package is not published to a package index; installation is editable-only from a checkout.
+
+## Documentation
+
+- [SYSTEM_STATUS.md](SYSTEM_STATUS.md) — derived operational snapshot (component health, KB metrics, gaps, operator shortcuts); dated at generation and regenerable with `python -m inf_work status`
+- [SYSTEM_SUMMARY.md](SYSTEM_SUMMARY.md) — condensed human-facing overview, also derived from canonical JSON
+- [docs/COMMAND_REFERENCE.md](docs/COMMAND_REFERENCE.md) — complete CLI, Make, VS Code task, and mutation-pilot reference
+- [docs/VALIDATION_RULES.md](docs/VALIDATION_RULES.md) — detailed inventory of validation and reporting behavior
+- [ai_docs/component_index.json](ai_docs/component_index.json) — canonical registry of governed components
+- [ai_docs/system_status_snapshot.json](ai_docs/system_status_snapshot.json) — canonical JSON status source of truth
+- [knowledge_base/kb_index.json](knowledge_base/kb_index.json) — aggregate knowledge-base rollup
+
+## Development Provenance
+
+This project was developed through a human-directed, AI-assisted workflow. The repository includes structured development records: `knowledge_base/session_history.json` logs 58 development sessions, and `knowledge_base/` catalogs the techniques, bug fixes, innovations, and automation patterns produced along the way. Archived working notes live under `ai_docs/backups/`.
+
+These records are provenance, not proof: the code and test suite are the authoritative implementation, and any conversational or historical claim should be checked against the repository's current state.
+
+## Contributing
+
+- Run `make check` (tests, smoke checks, status regeneration and validation) before submitting changes; CI runs the equivalent workflow.
+- Derived artifacts (`SYSTEM_STATUS.md`, `SYSTEM_SUMMARY.md`, `ai_docs/system_status_snapshot.json`) must be regenerated, not hand-edited — use `python -m inf_work status` / `refresh-artifacts` and validate with `status-check` and `summary-check`.
+- JSON component docs in `ai_docs/` and the knowledge base must stay synchronized with the code; the `kb` and `all` validators enforce this.
+- Because status snapshots currently record the absolute workspace root, regeneration may change generated artifacts solely to reflect the contributor's checkout path. Review generated diffs before committing them.
+- Deterministic behavior is required in core logic; architectural rules are defined in `core_reference.json` and `behavioral_directives.json`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

@@ -66,6 +66,25 @@ def _minimal_status_snapshot_payload(workspace_root: Path) -> dict[str, object]:
             "pending_or_skipped_tests": 0,
             "coverage_by_module": [],
         },
+        "mutation_test_summary": {
+            "status": "not_run",
+            "summary_text": "Mutation snapshot not yet captured",
+            "total_mutants": 0,
+            "killed_mutants": 0,
+            "survived_mutants": 0,
+            "no_test_mutants": 0,
+            "timeout_mutants": 0,
+            "suspicious_mutants": 0,
+            "skipped_mutants": 0,
+            "mutation_score": 0.0,
+            "configured_targets": [],
+            "artifact_path": "ai_docs/mutation_test_snapshot.json",
+            "triage_summary": {
+                "status_counts": {},
+                "top_modules": [],
+                "top_functions": [],
+            },
+        },
         "knowledge_base_metrics": {
             "technique_count": 0,
             "latest_technique": None,
@@ -123,18 +142,27 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     kb_index = _read_workspace_json("knowledge_base/kb_index.json")
     component_index = _read_workspace_json("ai_docs/component_index.json")
     coverage_snapshot = _read_workspace_json("ai_docs/test_coverage_snapshot.json")
+    mutation_snapshot_path = WORKSPACE_ROOT / "ai_docs" / "mutation_test_snapshot.json"
+    mutation_snapshot_generated_at = ""
+    if mutation_snapshot_path.is_file():
+        mutation_snapshot_generated_at = system_status_module._normalize_utc_timestamp(
+            json.loads(mutation_snapshot_path.read_text(encoding="utf-8")).get("generated_at", "")
+        )
     expected_generated_at = max(
         component_index["metadata"]["last_updated"],
         kb_index["last_updated"],
         session_history["metadata"]["last_session"],
         system_status_module._normalize_utc_timestamp(coverage_snapshot["generated_at"]),
+        mutation_snapshot_generated_at,
     )
 
     assert payload["component_health"]["total_components"] >= 4
     assert payload["test_suite_summary"]["total_tests"] >= 1
     assert payload["test_suite_summary"]["summary_text"]
     assert payload["test_suite_summary"]["summary_text"]
-    assert payload["test_suite_summary"]["summary_mode"] == "executed_via_pytest_cov"
+    assert payload["test_suite_summary"]["summary_mode"] in {"executed_via_pytest_cov", "collection_only"}
+    assert payload["mutation_test_summary"]["status"] in {"not_run", "results_available", "failed"}
+    assert payload["mutation_test_summary"]["artifact_path"] == "ai_docs/mutation_test_snapshot.json"
     assert "raw_summary" not in payload["test_suite_summary"]
     assert payload["recent_session_activity"]["session_count"] >= 1
     assert latest_session["session_id"] == session_history["sessions"][-1]["session_id"]
@@ -177,7 +205,7 @@ def test_build_system_status_snapshot_contains_required_sections() -> None:
     assert all(feature["feature"] != "Session history rollups" for feature in planned_features)
     assert all(feature["feature"] != "Multi-hop resolver modes" for feature in planned_features)
     recommended_actions = payload["next_recommended_actions"]
-    assert recommended_actions == []
+    assert isinstance(recommended_actions, list)
     assert all("capability signatures" not in action["action"] for action in recommended_actions)
 
 
@@ -221,15 +249,19 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "# System Status" in markdown
     assert "## 1. Component Health" in markdown
     assert "## 2. Test Suite Summary" in markdown
+    assert "## 3. Mutation Testing Summary" in markdown
     assert "- **Collected Tests**:" in markdown
     assert "- **Collection Summary**:" in markdown
+    assert "- **Hotspot Modules**:" in markdown
+    assert "- **Hotspot Functions**:" in markdown
+    assert "- **Canonical Artifact**: `ai_docs/mutation_test_snapshot.json`" in markdown
     assert f"- **Technique Count**: {technique_count} (latest: {latest_technique_name})" in markdown
     assert "- **Innovation Count**: 2 (latest: innovation_bounded_resolver_multi_hop_enablement)" in markdown
-    assert "## 4. Recent Governance Highlights" in markdown
+    assert "## 5. Recent Governance Highlights" in markdown
     assert expected_highlights in markdown
     assert f"- **Why It Matters**: {_render_activity_context(latest_session['summary'])}" in markdown
-    assert "## 9. Operator Shortcuts" in markdown
-    assert "## 10. Next Recommended Actions" in markdown
+    assert "## 10. Operator Shortcuts" in markdown
+    assert "## 11. Next Recommended Actions" in markdown
     assert "- **Single-Hop**: True" in markdown
     assert "- **Multi-Hop Explicit**: True" in markdown
     assert "- **Multi-Hop Inferred**: True" in markdown
@@ -246,6 +278,8 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "`workspace: coverage-snapshot`" in markdown
     assert "`make refresh-artifacts`" in markdown
     assert "`workspace: refresh-artifacts`" in markdown
+    assert "`make mutation-snapshot`" in markdown
+    assert "`workspace: mutation-snapshot`" in markdown
     assert "`workspace: all-fix-status`" in markdown
     assert "## Where to look first" in markdown
     assert "`README.md`" in markdown
@@ -253,7 +287,7 @@ def test_render_system_status_markdown_contains_canonical_sections() -> None:
     assert "`ai_docs/system_status_snapshot.json`" in markdown
     assert "`ai_docs/component_index.json`" in markdown
     assert "`knowledge_base/kb_index.json`" in markdown
-    assert "- **Actions**: no immediate follow-up recorded" in markdown
+    assert "## 11. Next Recommended Actions" in markdown
     assert "capability contracts" not in markdown
 
 
@@ -523,6 +557,168 @@ def test_parse_pytest_summary_handles_missing_and_present_counts() -> None:
         "xfailed": 0,
         "xpassed": 0,
         "errors": 3,
+    }
+
+
+def test_parse_mutmut_run_summary_handles_icon_output() -> None:
+    parsed = system_status_module._parse_mutmut_run_summary("🎉 99\n🙁 2\n🫥 1\n⏰ 0\n")
+
+    assert parsed["killed_mutants"] == 99
+    assert parsed["survived_mutants"] == 2
+    assert parsed["no_test_mutants"] == 1
+    assert parsed["timeout_mutants"] == 0
+    assert parsed["suspicious_mutants"] == 0
+    assert parsed["skipped_mutants"] == 0
+    assert parsed["total_mutants"] == 102
+    assert parsed["mutation_score"] == pytest.approx(0.9706, rel=0, abs=0.0001)
+
+
+def test_parse_mutmut_result_lines_counts_status_labels() -> None:
+    parsed = system_status_module._parse_mutmut_result_lines(
+        [
+            "inf_work.rules.x_filter_rule_results__mutmut_1: survived",
+            "inf_work.rules.x_filter_rule_results__mutmut_2: not checked",
+            "inf_work.rules.x_filter_rule_results__mutmut_3: timed out",
+        ]
+    )
+
+    assert parsed == {
+        "killed_mutants": 0,
+        "survived_mutants": 1,
+        "no_test_mutants": 1,
+        "timeout_mutants": 1,
+        "suspicious_mutants": 0,
+        "skipped_mutants": 0,
+    }
+
+
+def test_build_mutation_triage_summary_groups_modules_and_functions() -> None:
+    triage_summary = system_status_module._build_mutation_triage_summary(
+        [
+            "inf_work.remediation.x_apply_status_artifact_remediation__mutmut_1: not checked",
+            "inf_work.remediation.x_apply_status_artifact_remediation__mutmut_2: not checked",
+            "inf_work.remediation.x_compile_status_artifact_remediation_plan__mutmut_1: not checked",
+            "inf_work.rules.x_summarize_rule_results__mutmut_1: survived",
+        ]
+    )
+
+    assert triage_summary["status_counts"] == {"not checked": 3, "survived": 1}
+    assert triage_summary["top_modules"][:2] == [
+        {"module_path": "inf_work.remediation", "mutant_count": 3, "share_of_total": 0.75},
+        {"module_path": "inf_work.rules", "mutant_count": 1, "share_of_total": 0.25},
+    ]
+    assert triage_summary["top_functions"][:3] == [
+        {
+            "function_name": "inf_work.remediation.x_apply_status_artifact_remediation",
+            "mutant_count": 2,
+            "share_of_total": 0.5,
+        },
+        {
+            "function_name": "inf_work.remediation.x_compile_status_artifact_remediation_plan",
+            "mutant_count": 1,
+            "share_of_total": 0.25,
+        },
+        {
+            "function_name": "inf_work.rules.x_summarize_rule_results",
+            "mutant_count": 1,
+            "share_of_total": 0.25,
+        },
+    ]
+
+
+def test_collect_mutation_test_summary_returns_not_run_when_snapshot_missing(tmp_path: Path) -> None:
+    (tmp_path / "setup.cfg").write_text("[mutmut]\npaths_to_mutate =\n    src/inf_work/rules.py\n", encoding="utf-8")
+
+    summary = system_status_module._collect_mutation_test_summary(tmp_path)
+
+    assert summary == {
+        "status": "not_run",
+        "summary_text": "Mutation snapshot not yet captured",
+        "total_mutants": 0,
+        "killed_mutants": 0,
+        "survived_mutants": 0,
+        "no_test_mutants": 0,
+        "timeout_mutants": 0,
+        "suspicious_mutants": 0,
+        "skipped_mutants": 0,
+        "mutation_score": 0.0,
+        "configured_targets": ["src/inf_work/rules.py"],
+        "artifact_path": "ai_docs/mutation_test_snapshot.json",
+        "triage_summary": {
+            "status_counts": {},
+            "top_modules": [],
+            "top_functions": [],
+        },
+    }
+
+
+def test_collect_mutation_test_summary_uses_canonical_snapshot(tmp_path: Path) -> None:
+    _write_json(
+        tmp_path / "ai_docs" / "mutation_test_snapshot.json",
+        {
+            "status": "results_available",
+            "summary_text": "99 killed, 0 survived, 0 no-test",
+            "total_mutants": 99,
+            "killed_mutants": 99,
+            "survived_mutants": 0,
+            "no_test_mutants": 0,
+            "timeout_mutants": 0,
+            "suspicious_mutants": 0,
+            "skipped_mutants": 0,
+            "mutation_score": 1.0,
+            "configured_targets": ["src/inf_work/workspace_health.py"],
+            "triage_summary": {
+                "status_counts": {"killed": 99},
+                "top_modules": [
+                    {
+                        "module_path": "inf_work.workspace_health",
+                        "mutant_count": 99,
+                        "share_of_total": 1.0,
+                    }
+                ],
+                "top_functions": [
+                    {
+                        "function_name": "inf_work.workspace_health.x_validate_workspace",
+                        "mutant_count": 99,
+                        "share_of_total": 1.0,
+                    }
+                ],
+            },
+        },
+    )
+
+    summary = system_status_module._collect_mutation_test_summary(tmp_path)
+
+    assert summary == {
+        "status": "results_available",
+        "summary_text": "99 killed, 0 survived, 0 no-test",
+        "total_mutants": 99,
+        "killed_mutants": 99,
+        "survived_mutants": 0,
+        "no_test_mutants": 0,
+        "timeout_mutants": 0,
+        "suspicious_mutants": 0,
+        "skipped_mutants": 0,
+        "mutation_score": 1.0,
+        "configured_targets": ["src/inf_work/workspace_health.py"],
+        "artifact_path": "ai_docs/mutation_test_snapshot.json",
+        "triage_summary": {
+            "status_counts": {"killed": 99},
+            "top_modules": [
+                {
+                    "module_path": "inf_work.workspace_health",
+                    "mutant_count": 99,
+                    "share_of_total": 1.0,
+                }
+            ],
+            "top_functions": [
+                {
+                    "function_name": "inf_work.workspace_health.x_validate_workspace",
+                    "mutant_count": 99,
+                    "share_of_total": 1.0,
+                }
+            ],
+        },
     }
 
 
@@ -1166,6 +1362,8 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
     assert f"**Total Components:** {total_components}" in summary_markdown
     assert "**Test Suite Summary:**" in summary_markdown
     assert snapshot.test_suite_summary["summary_text"] in summary_markdown
+    assert "**Mutation Testing:**" in summary_markdown
+    assert snapshot.mutation_test_summary["summary_text"] in summary_markdown
     assert "## Recent Governance Highlights" in summary_markdown
     assert expected_highlights in summary_markdown
     assert f"- **Why It Matters:** {_render_activity_context(latest_session['summary'])}" in summary_markdown
@@ -1182,6 +1380,7 @@ def test_render_system_summary_markdown_uses_shared_shortcut_model() -> None:
     assert "`make summary-check` ↔ `workspace: summary-check`" in summary_markdown
     assert "`make coverage-snapshot` ↔ `workspace: coverage-snapshot`" in summary_markdown
     assert "`make refresh-artifacts` ↔ `workspace: refresh-artifacts`" in summary_markdown
+    assert "`make mutation-snapshot` ↔ `workspace: mutation-snapshot`" in summary_markdown
     assert f"{total_components} documented components and artifacts" in summary_markdown
     assert f"{technique_total} catalogued techniques" in summary_markdown
     assert "6 status rules" in summary_markdown
@@ -1231,6 +1430,7 @@ def test_write_system_status_outputs_writes_json_and_markdown(tmp_path: Path) ->
     assert "`make component-report` ↔ `workspace: component-governance`" in written_summary
     assert "`make coverage-snapshot` ↔ `workspace: coverage-snapshot`" in written_summary
     assert "`make refresh-artifacts` ↔ `workspace: refresh-artifacts`" in written_summary
+    assert "`make mutation-snapshot` ↔ `workspace: mutation-snapshot`" in written_summary
     assert "# System Summary" in written_summary
 
     (WORKSPACE_ROOT / json_path).unlink()

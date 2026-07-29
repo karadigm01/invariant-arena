@@ -219,6 +219,14 @@ def test_build_parser_parses_coverage_snapshot_command() -> None:
     assert parsed_args.pretty is True
 
 
+def test_build_parser_parses_mutation_snapshot_command() -> None:
+    parsed_args = _parse_args(["mutation-snapshot", str(WORKSPACE_ROOT), "--pretty"])
+
+    assert parsed_args.command == "mutation-snapshot"
+    assert parsed_args.workspace_root == str(WORKSPACE_ROOT)
+    assert parsed_args.pretty is True
+
+
 def test_build_parser_parses_refresh_artifacts_command() -> None:
     parsed_args = _parse_args(["refresh-artifacts", str(WORKSPACE_ROOT), "--pretty"])
 
@@ -563,6 +571,24 @@ def test_unified_main_coverage_snapshot_outputs_payload(monkeypatch, capsys) -> 
     }
     monkeypatch.setattr(unified_cli, "write_test_coverage_snapshot", lambda workspace_root: expected_snapshot)
     exit_code, payload = _run_main_json(monkeypatch, capsys, ["inf_work", "coverage-snapshot", str(WORKSPACE_ROOT), "--pretty"])
+    assert exit_code == 0
+    assert payload == expected_snapshot
+
+
+def test_unified_main_mutation_snapshot_outputs_payload(monkeypatch, capsys) -> None:
+    expected_snapshot = {
+        "workspace_root": str(WORKSPACE_ROOT),
+        "summary_text": "99 killed, 0 survived, 0 no-test",
+        "status": "results_available",
+    }
+    monkeypatch.setattr(unified_cli, "write_mutation_test_snapshot", lambda workspace_root: expected_snapshot)
+
+    exit_code, payload = _run_main_json(
+        monkeypatch,
+        capsys,
+        ["inf_work", "mutation-snapshot", str(WORKSPACE_ROOT), "--pretty"],
+    )
+
     assert exit_code == 0
     assert payload == expected_snapshot
 

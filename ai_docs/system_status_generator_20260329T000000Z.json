@@ -6,6 +6,7 @@
     "src/inf_work/kb_integrity.py",
     "src/inf_work/resolver_registry.py",
     "ai_docs/test_coverage_snapshot.json",
+    "ai_docs/mutation_test_snapshot.json",
     "ai_docs/component_index.json",
     "knowledge_base/techniques.json",
     "knowledge_base/bug_fixes.json",
@@ -23,6 +24,7 @@
       "render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str",
       "run_status_rules(workspace_root: str | Path, ...) -> list[RuleResult]",
       "validate_system_status(workspace_root: str | Path, ...) -> StatusValidationResult",
+      "write_mutation_test_snapshot(workspace_root: str | Path, ...) -> dict[str, Any]",
       "write_test_coverage_snapshot(workspace_root: str | Path, ...) -> dict[str, Any]",
       "write_system_status_outputs(workspace_root: str | Path, ...) -> SystemStatusSnapshot"
     ],
@@ -30,6 +32,7 @@
       "python -m inf_work status <workspace_root> --pretty",
       "python -m inf_work status-check <workspace_root> --pretty",
       "python -m inf_work status-check <workspace_root> --pretty --fix",
+      "python -m inf_work mutation-snapshot <workspace_root> --pretty",
       "python -m inf_work coverage-snapshot <workspace_root> --pretty",
       "python -m inf_work all <workspace_root> --pretty --fix-status"
     ]
@@ -58,11 +61,12 @@
   ],
   "notes": [
     "Generates a structured system status snapshot and derives `SYSTEM_STATUS.md` from that JSON-first source.",
-    "Collects component health, test summary, runtime-backed coverage inventory from the canonical coverage snapshot, knowledge-base metrics, integrity signals, runtime-backed resolver capabilities with explicit and inferred route examples, operator shortcuts with matching VS Code task labels, a data-driven system summary footer, and threshold-aware recommended actions from current workspace state.",
+    "Collects component health, test summary, governed mutation-summary data from `ai_docs/mutation_test_snapshot.json`, runtime-backed coverage inventory from the canonical coverage snapshot, knowledge-base metrics, integrity signals, runtime-backed resolver capabilities with explicit and inferred route examples, operator shortcuts with matching VS Code task labels, a data-driven system summary footer, and threshold-aware recommended actions from current workspace state.",
     "Keeps the human-readable status artifact reproducible through a dedicated CLI entry point and derives `SYSTEM_SUMMARY.md` from the same governed status and shortcut model.",
     "Validates the canonical snapshot and derived markdown through registered status-domain rules, including runtime-integrity checks for the explicit and inferred resolver example routes, so the governance report can govern itself.",
     "Supports both targeted remediation with `status-check --fix` and aggregate remediation with `all --fix-status` while keeping workspace and knowledge-base validation read-only.",
     "Also exposes `coverage-snapshot` so coverage percentages can be refreshed from a real `pytest-cov` run without forcing the aggregate governance report to execute that expensive step on every pass.",
+    "Also exposes `mutation-snapshot` so the bounded `mutmut` pilot can be rerun explicitly and summarized through a canonical JSON artifact instead of ad hoc terminal output.",
     "Below-threshold component coverage now surfaces as a first-class recommended action in the canonical status snapshot instead of only appearing in component-health flags.",
     "The canonical snapshot `generated_at` field is derived deterministically from the freshest governed inputs instead of preserving a static legacy timestamp."
   ]

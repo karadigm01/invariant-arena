@@ -221,6 +221,19 @@
       },
       "group": "test",
       "problemMatcher": []
+    },
+    {
+      "label": "workspace: mutation-snapshot",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "mutation-snapshot"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
     }
   ]
 }

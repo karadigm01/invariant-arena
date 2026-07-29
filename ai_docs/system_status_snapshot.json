@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-07T01:20:54Z",
-  "workspace_root": "/home/j/Desktop/inf.work",
+  "generated_at": "2026-07-27T21:35:53Z",
+  "workspace_root": "/tmp/inf.work",
   "canonical_json_path": "ai_docs/system_status_snapshot.json",
   "derived_markdown_path": "SYSTEM_STATUS.md",
   "coverage_threshold": 85,
@@ -134,7 +134,7 @@
         "component_type": "python_module",
         "file_path": "src/inf_work/system_status.py",
         "health_status": "healthy",
-        "test_coverage_percentage": 100,
+        "test_coverage_percentage": 93,
         "coverage_flag": "meets_threshold",
         "compliance_status": "I1_I2_I3_I4_compliant",
         "dependencies": [
@@ -142,6 +142,7 @@
           "src/inf_work/kb_integrity.py",
           "src/inf_work/resolver_registry.py",
           "ai_docs/test_coverage_snapshot.json",
+          "ai_docs/mutation_test_snapshot.json",
           "ai_docs/component_index.json",
           "knowledge_base/techniques.json",
           "knowledge_base/bug_fixes.json",
@@ -320,19 +321,19 @@
     ]
   },
   "test_suite_summary": {
-    "command": "/home/j/Desktop/inf.work/.venv/bin/python -m pytest --collect-only -q",
+    "command": "/tmp/inf.work/.venv/bin/python -m pytest --collect-only -q",
     "exit_code": 0,
-    "total_tests": 402,
+    "total_tests": 412,
     "pass_rate": 1.0,
     "status_counts": {
-      "passed": 402,
+      "passed": 412,
       "failed": 0,
       "skipped": 0,
       "xfailed": 0,
       "xpassed": 0,
       "errors": 0
     },
-    "summary_text": "402 passed in 211.73s (0:03:31)",
+    "summary_text": "412 passed in 125.18s (0:02:05)",
     "pending_or_skipped_tests": 0,
     "coverage_by_module": [
       {
@@ -391,7 +392,7 @@
       },
       {
         "module_path": "src/inf_work/system_status.py",
-        "coverage_percentage": 100,
+        "coverage_percentage": 93,
         "tracked_in_component_index": true,
         "coverage_flag": "meets_threshold"
       },
@@ -404,6 +405,30 @@
     ],
     "coverage_source": "ai_docs/test_coverage_snapshot.json",
     "summary_mode": "executed_via_pytest_cov"
+  },
+  "mutation_test_summary": {
+    "status": "results_available",
+    "summary_text": "0 killed, 0 survived, 0 no-test",
+    "total_mutants": 0,
+    "killed_mutants": 0,
+    "survived_mutants": 0,
+    "no_test_mutants": 0,
+    "timeout_mutants": 0,
+    "suspicious_mutants": 0,
+    "skipped_mutants": 0,
+    "mutation_score": 0.0,
+    "configured_targets": [
+      "src/inf_work/workspace_health.py",
+      "src/inf_work/core_reference.py",
+      "src/inf_work/rules.py",
+      "src/inf_work/remediation.py"
+    ],
+    "artifact_path": "ai_docs/mutation_test_snapshot.json",
+    "triage_summary": {
+      "status_counts": {},
+      "top_modules": [],
+      "top_functions": []
+    }
   },
   "knowledge_base_metrics": {
     "technique_count": 10,
@@ -616,7 +641,7 @@
     }
   },
   "resolver_capabilities": {
-    "workspace_root": "/home/j/Desktop/inf.work",
+    "workspace_root": "/tmp/inf.work",
     "inference_modes_supported": {
       "single_hop": true,
       "multi_hop_explicit": true,
@@ -653,7 +678,7 @@
     ],
     "traversal_examples": {
       "explicit": {
-        "workspace_root": "/home/j/Desktop/inf.work",
+        "workspace_root": "/tmp/inf.work",
         "traversal_mode": "explicit",
         "requested_path": [
           "workspace_governance",
@@ -688,7 +713,7 @@
         "failure_reason": null
       },
       "inferred": {
-        "workspace_root": "/home/j/Desktop/inf.work",
+        "workspace_root": "/tmp/inf.work",
         "traversal_mode": "inferred",
         "requested_path": [
           "workspace_governance",
@@ -814,6 +839,24 @@
       "command": "make refresh-artifacts",
       "task_label": "workspace: refresh-artifacts",
       "purpose": "Refresh the governed coverage snapshot and regenerate the canonical status artifacts in one deterministic pass."
+    },
+    {
+      "name": "Mutation pilot run",
+      "command": "make mutation",
+      "task_label": "workspace: mutation",
+      "purpose": "Run the bounded `mutmut` pilot against the configured governed Python slice."
+    },
+    {
+      "name": "Mutation results",
+      "command": "make mutation-results",
+      "task_label": "workspace: mutation-results",
+      "purpose": "Inspect the current `mutmut` survivor list without regenerating the pilot run."
+    },
+    {
+      "name": "Mutation snapshot refresh",
+      "command": "make mutation-snapshot",
+      "task_label": "workspace: mutation-snapshot",
+      "purpose": "Run the bounded `mutmut` pilot and write the canonical mutation summary snapshot consumed by the status artifacts."
     }
   ],
   "next_recommended_actions": []

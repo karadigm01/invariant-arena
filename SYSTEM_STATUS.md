@@ -1,7 +1,7 @@
 # System Status
 
-- **Generated At**: 2026-04-07T01:20:54Z
-- **Workspace Root**: `/home/j/Desktop/inf.work`
+- **Generated At**: 2026-07-27T21:35:53Z
+- **Workspace Root**: `/tmp/inf.work`
 - **Canonical Data**: `ai_docs/system_status_snapshot.json`
 - **Derived Artifact**: `SYSTEM_STATUS.md`
 
@@ -10,7 +10,7 @@
 - **Core Reference View**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 1 dependency, 2 dependents
 - **Validation Rule Engine**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 5 dependents
 - **Knowledge Base Cross-Reference Validator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 9 dependencies, 6 dependents
-- **System Status Generator**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 12 dependencies, 4 dependents
+- **System Status Generator**: healthy, 93% coverage, I1_I2_I3_I4_compliant; 13 dependencies, 4 dependents
 - **Package Public API Surface**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 0 dependents
 - **Unified CLI Entry Point**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 7 dependencies, 1 dependent
 - **Benchmark Harness**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 1 dependent
@@ -20,8 +20,8 @@
 - **System Status Governance Artifact**: healthy, 100% coverage, I1_I2_I3_I4_compliant; 2 dependencies, 0 dependents
 
 ## 2. Test Suite Summary
-- **Collected Tests**: 402
-- **Collection Summary**: 402 passed in 211.73s (0:03:31)
+- **Collected Tests**: 412
+- **Collection Summary**: 412 passed in 125.18s (0:02:05)
 - **Pass Rate**: 1.0
 - **Pending/Skipped**: 0
 - **src/inf_work/__init__.py**: 100% (tracked)
@@ -33,17 +33,27 @@
 - **src/inf_work/remediation.py**: 100% (tracked)
 - **src/inf_work/resolver_registry.py**: 100% (tracked)
 - **src/inf_work/rules.py**: 100% (tracked)
-- **src/inf_work/system_status.py**: 100% (tracked)
+- **src/inf_work/system_status.py**: 93% (tracked)
 - **src/inf_work/workspace_health.py**: 100% (tracked)
 
-## 3. Knowledge Base Metrics
+## 3. Mutation Testing Summary
+- **Status**: results_available
+- **Summary**: 0 killed, 0 survived, 0 no-test
+- **Mutation Score**: 0.0
+- **Mutant Totals**: 0 total; 0 killed; 0 survived; 0 no-test
+- **Hotspot Modules**: none recorded
+- **Hotspot Functions**: none recorded
+- **Configured Targets**: src/inf_work/workspace_health.py, src/inf_work/core_reference.py, src/inf_work/rules.py, src/inf_work/remediation.py
+- **Canonical Artifact**: `ai_docs/mutation_test_snapshot.json`
+
+## 4. Knowledge Base Metrics
 - **Technique Count**: 10 (latest: Focused Python mutation testing pilot)
 - **Innovation Count**: 2 (latest: innovation_bounded_resolver_multi_hop_enablement)
 - **Bug Fixes**: 1
 - **Automation Patterns**: 60
 - **Last KB Update**: 2026-04-04T00:00:00Z
 
-## 4. Recent Governance Highlights
+## 5. Recent Governance Highlights
 - **Session Count**: 58
 - **KB Highlights**: session `session_20260404_focused_python_mutation_testing_pilot (2026-04-04)`; automation `Focused mutmut operator surface (2026-04-04)`; technique `Focused Python mutation testing pilot (2026-04-04)`; bug fix `bugfix_core_reference_malformed_schema_arrays (2026-03-28)`
 - **Why It Matters**: Latest governance work focused on adding a focused `mutmut` pilot so the governed workspace can measure test effectiveness beyond 100% line and branch coverage.
@@ -51,7 +61,7 @@
 - **Outcome**: The workspace now has a practical Python-native mutation-testing surface that runs after the 100%-coverage milestone without requiring a whole-repo mutation pass on day one.
 - **Outcome**: The initial pilot completed successfully with a bounded sandbox and produced a baseline mutation result set that highlights surviving and untested mutants for targeted next-step test work.
 
-## 5. Schema/Contract Integrity
+## 6. Schema/Contract Integrity
 - **core_reference**: version 2.0.0
 - **behavioral_directives**: version 2.0.0
 - **component_index**: version 2.0.0
@@ -64,7 +74,7 @@
 - **Workspace Coherence**: healthy
 - **Dangling References**: 0 files, 0 docs
 
-## 6. Resolver Capabilities
+## 7. Resolver Capabilities
 - **Single-Hop**: True
 - **Multi-Hop Explicit**: True
 - **Multi-Hop Inferred**: True
@@ -76,19 +86,19 @@
 - **Explicit Route Example**: workspace_governance -> component_index -> knowledge_base_index
 - **Inferred Route Example**: workspace_governance -> knowledge_base_index
 
-## 7. Known Gaps & Technical Debt
+## 8. Known Gaps & Technical Debt
 - **0% Coverage Modules**: none
 - **Missing Automation Patterns**: none
 - **TODO/FIXME**: none detected outside archival backups
 - **Planned Features**: none recorded
 
-## 8. Architectural Invariant Compliance
+## 9. Architectural Invariant Compliance
 - **I1**: compliant — All registered components declare `I1_I2_I3_I4_compliant` in `component_index.json`.
 - **I2**: compliant — All registered components declare bounded memory profiles and no dynamic allocation subsystems are present.
 - **I3**: compliant — Workspace validation checks governed directories from `core_reference.json`.
 - **I4**: compliant — JSON-first component docs and knowledge-base references validate successfully; `SYSTEM_STATUS.md` is derived from structured status data.
 
-## 9. Operator Shortcuts
+## 10. Operator Shortcuts
 - **Aggregate report**: `make all-report` | VS Code task: `workspace: all` — Run the full aggregate governance report without remediation.
 - **Aggregate report with status remediation**: `make all-report-fix-status` | VS Code task: `workspace: all-fix-status` — Refresh stale status artifacts before running the aggregate governance report.
 - **Resolver integrity report**: `make resolver-report` | VS Code task: `workspace: resolver-only` — Run only the runtime-integrity resolver rules through the aggregate governance surface.
@@ -98,6 +108,9 @@
 - **Summary validation**: `make summary-check` | VS Code task: `workspace: summary-check` — Validate that `SYSTEM_SUMMARY.md` matches the current governed workspace state.
 - **Coverage snapshot refresh**: `make coverage-snapshot` | VS Code task: `workspace: coverage-snapshot` — Refresh `ai_docs/test_coverage_snapshot.json` from a real `pytest-cov` run before reviewing governed component coverage.
 - **Artifact refresh**: `make refresh-artifacts` | VS Code task: `workspace: refresh-artifacts` — Refresh the governed coverage snapshot and regenerate the canonical status artifacts in one deterministic pass.
+- **Mutation pilot run**: `make mutation` | VS Code task: `workspace: mutation` — Run the bounded `mutmut` pilot against the configured governed Python slice.
+- **Mutation results**: `make mutation-results` | VS Code task: `workspace: mutation-results` — Inspect the current `mutmut` survivor list without regenerating the pilot run.
+- **Mutation snapshot refresh**: `make mutation-snapshot` | VS Code task: `workspace: mutation-snapshot` — Run the bounded `mutmut` pilot and write the canonical mutation summary snapshot consumed by the status artifacts.
 
 ## Where to look first
 - **Guide**: `README.md` summarizes commands, validation surfaces, and governed workflow entry points.
@@ -106,5 +119,5 @@
 - **Component Registry**: `ai_docs/component_index.json` tracks governed components, dependencies, coverage metadata, and companion docs.
 - **KB Rollup**: `knowledge_base/kb_index.json` aggregates KB counts, freshness, lookup indices, and automation metrics.
 
-## 10. Next Recommended Actions
+## 11. Next Recommended Actions
 - **Actions**: no immediate follow-up recorded

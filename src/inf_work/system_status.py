@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections import Counter
+import configparser
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import os
@@ -19,6 +21,7 @@ from .workspace_health import validate_workspace
 _EXPECTED_EXPLICIT_ROUTE = ["workspace_governance", "component_index", "knowledge_base_index"]
 _EXPECTED_INFERRED_ROUTE = ["workspace_governance", "knowledge_base_index"]
 _DEFAULT_COVERAGE_SNAPSHOT_PATH = "ai_docs/test_coverage_snapshot.json"
+_DEFAULT_MUTATION_SNAPSHOT_PATH = "ai_docs/mutation_test_snapshot.json"
 _LEGACY_DEFAULT_GENERATED_AT = "2026-03-29T00:00:00Z"
 
 
@@ -31,6 +34,7 @@ class SystemStatusSnapshot:
     coverage_threshold: int
     component_health: dict[str, Any]
     test_suite_summary: dict[str, Any]
+    mutation_test_summary: dict[str, Any]
     knowledge_base_metrics: dict[str, Any]
     recent_session_activity: dict[str, Any]
     schema_contract_integrity: dict[str, Any]
@@ -287,12 +291,296 @@ def _load_test_coverage_snapshot(
     return _load_json(snapshot_path)
 
 
+def _load_mutation_test_snapshot(
+    root_path: Path,
+    mutation_snapshot_path: str = _DEFAULT_MUTATION_SNAPSHOT_PATH,
+) -> dict[str, Any] | None:
+    snapshot_path = root_path / mutation_snapshot_path
+    if not snapshot_path.is_file():
+        return None
+    return _load_json(snapshot_path)
+
+
+def _resolve_mutmut_executable(root_path: Path) -> str:
+    virtualenv_executable = root_path / ".venv" / "bin" / "mutmut"
+    if virtualenv_executable.is_file():
+        return str(virtualenv_executable)
+    return "mutmut"
+
+
+def _load_mutmut_configured_targets(root_path: Path) -> list[str]:
+    setup_cfg_path = root_path / "setup.cfg"
+    if not setup_cfg_path.is_file():
+        return []
+
+    parser = configparser.ConfigParser()
+    parser.read(setup_cfg_path, encoding="utf-8")
+    if not parser.has_section("mutmut"):
+        return []
+
+    raw_paths = parser.get("mutmut", "paths_to_mutate", fallback="")
+    return [line.strip() for line in raw_paths.splitlines() if line.strip()]
+
+
+def _parse_mutmut_run_summary(output_text: str) -> dict[str, int | float]:
+    counts = {
+        "killed_mutants": 0,
+        "survived_mutants": 0,
+        "no_test_mutants": 0,
+        "timeout_mutants": 0,
+        "suspicious_mutants": 0,
+        "skipped_mutants": 0,
+    }
+    patterns = {
+        "killed_mutants": [r"🎉\s*(\d+)", r"(?:^|\b)killed(?:\b|:)?[^\d]*(\d+)"],
+        "survived_mutants": [r"🙁\s*(\d+)", r"(?:^|\b)survived(?:\b|:)?[^\d]*(\d+)", r"(?:^|\b)survivors?(?:\b|:)?[^\d]*(\d+)"],
+        "no_test_mutants": [r"🫥\s*(\d+)", r"(?:^|\b)no tests?(?:\b|:)?[^\d]*(\d+)", r"(?:^|\b)untested(?:\b|:)?[^\d]*(\d+)"],
+        "timeout_mutants": [r"⏰\s*(\d+)", r"(?:^|\b)timeouts?(?:\b|:)?[^\d]*(\d+)"],
+        "suspicious_mutants": [r"🤔\s*(\d+)", r"(?:^|\b)suspicious(?:\b|:)?[^\d]*(\d+)"],
+        "skipped_mutants": [r"😴\s*(\d+)", r"(?:^|\b)skipped(?:\b|:)?[^\d]*(\d+)"],
+    }
+
+    for key, key_patterns in patterns.items():
+        for pattern in key_patterns:
+            match = re.search(pattern, output_text, flags=re.IGNORECASE | re.MULTILINE)
+            if match:
+                counts[key] = int(match.group(1))
+                break
+
+    total_mutants = sum(int(value) for value in counts.values())
+    mutation_score = 0.0 if total_mutants == 0 else round(int(counts["killed_mutants"]) / total_mutants, 4)
+    return {
+        **counts,
+        "total_mutants": total_mutants,
+        "mutation_score": mutation_score,
+    }
+
+
+def _format_mutation_summary(snapshot: dict[str, Any]) -> str:
+    status = str(snapshot.get("status", "not_run"))
+    if status == "not_run":
+        return "Mutation snapshot not yet captured"
+
+    killed = int(snapshot.get("killed_mutants", 0))
+    survived = int(snapshot.get("survived_mutants", 0))
+    no_test = int(snapshot.get("no_test_mutants", 0))
+    timeouts = int(snapshot.get("timeout_mutants", 0))
+    suspicious = int(snapshot.get("suspicious_mutants", 0))
+    if status == "failed" and not any([killed, survived, no_test, timeouts, suspicious]):
+        return "Mutation snapshot generation failed"
+    summary_segments = [
+        f"{killed} killed",
+        f"{survived} survived",
+        f"{no_test} no-test",
+    ]
+    if timeouts:
+        summary_segments.append(f"{timeouts} timeout")
+    if suspicious:
+        summary_segments.append(f"{suspicious} suspicious")
+    rendered_summary = ", ".join(summary_segments)
+    if status == "failed":
+        return f"Mutation snapshot generation failed; {rendered_summary}"
+    return rendered_summary
+
+
+def _parse_mutmut_result_lines(result_lines: list[str]) -> dict[str, int]:
+    counts = {
+        "killed_mutants": 0,
+        "survived_mutants": 0,
+        "no_test_mutants": 0,
+        "timeout_mutants": 0,
+        "suspicious_mutants": 0,
+        "skipped_mutants": 0,
+    }
+    for line in result_lines:
+        _, _, status_text = line.rpartition(":")
+        normalized_status = status_text.strip().lower()
+        if not normalized_status:
+            continue
+        if normalized_status in {"survived", "survivor"}:
+            counts["survived_mutants"] += 1
+        elif normalized_status in {"killed"}:
+            counts["killed_mutants"] += 1
+        elif normalized_status in {"not checked", "no tests", "untested"}:
+            counts["no_test_mutants"] += 1
+        elif normalized_status in {"timeout", "timed out"}:
+            counts["timeout_mutants"] += 1
+        elif normalized_status in {"suspicious"}:
+            counts["suspicious_mutants"] += 1
+        elif normalized_status in {"skipped"}:
+            counts["skipped_mutants"] += 1
+    return counts
+
+
+def _build_mutation_triage_summary(
+    result_lines: list[str],
+    *,
+    module_limit: int = 5,
+    function_limit: int = 8,
+) -> dict[str, Any]:
+    status_counts: Counter[str] = Counter()
+    module_counts: Counter[str] = Counter()
+    function_counts: Counter[str] = Counter()
+
+    for line in result_lines:
+        mutant_identifier, _, status_text = line.partition(":")
+        normalized_identifier = mutant_identifier.strip()
+        normalized_status = status_text.strip().lower()
+        if not normalized_identifier:
+            continue
+
+        if normalized_status:
+            status_counts[normalized_status] += 1
+
+        module_match = re.match(r"^(inf_work\.[^.]+)\.", normalized_identifier)
+        if module_match:
+            module_counts[module_match.group(1)] += 1
+
+        function_counts[re.sub(r"__mutmut_\d+$", "", normalized_identifier)] += 1
+
+    total_mutants = sum(status_counts.values())
+
+    def _build_hotspot_rows(counter: Counter[str], key_name: str, limit: int) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for identifier, mutant_count in counter.most_common(limit):
+            rows.append(
+                {
+                    key_name: identifier,
+                    "mutant_count": mutant_count,
+                    "share_of_total": 0.0 if total_mutants == 0 else round(mutant_count / total_mutants, 4),
+                }
+            )
+        return rows
+
+    return {
+        "status_counts": dict(sorted(status_counts.items())),
+        "top_modules": _build_hotspot_rows(module_counts, "module_path", module_limit),
+        "top_functions": _build_hotspot_rows(function_counts, "function_name", function_limit),
+    }
+
+
+def build_mutation_test_snapshot(
+    workspace_root: str | Path,
+    *,
+    mutation_snapshot_path: str = _DEFAULT_MUTATION_SNAPSHOT_PATH,
+) -> dict[str, Any]:
+    root_path = Path(workspace_root).resolve()
+    mutmut_executable = _resolve_mutmut_executable(root_path)
+    run_command = [mutmut_executable, "run", "--max-children", "1"]
+    completed = subprocess.run(
+        run_command,
+        cwd=root_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    results_command = [mutmut_executable, "results"]
+    results_completed = subprocess.run(
+        results_command,
+        cwd=root_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    combined_output = "\n".join(
+        chunk for chunk in [completed.stdout.strip(), completed.stderr.strip()] if chunk
+    )
+    result_lines = [line.strip() for line in results_completed.stdout.splitlines() if line.strip()]
+    parsed_counts = _parse_mutmut_run_summary(combined_output)
+    result_line_counts = _parse_mutmut_result_lines(result_lines)
+    for key, value in result_line_counts.items():
+        if int(parsed_counts.get(key, 0)) == 0 and value:
+            parsed_counts[key] = value
+    parsed_counts["total_mutants"] = sum(
+        int(parsed_counts[key])
+        for key in [
+            "killed_mutants",
+            "survived_mutants",
+            "no_test_mutants",
+            "timeout_mutants",
+            "suspicious_mutants",
+            "skipped_mutants",
+        ]
+    )
+    parsed_counts["mutation_score"] = (
+        0.0
+        if int(parsed_counts["total_mutants"]) == 0
+        else round(int(parsed_counts["killed_mutants"]) / int(parsed_counts["total_mutants"]), 4)
+    )
+    status = "results_available" if completed.returncode == 0 else "failed"
+
+    snapshot = {
+        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "workspace_root": str(root_path),
+        "mutation_command": " ".join(run_command),
+        "results_command": " ".join(results_command),
+        "artifact_source": mutation_snapshot_path,
+        "configured_targets": _load_mutmut_configured_targets(root_path),
+        "status": status,
+        "exit_code": completed.returncode,
+        "results_exit_code": results_completed.returncode,
+        **parsed_counts,
+        "summary_text": "",
+        "triage_summary": _build_mutation_triage_summary(result_lines),
+        "result_lines": result_lines,
+        "raw_results": results_completed.stdout.strip(),
+    }
+    snapshot["summary_text"] = _format_mutation_summary(snapshot)
+    return snapshot
+
+
+def write_mutation_test_snapshot(
+    workspace_root: str | Path,
+    *,
+    mutation_snapshot_path: str = _DEFAULT_MUTATION_SNAPSHOT_PATH,
+) -> dict[str, Any]:
+    root_path = Path(workspace_root).resolve()
+    snapshot = build_mutation_test_snapshot(root_path, mutation_snapshot_path=mutation_snapshot_path)
+    destination_path = root_path / mutation_snapshot_path
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    destination_path.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
+    return snapshot
+
+
 def _normalize_snapshot_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    normalized_payload = json.loads(json.dumps(payload))
+    normalized_payload = _coerce_snapshot_payload(payload)
     test_suite_summary = normalized_payload.get("test_suite_summary", {})
     test_suite_summary.pop("raw_summary", None)
     test_suite_summary.pop("command", None)
     test_suite_summary.pop("summary_mode", None)
+    mutation_test_summary = normalized_payload.get("mutation_test_summary", {})
+    mutation_test_summary.pop("result_lines", None)
+    mutation_test_summary.pop("raw_results", None)
+    mutation_test_summary.pop("mutation_command", None)
+    mutation_test_summary.pop("results_command", None)
+    return normalized_payload
+
+
+def _coerce_snapshot_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    normalized_payload = json.loads(json.dumps(payload))
+    normalized_payload.setdefault(
+        "mutation_test_summary",
+        {
+            "status": "not_run",
+            "summary_text": "Mutation snapshot not yet captured",
+            "total_mutants": 0,
+            "killed_mutants": 0,
+            "survived_mutants": 0,
+            "no_test_mutants": 0,
+            "timeout_mutants": 0,
+            "suspicious_mutants": 0,
+            "skipped_mutants": 0,
+            "mutation_score": 0.0,
+            "configured_targets": [],
+            "artifact_path": _DEFAULT_MUTATION_SNAPSHOT_PATH,
+            "triage_summary": {
+                "status_counts": {},
+                "top_modules": [],
+                "top_functions": [],
+            },
+        },
+    )
     return normalized_payload
 
 
@@ -306,6 +594,7 @@ def _derive_status_generated_at(root_path: Path) -> str:
     kb_index = _load_json(root_path / "knowledge_base" / "kb_index.json")
     session_history = _load_json(root_path / "knowledge_base" / "session_history.json")
     coverage_snapshot = _load_test_coverage_snapshot(root_path)
+    mutation_snapshot = _load_mutation_test_snapshot(root_path)
 
     derived_timestamp = _max_timestamp(
         [
@@ -313,6 +602,7 @@ def _derive_status_generated_at(root_path: Path) -> str:
             _normalize_utc_timestamp(str(kb_index.get("last_updated", ""))),
             _normalize_utc_timestamp(str(session_history.get("metadata", {}).get("last_session", ""))),
             _normalize_utc_timestamp(str((coverage_snapshot or {}).get("generated_at", ""))),
+            _normalize_utc_timestamp(str((mutation_snapshot or {}).get("generated_at", ""))),
         ]
     )
     return derived_timestamp or _LEGACY_DEFAULT_GENERATED_AT
@@ -482,6 +772,54 @@ def _collect_test_suite_summary(root_path: Path, coverage_threshold: int) -> dic
         "coverage_by_module": coverage_by_module,
         "coverage_source": _DEFAULT_COVERAGE_SNAPSHOT_PATH if coverage_snapshot else "component_index_fallback",
         "summary_mode": summary_mode,
+    }
+
+
+def _collect_mutation_test_summary(root_path: Path) -> dict[str, Any]:
+    mutation_snapshot = _load_mutation_test_snapshot(root_path)
+    configured_targets = _load_mutmut_configured_targets(root_path)
+    if mutation_snapshot is None:
+        return {
+            "status": "not_run",
+            "summary_text": "Mutation snapshot not yet captured",
+            "total_mutants": 0,
+            "killed_mutants": 0,
+            "survived_mutants": 0,
+            "no_test_mutants": 0,
+            "timeout_mutants": 0,
+            "suspicious_mutants": 0,
+            "skipped_mutants": 0,
+            "mutation_score": 0.0,
+            "configured_targets": configured_targets,
+            "artifact_path": _DEFAULT_MUTATION_SNAPSHOT_PATH,
+            "triage_summary": {
+                "status_counts": {},
+                "top_modules": [],
+                "top_functions": [],
+            },
+        }
+
+    return {
+        "status": str(mutation_snapshot.get("status", "results_available")),
+        "summary_text": str(mutation_snapshot.get("summary_text", _format_mutation_summary(mutation_snapshot))),
+        "total_mutants": int(mutation_snapshot.get("total_mutants", 0)),
+        "killed_mutants": int(mutation_snapshot.get("killed_mutants", 0)),
+        "survived_mutants": int(mutation_snapshot.get("survived_mutants", 0)),
+        "no_test_mutants": int(mutation_snapshot.get("no_test_mutants", 0)),
+        "timeout_mutants": int(mutation_snapshot.get("timeout_mutants", 0)),
+        "suspicious_mutants": int(mutation_snapshot.get("suspicious_mutants", 0)),
+        "skipped_mutants": int(mutation_snapshot.get("skipped_mutants", 0)),
+        "mutation_score": float(mutation_snapshot.get("mutation_score", 0.0)),
+        "configured_targets": mutation_snapshot.get("configured_targets", configured_targets),
+        "artifact_path": _DEFAULT_MUTATION_SNAPSHOT_PATH,
+        "triage_summary": mutation_snapshot.get(
+            "triage_summary",
+            {
+                "status_counts": {},
+                "top_modules": [],
+                "top_functions": [],
+            },
+        ),
     }
 
 
@@ -771,6 +1109,24 @@ def _collect_operator_shortcuts() -> list[dict[str, Any]]:
             "task_label": "workspace: refresh-artifacts",
             "purpose": "Refresh the governed coverage snapshot and regenerate the canonical status artifacts in one deterministic pass.",
         },
+        {
+            "name": "Mutation pilot run",
+            "command": "make mutation",
+            "task_label": "workspace: mutation",
+            "purpose": "Run the bounded `mutmut` pilot against the configured governed Python slice.",
+        },
+        {
+            "name": "Mutation results",
+            "command": "make mutation-results",
+            "task_label": "workspace: mutation-results",
+            "purpose": "Inspect the current `mutmut` survivor list without regenerating the pilot run.",
+        },
+        {
+            "name": "Mutation snapshot refresh",
+            "command": "make mutation-snapshot",
+            "task_label": "workspace: mutation-snapshot",
+            "purpose": "Run the bounded `mutmut` pilot and write the canonical mutation summary snapshot consumed by the status artifacts.",
+        },
     ]
 
 
@@ -933,7 +1289,8 @@ def render_system_summary_markdown(
             f"**Last Updated:** {last_updated_date}  ",
             f"**Total Components:** {snapshot.component_health['total_components']}  ",
             f"**System Health:** {system_health}  ",
-            f"**Test Suite Summary:** {snapshot.test_suite_summary['summary_text']}",
+            f"**Test Suite Summary:** {snapshot.test_suite_summary['summary_text']}  ",
+            f"**Mutation Testing:** {snapshot.mutation_test_summary['summary_text']}",
             "",
             "## Architecture",
             "",
@@ -941,11 +1298,11 @@ def render_system_summary_markdown(
             "- **Validation Rule Engine:** `src/inf_work/rules.py` registers deterministic rules and standardized rule results for all validators.",
             "- **KB Integrity Validator:** `src/inf_work/kb_integrity.py` validates technique and component cross references across `knowledge_base/` and `ai_docs/`.",
             "- **Workspace Health Checker:** `src/inf_work/workspace_health.py` validates governed directories from `core_reference.json`.",
-            "- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures execution-backed test summaries with collection fallback, and validates both artifacts through status-domain rules.",
+            "- **System Status Generator:** `src/inf_work/system_status.py` generates the structured system snapshot, derives `SYSTEM_STATUS.md`, captures execution-backed test summaries with collection fallback plus governed mutation-summary snapshots, and validates both artifacts through status-domain rules.",
             "- **System Status Artifact:** `SYSTEM_STATUS.md` is the human-facing governance snapshot derived from `ai_docs/system_status_snapshot.json`.",
             "- **CLI Entry Point:** `src/inf_work/__main__.py` exposes unified `all`, `workspace`, `kb`, `status`, `status-check`, `summary-check`, and `remediation-plan` commands with rule filtering, named rule profiles, `rule_id` selection, severity-based exit policy, grouped summaries, targeted summary remediation, `status-check --fix` remediation, aggregate `all --fix-status` repair support for stale status artifacts, explicit governed status-refresh intent routing, and bounded remediation slices for status-artifact drift plus package-export source synchronization.",
             "- **CI Check:** `.github/workflows/validator-check.yml` runs focused tests, metadata integrity checks, validator smoke checks, and KB cross-reference smoke checks.",
-            "- **Local Check Shortcut:** `Makefile` and `.vscode/tasks.json` support `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, and the matching `workspace:*` tasks using `.venv`; `make check` regenerates then validates the canonical status artifacts.",
+            "- **Local Check Shortcut:** `Makefile` and `.vscode/tasks.json` support `make bootstrap`, `make`, `make check`, `make test`, `make smoke`, `make kb-check`, `make all-report`, `make all-report-fix-status`, `make resolver-report`, `make component-report`, `make status`, `make status-check`, `make summary-check`, `make coverage-snapshot`, `make refresh-artifacts`, `make mutation`, `make mutation-results`, `make mutation-snapshot`, and the matching `workspace:*` tasks using `.venv`; `make check` regenerates then validates the canonical status artifacts.",
             shortcut_pairs_line,
             "",
             "## Where to look first",
@@ -1041,6 +1398,7 @@ def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]
     resolver_capabilities = snapshot.get("resolver_capabilities", {})
     schema_contract_integrity = snapshot.get("schema_contract_integrity", {})
     test_suite_summary = snapshot.get("test_suite_summary", {})
+    mutation_test_summary = snapshot.get("mutation_test_summary", {})
 
     below_threshold_components = component_health.get("below_threshold_components", [])
     zero_coverage_components = known_gaps.get("components_with_zero_percent_coverage", [])
@@ -1175,6 +1533,46 @@ def _build_recommended_actions(snapshot: dict[str, Any]) -> list[dict[str, Any]]
             }
         )
 
+    mutation_status = str(mutation_test_summary.get("status", "")) if mutation_test_summary else ""
+    survived_mutants = int(mutation_test_summary.get("survived_mutants", 0)) if mutation_test_summary else 0
+    no_test_mutants = int(mutation_test_summary.get("no_test_mutants", 0)) if mutation_test_summary else 0
+    timeout_mutants = int(mutation_test_summary.get("timeout_mutants", 0)) if mutation_test_summary else 0
+    suspicious_mutants = int(mutation_test_summary.get("suspicious_mutants", 0)) if mutation_test_summary else 0
+    triage_summary = mutation_test_summary.get("triage_summary", {}) if mutation_test_summary else {}
+    hotspot_modules = triage_summary.get("top_modules", []) if isinstance(triage_summary, dict) else []
+    if mutation_test_summary and mutation_status == "not_run":
+        actions.append(
+            {
+                "priority": 3,
+                "action": "Capture the governed mutation snapshot for the configured `mutmut` pilot.",
+                "reason": "Mutation testing is configured in `setup.cfg`, but `ai_docs/mutation_test_snapshot.json` has not been generated yet.",
+                "complexity": "medium",
+            }
+        )
+    elif mutation_test_summary and (survived_mutants or no_test_mutants or timeout_mutants or suspicious_mutants):
+        mutation_signals: list[str] = []
+        if survived_mutants:
+            mutation_signals.append(f"{survived_mutants} surviving mutants")
+        if no_test_mutants:
+            mutation_signals.append(f"{no_test_mutants} no-test mutants")
+        if timeout_mutants:
+            mutation_signals.append(f"{timeout_mutants} timeout mutants")
+        if suspicious_mutants:
+            mutation_signals.append(f"{suspicious_mutants} suspicious mutants")
+        if hotspot_modules:
+            top_hotspot = hotspot_modules[0]
+            mutation_signals.append(
+                f"{top_hotspot.get('module_path', 'unknown_module')} concentrated at {top_hotspot.get('mutant_count', 0)} mutants"
+            )
+        actions.append(
+            {
+                "priority": 2,
+                "action": "Triage the mutation-testing gaps before widening the governed `mutmut` slice.",
+                "reason": ", ".join(mutation_signals),
+                "complexity": "medium",
+            }
+        )
+
     registered_tiles = resolver_capabilities.get("registered_tiles", [])
     tiles_missing_signatures = [
         tile.get("tile_id", "unknown_tile")
@@ -1217,6 +1615,7 @@ def build_system_status_snapshot(
 
     component_health = _collect_component_health(root_path, coverage_threshold)
     test_suite_summary = _collect_test_suite_summary(root_path, coverage_threshold)
+    mutation_test_summary = _collect_mutation_test_summary(root_path)
     knowledge_base_metrics = _collect_knowledge_base_metrics(root_path)
     recent_session_activity = _collect_recent_session_activity(root_path)
     schema_contract_integrity = _collect_schema_contract_integrity(root_path)
@@ -1234,6 +1633,7 @@ def build_system_status_snapshot(
         coverage_threshold=coverage_threshold,
         component_health=component_health,
         test_suite_summary=test_suite_summary,
+        mutation_test_summary=mutation_test_summary,
         knowledge_base_metrics=knowledge_base_metrics,
         recent_session_activity=recent_session_activity,
         schema_contract_integrity=schema_contract_integrity,
@@ -1258,7 +1658,7 @@ def _build_status_context(
     snapshot_path = root_path / canonical_json_path
     markdown_path = root_path / derived_markdown_path
     summary_file = root_path / summary_path
-    existing_snapshot = _load_json(snapshot_path) if snapshot_path.is_file() else None
+    existing_snapshot = _coerce_snapshot_payload(_load_json(snapshot_path)) if snapshot_path.is_file() else None
     existing_markdown = _read_text(markdown_path) if markdown_path.is_file() else None
     existing_summary = _read_text(summary_file) if summary_file.is_file() else None
     regenerated_snapshot = None
@@ -1653,6 +2053,15 @@ def render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str:
         f"- **{tile['tile_id']}**: `{tile['capability_signature']}` ({tile['inference_mode']}) -> `{tile['target_path']}`"
         for tile in payload["resolver_capabilities"]["registered_tiles"]
     ] or ["- **Registered Tile Contracts**: none recorded"]
+    mutation_triage_summary = payload["mutation_test_summary"].get("triage_summary", {})
+    mutation_hotspot_modules = mutation_triage_summary.get("top_modules", []) if isinstance(mutation_triage_summary, dict) else []
+    mutation_hotspot_functions = mutation_triage_summary.get("top_functions", []) if isinstance(mutation_triage_summary, dict) else []
+    hotspot_modules_text = "; ".join(
+        f"{entry['module_path']} ({entry['mutant_count']})" for entry in mutation_hotspot_modules
+    ) or "none recorded"
+    hotspot_functions_text = "; ".join(
+        f"{entry['function_name']} ({entry['mutant_count']})" for entry in mutation_hotspot_functions[:5]
+    ) or "none recorded"
 
     return "\n".join(
         [
@@ -1673,23 +2082,33 @@ def render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str:
             f"- **Pending/Skipped**: {payload['test_suite_summary']['pending_or_skipped_tests']}",
             *coverage_lines,
             "",
-            "## 3. Knowledge Base Metrics",
+            "## 3. Mutation Testing Summary",
+            f"- **Status**: {payload['mutation_test_summary']['status']}",
+            f"- **Summary**: {payload['mutation_test_summary']['summary_text']}",
+            f"- **Mutation Score**: {payload['mutation_test_summary']['mutation_score']}",
+            f"- **Mutant Totals**: {payload['mutation_test_summary']['total_mutants']} total; {payload['mutation_test_summary']['killed_mutants']} killed; {payload['mutation_test_summary']['survived_mutants']} survived; {payload['mutation_test_summary']['no_test_mutants']} no-test",
+            f"- **Hotspot Modules**: {hotspot_modules_text}",
+            f"- **Hotspot Functions**: {hotspot_functions_text}",
+            f"- **Configured Targets**: {', '.join(payload['mutation_test_summary']['configured_targets']) or 'none recorded'}",
+            f"- **Canonical Artifact**: `{payload['mutation_test_summary']['artifact_path']}`",
+            "",
+            "## 4. Knowledge Base Metrics",
             f"- **Technique Count**: {payload['knowledge_base_metrics']['technique_count']} (latest: {latest_technique_text})",
             f"- **Innovation Count**: {payload['knowledge_base_metrics']['innovation_count']} (latest: {latest_innovation_text})",
             f"- **Bug Fixes**: {payload['knowledge_base_metrics']['bug_fix_count']}",
             f"- **Automation Patterns**: {payload['knowledge_base_metrics']['automation_pattern_count']}",
             f"- **Last KB Update**: {payload['knowledge_base_metrics']['last_kb_update_timestamp']}",
             "",
-            "## 4. Recent Governance Highlights",
+            "## 5. Recent Governance Highlights",
             *recent_governance_lines,
             "",
-            "## 5. Schema/Contract Integrity",
+            "## 6. Schema/Contract Integrity",
             *schema_lines,
             f"- **Cross-Reference Validation**: {'healthy' if payload['schema_contract_integrity']['cross_reference_validation']['compliant'] else 'issues_detected'}",
             f"- **Workspace Coherence**: {'healthy' if payload['schema_contract_integrity']['workspace_coherence_validation']['compliant'] else 'issues_detected'}",
             f"- **Dangling References**: {dangling_reference_text}",
             "",
-            "## 6. Resolver Capabilities",
+            "## 7. Resolver Capabilities",
             f"- **Single-Hop**: {payload['resolver_capabilities']['inference_modes_supported']['single_hop']}",
             f"- **Multi-Hop Explicit**: {payload['resolver_capabilities']['inference_modes_supported']['multi_hop_explicit']}",
             f"- **Multi-Hop Inferred**: {payload['resolver_capabilities']['inference_modes_supported']['multi_hop_inferred']}",
@@ -1699,22 +2118,22 @@ def render_system_status_markdown(snapshot: SystemStatusSnapshot) -> str:
             f"- **Explicit Route Example**: {explicit_route_text}",
             f"- **Inferred Route Example**: {inferred_route_text}",
             "",
-            "## 7. Known Gaps & Technical Debt",
+            "## 8. Known Gaps & Technical Debt",
             f"- **0% Coverage Modules**: {', '.join(payload['known_gaps_technical_debt']['components_with_zero_percent_coverage']) or 'none'}",
             f"- **Missing Automation Patterns**: {', '.join(payload['known_gaps_technical_debt']['missing_automation_patterns']) or 'none'}",
             *todo_lines,
             *gap_lines,
             "",
-            "## 8. Architectural Invariant Compliance",
+            "## 9. Architectural Invariant Compliance",
             *invariant_lines,
             "",
-            "## 9. Operator Shortcuts",
+            "## 10. Operator Shortcuts",
             *operator_shortcut_lines,
             "",
             "## Where to look first",
             *where_to_look_first_lines,
             "",
-            "## 10. Next Recommended Actions",
+            "## 11. Next Recommended Actions",
             *recommended_action_lines,
         ]
     ) + "\n"

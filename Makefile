@@ -1,4 +1,4 @@
-.PHONY: bootstrap check test smoke kb-check all-report all-report-fix-status resolver-report component-report status status-check summary-check coverage-snapshot refresh-artifacts benchmark mutation mutation-results
+.PHONY: bootstrap check test smoke kb-check all-report all-report-fix-status resolver-report component-report status status-check summary-check coverage-snapshot mutation-snapshot refresh-artifacts benchmark mutation mutation-results
 
 PYTHONPATH_SRC := $(CURDIR)/src
 SYSTEM_PYTHON := /usr/bin/python3
@@ -44,6 +44,9 @@ summary-check:
 
 coverage-snapshot:
 	$(PYTHON) -m inf_work coverage-snapshot . --pretty
+
+mutation-snapshot:
+	$(PYTHON) -m inf_work mutation-snapshot . --pretty
 
 refresh-artifacts:
 	$(PYTHON) -m inf_work refresh-artifacts . --pretty

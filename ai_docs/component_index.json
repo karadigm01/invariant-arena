@@ -16,7 +16,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-28T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -46,7 +46,7 @@
         "resolver_capability_registry"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -79,7 +79,7 @@
         "workspace_health_checker"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -121,7 +121,7 @@
         "validation_rule_engine"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -148,6 +148,7 @@
         "src/inf_work/kb_integrity.py",
         "src/inf_work/resolver_registry.py",
         "ai_docs/test_coverage_snapshot.json",
+        "ai_docs/mutation_test_snapshot.json",
         "ai_docs/component_index.json",
         "knowledge_base/techniques.json",
         "knowledge_base/bug_fixes.json",
@@ -164,9 +165,9 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-29T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
-      "test_coverage_percentage": 100,
+      "test_coverage_percentage": 93,
       "compliance_status": "I1_I2_I3_I4_compliant",
       "performance_metrics": {
         "response_latency_target": "<5s",
@@ -198,7 +199,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -234,7 +235,7 @@
         "kb_check_compatibility_wrapper"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -265,7 +266,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-04-03T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -293,7 +294,7 @@
       ],
       "dependents": [],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -324,7 +325,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-04-03T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -356,7 +357,7 @@
         "unified_cli_entry_point"
       ],
       "creation_timestamp": "2026-03-31T00:00:00Z",
-      "last_modified_timestamp": "2026-04-07T01:20:54Z",
+      "last_modified_timestamp": "2026-07-27T21:35:53Z",
       "health_status": "healthy",
       "test_coverage_percentage": 100,
       "compliance_status": "I1_I2_I3_I4_compliant",
@@ -402,7 +403,7 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-04-07T01:20:54Z",
+    "last_updated": "2026-07-27T21:35:53Z",
     "total_components": 12,
     "schema_version": "2.0.0"
   },
