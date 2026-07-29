@@ -1,4 +1,4 @@
-# inf.work
+# Invariant Arena
 
 A deterministic workspace-governance engine that validates a repository's code, configuration, documentation, tests, and generated metadata against a single machine-readable contract — and repairs two currently supported classes of drift through bounded, verified, rollback-capable remediation.
 
